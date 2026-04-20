@@ -11,9 +11,10 @@ export class CreateStoreOfferDto {
   @IsString()
   productId: string;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
-  priceInCents: number;
+  priceInCents?: number;
 
   @IsOptional()
   @IsNumber()

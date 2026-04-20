@@ -4,7 +4,7 @@ export class UpdateStoreOfferDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  priceInCents?: number;
+  priceInCents?: number | null;
 
   @IsOptional()
   @IsNumber()

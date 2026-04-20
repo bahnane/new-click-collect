@@ -70,6 +70,7 @@ model Product {
   name        String   @db.VarChar(191)
   description String?  @db.Text
   saleUnit    SaleUnit @default(UNIT)
+  priceInCents Int?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -85,7 +86,7 @@ model StoreOffer {
   id           String   @id @default(cuid())
   merchantId   String
   productId    String
-  priceInCents Int
+  priceInCents Int?
   minOrderQty  Decimal  @default(1) @db.Decimal(10, 3)
   stepQty      Decimal  @default(1) @db.Decimal(10, 3)
   isActive     Boolean  @default(true)

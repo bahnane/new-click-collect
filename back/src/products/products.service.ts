@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -22,6 +23,7 @@ export class ProductsService {
         name: dto.name,
         description: dto.description,
         saleUnit: dto.saleUnit,
+        priceInCents: dto.priceInCents,
       },
     });
   }
@@ -30,7 +32,13 @@ export class ProductsService {
     return this.prisma.product.findMany({
       where: { isActive: true },
       orderBy: { name: 'asc' },
-      select: { id: true, name: true, description: true, saleUnit: true },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        saleUnit: true,
+        priceInCents: true,
+      },
     });
   }
 
@@ -61,7 +69,7 @@ export class ProductsService {
 
   async createOffer(userId: string, dto: CreateStoreOfferDto) {
     const profile = await this.resolveMerchantProfile(userId);
-    await this.findProductOrFail(dto.productId);
+    const product = await this.findProductOrFail(dto.productId);
 
     const existing = await this.prisma.storeOffer.findUnique({
       where: {
@@ -75,47 +83,135 @@ export class ProductsService {
       throw new ConflictException('You already have an offer for this product');
     }
 
-    return this.prisma.storeOffer.create({
-      data: {
-        merchantId: profile.id,
-        productId: dto.productId,
-        priceInCents: dto.priceInCents,
-        minOrderQty: dto.minOrderQty ?? 1,
-        stepQty: dto.stepQty ?? 1,
-      },
-      include: { product: true },
-    });
+    if (dto.priceInCents == null && product.priceInCents == null) {
+      throw new BadRequestException(
+        'A product default price or an offer override price is required',
+      );
+    }
+
+    return this.prisma.storeOffer
+      .create({
+        data: {
+          merchantId: profile.id,
+          productId: dto.productId,
+          priceInCents: dto.priceInCents,
+          minOrderQty: dto.minOrderQty ?? 1,
+          stepQty: dto.stepQty ?? 1,
+        },
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              saleUnit: true,
+              priceInCents: true,
+            },
+          },
+        },
+      })
+      .then((offer) => ({
+        ...offer,
+        defaultPriceInCents: offer.product.priceInCents,
+        overridePriceInCents: offer.priceInCents,
+        effectivePriceInCents: offer.priceInCents ?? offer.product.priceInCents,
+        isOverridden: offer.priceInCents != null,
+      }));
   }
 
   async getMyOffers(userId: string) {
     const profile = await this.resolveMerchantProfile(userId);
-    return this.prisma.storeOffer.findMany({
+    const offers = await this.prisma.storeOffer.findMany({
       where: { merchantId: profile.id },
       orderBy: { createdAt: 'desc' },
-      include: { product: true },
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            saleUnit: true,
+            priceInCents: true,
+          },
+        },
+      },
     });
+
+    return offers.map((offer) => ({
+      ...offer,
+      defaultPriceInCents: offer.product.priceInCents,
+      overridePriceInCents: offer.priceInCents,
+      effectivePriceInCents: offer.priceInCents ?? offer.product.priceInCents,
+      isOverridden: offer.priceInCents != null,
+    }));
   }
 
   async updateOffer(userId: string, offerId: string, dto: UpdateStoreOfferDto) {
     const profile = await this.resolveMerchantProfile(userId);
-    await this.assertOfferOwnership(offerId, profile.id);
+    const existingOffer = await this.assertOfferOwnership(offerId, profile.id);
 
-    return this.prisma.storeOffer.update({
-      where: { id: offerId },
-      data: dto,
-      include: { product: true },
-    });
+    if (dto.priceInCents === null) {
+      const product = await this.findProductOrFail(existingOffer.productId);
+      if (product.priceInCents == null) {
+        throw new BadRequestException(
+          'Cannot clear offer override when product has no default price',
+        );
+      }
+    }
+
+    return this.prisma.storeOffer
+      .update({
+        where: { id: offerId },
+        data: dto,
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              saleUnit: true,
+              priceInCents: true,
+            },
+          },
+        },
+      })
+      .then((offer) => ({
+        ...offer,
+        defaultPriceInCents: offer.product.priceInCents,
+        overridePriceInCents: offer.priceInCents,
+        effectivePriceInCents: offer.priceInCents ?? offer.product.priceInCents,
+        isOverridden: offer.priceInCents != null,
+      }));
   }
 
   async toggleOffer(userId: string, offerId: string) {
     const profile = await this.resolveMerchantProfile(userId);
     const offer = await this.assertOfferOwnership(offerId, profile.id);
 
-    return this.prisma.storeOffer.update({
-      where: { id: offerId },
-      data: { isActive: !offer.isActive },
-      include: { product: true },
-    });
+    return this.prisma.storeOffer
+      .update({
+        where: { id: offerId },
+        data: { isActive: !offer.isActive },
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              saleUnit: true,
+              priceInCents: true,
+            },
+          },
+        },
+      })
+      .then((updatedOffer) => ({
+        ...updatedOffer,
+        defaultPriceInCents: updatedOffer.product.priceInCents,
+        overridePriceInCents: updatedOffer.priceInCents,
+        effectivePriceInCents:
+          updatedOffer.priceInCents ?? updatedOffer.product.priceInCents,
+        isOverridden: updatedOffer.priceInCents != null,
+      }));
   }
 
   // ── Public ───────────────────────────────────────────────────────────────
@@ -129,15 +225,34 @@ export class ProductsService {
       throw new NotFoundException('Merchant not found');
     }
 
-    return this.prisma.storeOffer.findMany({
+    const offers = await this.prisma.storeOffer.findMany({
       where: { merchantId: merchantProfileId, isActive: true },
       orderBy: { product: { name: 'asc' } },
       include: {
         product: {
-          select: { id: true, name: true, description: true, saleUnit: true },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            saleUnit: true,
+            priceInCents: true,
+          },
         },
       },
     });
+
+    return offers
+      .filter(
+        (offer) =>
+          offer.priceInCents != null || offer.product.priceInCents != null,
+      )
+      .map((offer) => ({
+        ...offer,
+        defaultPriceInCents: offer.product.priceInCents,
+        overridePriceInCents: offer.priceInCents,
+        effectivePriceInCents: offer.priceInCents ?? offer.product.priceInCents,
+        isOverridden: offer.priceInCents != null,
+      }));
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
