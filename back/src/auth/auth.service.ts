@@ -536,6 +536,7 @@ export class AuthService {
   }
 
   private getRefreshCookieOptions(): CookieOptions {
+    // TODO: COOKIE_SAMESITE & COOKIE_SECURE values
     const sameSiteRaw =
       this.configService.get<string>('COOKIE_SAMESITE')?.toLowerCase() ?? 'lax';
     const sameSite: CookieOptions['sameSite'] =
