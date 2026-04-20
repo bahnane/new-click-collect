@@ -1,5 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { ConflictException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Role, UserStatus } from '@prisma/client';
 import * as argon2 from 'argon2';
@@ -8,6 +11,10 @@ import { generateOpaqueToken, hashToken } from '../common/utils/token.util';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMerchantDto } from './dto/create-merchant.dto';
+import {
+  UpdateMerchantProfileDto,
+  UpdateMerchantStatusDto,
+} from './dto/update-merchant-profile.dto';
 import { normalizeEmail } from 'src/common/utils/mail.utils';
 
 @Injectable()
@@ -87,5 +94,78 @@ export class MerchantsService {
       mustChangePassword: createdUser.mustChangePassword,
       inviteExpiresAt,
     };
+  }
+
+  async getMyProfile(userId: string) {
+    const profile = await this.prisma.merchantProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Merchant profile not found');
+    }
+
+    return profile;
+  }
+
+  async updateMyProfile(userId: string, dto: UpdateMerchantProfileDto) {
+    const profile = await this.prisma.merchantProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Merchant profile not found');
+    }
+
+    return this.prisma.merchantProfile.update({
+      where: { userId },
+      data: dto,
+    });
+  }
+
+  async listAllMerchants() {
+    return this.prisma.merchantProfile.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: { id: true, email: true, status: true, lastLoginAt: true },
+        },
+      },
+    });
+  }
+
+  async getMerchantById(merchantProfileId: string) {
+    const profile = await this.prisma.merchantProfile.findUnique({
+      where: { id: merchantProfileId },
+      include: {
+        user: {
+          select: { id: true, email: true, status: true, lastLoginAt: true },
+        },
+      },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Merchant not found');
+    }
+
+    return profile;
+  }
+
+  async updateMerchantStatus(
+    merchantProfileId: string,
+    dto: UpdateMerchantStatusDto,
+  ) {
+    const profile = await this.prisma.merchantProfile.findUnique({
+      where: { id: merchantProfileId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Merchant not found');
+    }
+
+    return this.prisma.merchantProfile.update({
+      where: { id: merchantProfileId },
+      data: { isActive: dto.isActive },
+    });
   }
 }

@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { MerchantsModule } from './merchants/merchants.module';
 import { MailModule } from './mail/mail.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ProductsModule } from './products/products.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PrismaModule } from './prisma/prisma.module';
     UsersModule,
     MerchantsModule,
     MailModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

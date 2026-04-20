@@ -18,13 +18,48 @@ CREATE TABLE `users` (
 CREATE TABLE `merchant_profiles` (
     `id` VARCHAR(191) NOT NULL,
     `userId` VARCHAR(191) NOT NULL,
-    `storeName` VARCHAR(191) NOT NULL,
-    `phone` VARCHAR(191) NULL,
-    `address` VARCHAR(191) NULL,
+    `storeName` VARCHAR(120) NOT NULL,
+    `description` TEXT NULL,
+    `phone` VARCHAR(30) NULL,
+    `address` VARCHAR(255) NULL,
+    `city` VARCHAR(100) NULL,
+    `zipCode` VARCHAR(10) NULL,
+    `isActive` BOOLEAN NOT NULL DEFAULT true,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `merchant_profiles_userId_key`(`userId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `products` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `description` TEXT NULL,
+    `saleUnit` ENUM('KG', 'G', 'LITER', 'UNIT', 'PORTION') NOT NULL DEFAULT 'UNIT',
+    `isActive` BOOLEAN NOT NULL DEFAULT true,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `products_name_idx`(`name`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `store_offers` (
+    `id` VARCHAR(191) NOT NULL,
+    `merchantId` VARCHAR(191) NOT NULL,
+    `productId` VARCHAR(191) NOT NULL,
+    `priceInCents` INTEGER NOT NULL,
+    `minOrderQty` DECIMAL(10, 3) NOT NULL DEFAULT 1,
+    `stepQty` DECIMAL(10, 3) NOT NULL DEFAULT 1,
+    `isActive` BOOLEAN NOT NULL DEFAULT true,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `store_offers_merchantId_isActive_idx`(`merchantId`, `isActive`),
+    UNIQUE INDEX `store_offers_merchantId_productId_key`(`merchantId`, `productId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -72,6 +107,12 @@ CREATE TABLE `invite_tokens` (
 
 -- AddForeignKey
 ALTER TABLE `merchant_profiles` ADD CONSTRAINT `merchant_profiles_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `store_offers` ADD CONSTRAINT `store_offers_merchantId_fkey` FOREIGN KEY (`merchantId`) REFERENCES `merchant_profiles`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `store_offers` ADD CONSTRAINT `store_offers_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `products`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `refresh_tokens` ADD CONSTRAINT `refresh_tokens_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
