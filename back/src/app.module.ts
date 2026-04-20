@@ -8,6 +8,9 @@ import { MerchantsModule } from './merchants/merchants.module';
 import { MailModule } from './mail/mail.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProductsModule } from './products/products.module';
+import { CartModule } from './cart/cart.module';
+import { OrdersModule } from './orders/orders.module';
+import { PickupSlotsModule } from './pickup-slots/pickup-slots.module';
 
 @Module({
   imports: [
@@ -18,6 +21,9 @@ import { ProductsModule } from './products/products.module';
     MerchantsModule,
     MailModule,
     ProductsModule,
+    CartModule,
+    OrdersModule,
+    PickupSlotsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -18,6 +18,14 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  READY
+  COLLECTED
+  CANCELLED
+}
+
 model User {
   id                 String   @id @default(cuid())
   email              String   @unique @db.VarChar(191)
@@ -33,6 +41,8 @@ model User {
   refreshTokens      RefreshToken[]
   resetTokens        PasswordResetToken[]
   inviteTokens       InviteToken[]
+  cart               Cart?
+  customerOrders     Order[]
 
   @@map("users")
 }
@@ -52,6 +62,9 @@ model MerchantProfile {
 
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   storeOffers StoreOffer[]
+  carts       Cart[]
+  orders      Order[]
+  pickupSlots PickupSlot[]
 
   @@map("merchant_profiles")
 }
@@ -76,6 +89,7 @@ model Product {
   updatedAt   DateTime @updatedAt
 
   storeOffers StoreOffer[]
+  orderItems  OrderItem[]
 
   @@index([name])
   @@map("products")
@@ -95,10 +109,112 @@ model StoreOffer {
 
   merchant MerchantProfile @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   product  Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems CartItem[]
+  orderItems OrderItem[]
 
   @@unique([merchantId, productId])
   @@index([merchantId, isActive])
   @@map("store_offers")
+}
+
+model Cart {
+  id          String   @id @default(cuid())
+  customerId  String   @unique
+  merchantId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  customer User             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  merchant MerchantProfile? @relation(fields: [merchantId], references: [id], onDelete: SetNull)
+  items    CartItem[]
+
+  @@index([merchantId])
+  @@map("carts")
+}
+
+model CartItem {
+  id           String   @id @default(cuid())
+  cartId       String
+  storeOfferId String
+  quantity     Decimal  @db.Decimal(10, 3)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  cart       Cart       @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  storeOffer StoreOffer @relation(fields: [storeOfferId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, storeOfferId])
+  @@index([cartId])
+  @@index([storeOfferId])
+  @@map("cart_items")
+}
+
+model PickupSlot {
+  id          String   @id @default(cuid())
+  merchantId  String
+  startsAt    DateTime
+  endsAt      DateTime
+  maxOrders   Int      @default(10)
+  currentOrders Int    @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  merchant MerchantProfile @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  orders   Order[]
+
+  @@index([merchantId, startsAt])
+  @@index([merchantId, isActive])
+  @@map("pickup_slots")
+}
+
+model Order {
+  id                   String      @id @default(cuid())
+  customerId           String
+  merchantId           String
+  pickupSlotId         String
+  status               OrderStatus @default(PENDING)
+  estimatedTotalInCents Int
+  finalTotalInCents    Int?
+  pickupStartsAt       DateTime
+  pickupEndsAt         DateTime
+  note                 String?     @db.Text
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  collectedAt          DateTime?
+  cancelledAt          DateTime?
+
+  customer   User            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  merchant   MerchantProfile @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  pickupSlot PickupSlot      @relation(fields: [pickupSlotId], references: [id], onDelete: Restrict)
+  items      OrderItem[]
+
+  @@index([customerId, createdAt])
+  @@index([merchantId, status])
+  @@index([pickupSlotId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String   @id @default(cuid())
+  orderId         String
+  storeOfferId    String
+  productId       String
+  productName     String   @db.VarChar(191)
+  saleUnit        SaleUnit
+  quantity        Decimal  @db.Decimal(10, 3)
+  unitPriceInCents Int
+  lineTotalInCents Int
+  createdAt       DateTime @default(now())
+
+  order      Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  storeOffer StoreOffer @relation(fields: [storeOfferId], references: [id], onDelete: Restrict)
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([storeOfferId])
+  @@index([productId])
+  @@map("order_items")
 }
 
 model RefreshToken {
