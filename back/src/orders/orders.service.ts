@@ -3,16 +3,23 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
+import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CheckoutOrderDto } from './dto/checkout-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(OrdersService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mailService: MailService,
+  ) {}
 
   async checkout(userId: string, dto: CheckoutOrderDto) {
     const cart = await this.prisma.cart.findUnique({
@@ -131,6 +138,8 @@ export class OrdersService {
 
       return createdOrder;
     });
+
+    await this.notifyOrderStatusChange(order.id, OrderStatus.PENDING);
 
     return order;
   }
@@ -281,7 +290,7 @@ export class OrdersService {
 
     this.assertStatusTransitionAllowed(order.status, dto.status);
 
-    return this.prisma.order.update({
+    const updatedOrder = await this.prisma.order.update({
       where: { id: orderId },
       data: {
         status: dto.status,
@@ -293,6 +302,10 @@ export class OrdersService {
         customer: { select: { id: true, email: true } },
       },
     });
+
+    await this.notifyOrderStatusChange(updatedOrder.id, updatedOrder.status);
+
+    return updatedOrder;
   }
 
   private assertStatusTransitionAllowed(
@@ -352,5 +365,125 @@ export class OrdersService {
     throw new BadRequestException(
       `Invalid status filter. Allowed values: ${Object.values(OrderStatus).join(', ')}`,
     );
+  }
+
+  private async notifyOrderStatusChange(
+    orderId: string,
+    status: OrderStatus,
+  ): Promise<void> {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+          id: true,
+          estimatedTotalInCents: true,
+          finalTotalInCents: true,
+          pickupStartsAt: true,
+          pickupEndsAt: true,
+          customer: {
+            select: {
+              email: true,
+            },
+          },
+          merchant: {
+            select: {
+              storeName: true,
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+          _count: {
+            select: {
+              items: true,
+            },
+          },
+        },
+      });
+
+      if (!order) {
+        this.logger.warn(
+          `Order ${orderId} not found for notification dispatch`,
+        );
+        return;
+      }
+
+      const payload = {
+        orderId: order.id,
+        storeName: order.merchant.storeName,
+        totalInCents: order.finalTotalInCents ?? order.estimatedTotalInCents,
+        itemCount: order._count.items,
+        pickupStartsAt: order.pickupStartsAt,
+        pickupEndsAt: order.pickupEndsAt,
+      };
+
+      if (status === OrderStatus.PENDING) {
+        await Promise.all([
+          this.mailService.sendCustomerOrderPendingEmail(
+            order.customer.email,
+            payload,
+          ),
+          this.mailService.sendMerchantNewOrderEmail(
+            order.merchant.user.email,
+            payload,
+          ),
+        ]);
+        return;
+      }
+
+      const statusLabel = this.getCustomerStatusLabel(status);
+      if (!statusLabel) {
+        return;
+      }
+
+      await this.mailService.sendCustomerOrderStatusEmail(
+        order.customer.email,
+        {
+          ...payload,
+          status: statusLabel,
+        },
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(
+        `Failed to send order notification for ${orderId}: ${message}`,
+      );
+    }
+  }
+
+  private getCustomerStatusLabel(status: OrderStatus) {
+    switch (status) {
+      case OrderStatus.CONFIRMED:
+        return {
+          label: 'confirmee',
+          subjectSuffix: 'confirmee',
+          description:
+            'Le marchand a confirme votre commande. Elle est en preparation.',
+        };
+      case OrderStatus.READY:
+        return {
+          label: 'prete',
+          subjectSuffix: 'prete a etre retiree',
+          description:
+            'Votre commande est prete. Vous pouvez venir la recuperer sur le creneau prevu.',
+        };
+      case OrderStatus.COLLECTED:
+        return {
+          label: 'retiree',
+          subjectSuffix: 'retiree',
+          description: 'Le retrait de votre commande a ete confirme.',
+        };
+      case OrderStatus.CANCELLED:
+        return {
+          label: 'annulee',
+          subjectSuffix: 'annulee',
+          description:
+            'Votre commande a ete annulee. Contactez le marchand si besoin.',
+        };
+      default:
+        return null;
+    }
   }
 }
