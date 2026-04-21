@@ -9,7 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { OrderStatus, Role } from '@prisma/client';
+import { Role } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
@@ -29,9 +29,17 @@ export class OrdersController {
   }
 
   @Get('orders/me')
-  getMyOrders(@CurrentUser() user: JwtPayload) {
+  getMyOrders(
+    @CurrentUser() user: JwtPayload,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
     this.assertCustomer(user);
-    return this.ordersService.listMyOrders(user.sub);
+    return this.ordersService.listMyOrders(
+      user.sub,
+      this.toPositiveInt(page, 1),
+      this.toPositiveInt(pageSize, 10),
+    );
   }
 
   @Get('orders/me/:id')
@@ -43,10 +51,17 @@ export class OrdersController {
   @Get('merchants/me/orders')
   getMerchantOrders(
     @CurrentUser() user: JwtPayload,
-    @Query('status') status?: OrderStatus,
+    @Query('status') status?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
   ) {
     this.assertMerchant(user);
-    return this.ordersService.listMerchantOrders(user.sub, status);
+    return this.ordersService.listMerchantOrders(
+      user.sub,
+      status,
+      this.toPositiveInt(page, 1),
+      this.toPositiveInt(pageSize, 10),
+    );
   }
 
   @Get('merchants/me/orders/:id')
@@ -78,5 +93,11 @@ export class OrdersController {
     if (!user || user.role !== Role.MERCHANT) {
       throw new ForbiddenException('Requires role: MERCHANT');
     }
+  }
+
+  private toPositiveInt(raw: string | undefined, fallback: number): number {
+    if (!raw) return fallback;
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
   }
 }

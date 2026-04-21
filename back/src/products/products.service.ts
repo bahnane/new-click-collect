@@ -28,25 +28,64 @@ export class ProductsService {
     });
   }
 
-  async listCatalogProducts() {
-    return this.prisma.product.findMany({
-      where: { isActive: true },
-      orderBy: { name: 'asc' },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        saleUnit: true,
-        priceInCents: true,
-      },
-    });
+  async listCatalogProducts(page = 1, pageSize = 10) {
+    const {
+      skip,
+      take,
+      page: safePage,
+      pageSize: safePageSize,
+    } = this.normalizePagination(page, pageSize);
+
+    const where = { isActive: true };
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        orderBy: { name: 'asc' },
+        skip,
+        take,
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          saleUnit: true,
+          priceInCents: true,
+        },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page: safePage,
+      pageSize: safePageSize,
+    };
   }
 
-  async listAdminCatalog() {
-    return this.prisma.product.findMany({
-      orderBy: { name: 'asc' },
-      include: { _count: { select: { storeOffers: true } } },
-    });
+  async listAdminCatalog(page = 1, pageSize = 10) {
+    const {
+      skip,
+      take,
+      page: safePage,
+      pageSize: safePageSize,
+    } = this.normalizePagination(page, pageSize);
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        orderBy: { name: 'asc' },
+        skip,
+        take,
+        include: { _count: { select: { storeOffers: true } } },
+      }),
+      this.prisma.product.count(),
+    ]);
+
+    return {
+      data,
+      total,
+      page: safePage,
+      pageSize: safePageSize,
+    };
   }
 
   async updateCatalogProduct(productId: string, dto: UpdateProductDto) {
@@ -119,31 +158,49 @@ export class ProductsService {
       }));
   }
 
-  async getMyOffers(userId: string) {
+  async getMyOffers(userId: string, page = 1, pageSize = 10) {
     const profile = await this.resolveMerchantProfile(userId);
-    const offers = await this.prisma.storeOffer.findMany({
-      where: { merchantId: profile.id },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        product: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            saleUnit: true,
-            priceInCents: true,
+    const {
+      skip,
+      take,
+      page: safePage,
+      pageSize: safePageSize,
+    } = this.normalizePagination(page, pageSize);
+
+    const where = { merchantId: profile.id };
+    const [offers, total] = await this.prisma.$transaction([
+      this.prisma.storeOffer.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              saleUnit: true,
+              priceInCents: true,
+            },
           },
         },
-      },
-    });
+      }),
+      this.prisma.storeOffer.count({ where }),
+    ]);
 
-    return offers.map((offer) => ({
-      ...offer,
-      defaultPriceInCents: offer.product.priceInCents,
-      overridePriceInCents: offer.priceInCents,
-      effectivePriceInCents: offer.priceInCents ?? offer.product.priceInCents,
-      isOverridden: offer.priceInCents != null,
-    }));
+    return {
+      data: offers.map((offer) => ({
+        ...offer,
+        defaultPriceInCents: offer.product.priceInCents,
+        overridePriceInCents: offer.priceInCents,
+        effectivePriceInCents: offer.priceInCents ?? offer.product.priceInCents,
+        isOverridden: offer.priceInCents != null,
+      })),
+      total,
+      page: safePage,
+      pageSize: safePageSize,
+    };
   }
 
   async updateOffer(userId: string, offerId: string, dto: UpdateStoreOfferDto) {
@@ -216,7 +273,11 @@ export class ProductsService {
 
   // ── Public ───────────────────────────────────────────────────────────────
 
-  async getPublicOffersForMerchant(merchantProfileId: string) {
+  async getPublicOffersForMerchant(
+    merchantProfileId: string,
+    page = 1,
+    pageSize = 10,
+  ) {
     const profile = await this.prisma.merchantProfile.findUnique({
       where: { id: merchantProfileId },
     });
@@ -225,34 +286,55 @@ export class ProductsService {
       throw new NotFoundException('Merchant not found');
     }
 
-    const offers = await this.prisma.storeOffer.findMany({
-      where: { merchantId: merchantProfileId, isActive: true },
-      orderBy: { product: { name: 'asc' } },
-      include: {
-        product: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            saleUnit: true,
-            priceInCents: true,
+    const {
+      skip,
+      take,
+      page: safePage,
+      pageSize: safePageSize,
+    } = this.normalizePagination(page, pageSize);
+
+    const where = {
+      merchantId: merchantProfileId,
+      isActive: true,
+      OR: [
+        { priceInCents: { not: null } },
+        { product: { priceInCents: { not: null } } },
+      ],
+    };
+
+    const [offers, total] = await this.prisma.$transaction([
+      this.prisma.storeOffer.findMany({
+        where,
+        orderBy: { product: { name: 'asc' } },
+        skip,
+        take,
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              saleUnit: true,
+              priceInCents: true,
+            },
           },
         },
-      },
-    });
+      }),
+      this.prisma.storeOffer.count({ where }),
+    ]);
 
-    return offers
-      .filter(
-        (offer) =>
-          offer.priceInCents != null || offer.product.priceInCents != null,
-      )
-      .map((offer) => ({
+    return {
+      data: offers.map((offer) => ({
         ...offer,
         defaultPriceInCents: offer.product.priceInCents,
         overridePriceInCents: offer.priceInCents,
         effectivePriceInCents: offer.priceInCents ?? offer.product.priceInCents,
         isOverridden: offer.priceInCents != null,
-      }));
+      })),
+      total,
+      page: safePage,
+      pageSize: safePageSize,
+    };
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
@@ -294,5 +376,18 @@ export class ProductsService {
       throw new NotFoundException('Offer not found');
     }
     return offer;
+  }
+
+  private normalizePagination(page: number, pageSize: number) {
+    const safePage = Number.isInteger(page) && page > 0 ? page : 1;
+    const safePageSize =
+      Number.isInteger(pageSize) && pageSize > 0 ? Math.min(pageSize, 50) : 10;
+
+    return {
+      page: safePage,
+      pageSize: safePageSize,
+      skip: (safePage - 1) * safePageSize,
+      take: safePageSize,
+    };
   }
 }

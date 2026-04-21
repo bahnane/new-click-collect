@@ -135,15 +135,46 @@ export class OrdersService {
     return order;
   }
 
-  async listMyOrders(userId: string) {
-    return this.prisma.order.findMany({
-      where: { customerId: userId },
-      include: {
-        items: true,
-        merchant: { select: { id: true, storeName: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  async listMyOrders(userId: string, page = 1, pageSize = 10) {
+    const {
+      skip,
+      take,
+      page: safePage,
+      pageSize: safePageSize,
+    } = this.normalizePagination(page, pageSize);
+
+    const where = { customerId: userId };
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.order.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        select: {
+          id: true,
+          status: true,
+          estimatedTotalInCents: true,
+          finalTotalInCents: true,
+          pickupStartsAt: true,
+          pickupEndsAt: true,
+          createdAt: true,
+          merchant: { select: { id: true, storeName: true } },
+          _count: { select: { items: true } },
+        },
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      data: rows.map((row) => ({
+        ...row,
+        itemCount: row._count.items,
+        _count: undefined,
+      })),
+      total,
+      page: safePage,
+      pageSize: safePageSize,
+    };
   }
 
   async getMyOrderById(userId: string, orderId: string) {
@@ -162,20 +193,58 @@ export class OrdersService {
     return order;
   }
 
-  async listMerchantOrders(userId: string, status?: OrderStatus) {
+  async listMerchantOrders(
+    userId: string,
+    status: string | undefined,
+    page = 1,
+    pageSize = 10,
+  ) {
     const profile = await this.resolveMerchantProfile(userId);
 
-    return this.prisma.order.findMany({
-      where: {
-        merchantId: profile.id,
-        ...(status ? { status } : {}),
-      },
-      include: {
-        items: true,
-        customer: { select: { id: true, email: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const parsedStatus = this.parseOrderStatus(status);
+    const {
+      skip,
+      take,
+      page: safePage,
+      pageSize: safePageSize,
+    } = this.normalizePagination(page, pageSize);
+
+    const where = {
+      merchantId: profile.id,
+      ...(parsedStatus ? { status: parsedStatus } : {}),
+    };
+
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.order.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        select: {
+          id: true,
+          status: true,
+          estimatedTotalInCents: true,
+          finalTotalInCents: true,
+          pickupStartsAt: true,
+          pickupEndsAt: true,
+          createdAt: true,
+          customer: { select: { id: true, email: true } },
+          _count: { select: { items: true } },
+        },
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      data: rows.map((row) => ({
+        ...row,
+        itemCount: row._count.items,
+        _count: undefined,
+      })),
+      total,
+      page: safePage,
+      pageSize: safePageSize,
+    };
   }
 
   async getMerchantOrderById(userId: string, orderId: string) {
@@ -257,5 +326,31 @@ export class OrdersService {
       throw new ForbiddenException('Merchant account is inactive');
 
     return profile;
+  }
+
+  private normalizePagination(page: number, pageSize: number) {
+    const safePage = Number.isInteger(page) && page > 0 ? page : 1;
+    const safePageSize =
+      Number.isInteger(pageSize) && pageSize > 0 ? Math.min(pageSize, 50) : 10;
+
+    return {
+      page: safePage,
+      pageSize: safePageSize,
+      skip: (safePage - 1) * safePageSize,
+      take: safePageSize,
+    };
+  }
+
+  private parseOrderStatus(raw: string | undefined): OrderStatus | undefined {
+    if (!raw) return undefined;
+
+    const normalized = raw.toUpperCase();
+    if ((Object.values(OrderStatus) as string[]).includes(normalized)) {
+      return normalized as OrderStatus;
+    }
+
+    throw new BadRequestException(
+      `Invalid status filter. Allowed values: ${Object.values(OrderStatus).join(', ')}`,
+    );
   }
 }

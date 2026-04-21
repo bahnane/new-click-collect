@@ -114,6 +114,7 @@ model StoreOffer {
 
   @@unique([merchantId, productId])
   @@index([merchantId, isActive])
+  @@index([merchantId, createdAt])
   @@map("store_offers")
 }
 
@@ -191,6 +192,7 @@ model Order {
 
   @@index([customerId, createdAt])
   @@index([merchantId, status])
+  @@index([merchantId, createdAt])
   @@index([pickupSlotId])
   @@map("orders")
 }

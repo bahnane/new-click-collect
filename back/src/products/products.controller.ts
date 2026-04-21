@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
@@ -25,8 +26,14 @@ export class ProductsController {
   // ── Catalogue — public ──────────────────────────────────────────────────
 
   @Get('products')
-  listCatalogProducts() {
-    return this.productsService.listCatalogProducts();
+  listCatalogProducts(
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    return this.productsService.listCatalogProducts(
+      this.toPositiveInt(page, 1),
+      this.toPositiveInt(pageSize, 10),
+    );
   }
 
   // ── Catalogue — MERCHANT ou ADMIN (création) ────────────────────────────
@@ -45,9 +52,16 @@ export class ProductsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('admin/products')
-  listAdminCatalog(@CurrentUser() user: JwtPayload) {
+  listAdminCatalog(
+    @CurrentUser() user: JwtPayload,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
     this.assertAdmin(user);
-    return this.productsService.listAdminCatalog();
+    return this.productsService.listAdminCatalog(
+      this.toPositiveInt(page, 1),
+      this.toPositiveInt(pageSize, 10),
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -85,9 +99,17 @@ export class ProductsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('merchants/me/offers')
-  getMyOffers(@CurrentUser() user: JwtPayload) {
+  getMyOffers(
+    @CurrentUser() user: JwtPayload,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
     this.assertMerchant(user);
-    return this.productsService.getMyOffers(user.sub);
+    return this.productsService.getMyOffers(
+      user.sub,
+      this.toPositiveInt(page, 1),
+      this.toPositiveInt(pageSize, 10),
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -111,8 +133,16 @@ export class ProductsController {
   // ── Public — produits d'un marchand ─────────────────────────────────────
 
   @Get('merchants/:merchantId/products')
-  getPublicOffersForMerchant(@Param('merchantId') merchantId: string) {
-    return this.productsService.getPublicOffersForMerchant(merchantId);
+  getPublicOffersForMerchant(
+    @Param('merchantId') merchantId: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    return this.productsService.getPublicOffersForMerchant(
+      merchantId,
+      this.toPositiveInt(page, 1),
+      this.toPositiveInt(pageSize, 10),
+    );
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
@@ -133,5 +163,11 @@ export class ProductsController {
     if (!user || (user.role !== Role.MERCHANT && user.role !== Role.ADMIN)) {
       throw new ForbiddenException('Requires role: MERCHANT or ADMIN');
     }
+  }
+
+  private toPositiveInt(raw: string | undefined, fallback: number): number {
+    if (!raw) return fallback;
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
   }
 }
