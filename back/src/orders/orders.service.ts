@@ -6,7 +6,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { OrderStatus } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
+import { OrderStatus, Prisma } from '@prisma/client';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CheckoutOrderDto } from './dto/checkout-order.dto';
@@ -19,6 +20,7 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
+    private readonly configService: ConfigService,
   ) {}
 
   async checkout(userId: string, dto: CheckoutOrderDto) {
@@ -202,6 +204,69 @@ export class OrdersService {
     return order;
   }
 
+  async cancelMyOrder(userId: string, orderId: string) {
+    const cancelledAt = new Date();
+
+    const updatedOrder = await this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        select: {
+          id: true,
+          customerId: true,
+          status: true,
+          pickupStartsAt: true,
+          pickupSlotId: true,
+        },
+      });
+
+      if (!order || order.customerId !== userId) {
+        throw new NotFoundException('Order not found');
+      }
+
+      this.assertCustomerCancellationAllowed(
+        order.status,
+        order.pickupStartsAt,
+      );
+
+      const updateResult = await tx.order.updateMany({
+        where: {
+          id: orderId,
+          customerId: userId,
+          status: { in: [OrderStatus.PENDING, OrderStatus.CONFIRMED] },
+        },
+        data: {
+          status: OrderStatus.CANCELLED,
+          cancelledAt,
+          collectedAt: null,
+        },
+      });
+
+      if (updateResult.count === 0) {
+        throw new ConflictException(
+          'Order status changed. Please refresh and retry.',
+        );
+      }
+
+      await this.decrementPickupSlotCurrentOrders(tx, order.pickupSlotId);
+
+      return tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          items: true,
+          merchant: { select: { id: true, storeName: true } },
+        },
+      });
+    });
+
+    if (!updatedOrder) {
+      throw new NotFoundException('Order not found');
+    }
+
+    await this.notifyOrderStatusChange(updatedOrder.id, updatedOrder.status);
+
+    return updatedOrder;
+  }
+
   async listMerchantOrders(
     userId: string,
     status: string | undefined,
@@ -290,17 +355,27 @@ export class OrdersService {
 
     this.assertStatusTransitionAllowed(order.status, dto.status);
 
-    const updatedOrder = await this.prisma.order.update({
-      where: { id: orderId },
-      data: {
-        status: dto.status,
-        collectedAt: dto.status === OrderStatus.COLLECTED ? new Date() : null,
-        cancelledAt: dto.status === OrderStatus.CANCELLED ? new Date() : null,
-      },
-      include: {
-        items: true,
-        customer: { select: { id: true, email: true } },
-      },
+    const updatedOrder = await this.prisma.$transaction(async (tx) => {
+      const nextCancelledAt =
+        dto.status === OrderStatus.CANCELLED ? new Date() : null;
+      const updated = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: dto.status,
+          collectedAt: dto.status === OrderStatus.COLLECTED ? new Date() : null,
+          cancelledAt: nextCancelledAt,
+        },
+        include: {
+          items: true,
+          customer: { select: { id: true, email: true } },
+        },
+      });
+
+      if (dto.status === OrderStatus.CANCELLED) {
+        await this.decrementPickupSlotCurrentOrders(tx, order.pickupSlotId);
+      }
+
+      return updated;
     });
 
     await this.notifyOrderStatusChange(updatedOrder.id, updatedOrder.status);
@@ -327,6 +402,65 @@ export class OrdersService {
         `Invalid status transition from ${current} to ${next}`,
       );
     }
+  }
+
+  private assertCustomerCancellationAllowed(
+    currentStatus: OrderStatus,
+    pickupStartsAt: Date,
+  ) {
+    if (
+      currentStatus !== OrderStatus.PENDING &&
+      currentStatus !== OrderStatus.CONFIRMED
+    ) {
+      throw new BadRequestException(
+        `Order cannot be cancelled from status ${currentStatus}`,
+      );
+    }
+
+    const now = new Date();
+    if (pickupStartsAt <= now) {
+      throw new BadRequestException(
+        'Order can no longer be cancelled because pickup has started',
+      );
+    }
+
+    const cutoffMinutes = this.getCustomerCancellationCutoffMinutes();
+    const cancellationDeadline = new Date(
+      pickupStartsAt.getTime() - cutoffMinutes * 60_000,
+    );
+
+    if (now > cancellationDeadline) {
+      throw new BadRequestException(
+        `Order can only be cancelled at least ${cutoffMinutes} minute(s) before pickup`,
+      );
+    }
+  }
+
+  private getCustomerCancellationCutoffMinutes() {
+    const raw =
+      this.configService.get<string>('ORDER_CANCEL_CUTOFF_MINUTES') ?? '60';
+    const parsed = Number.parseInt(raw, 10);
+
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return 60;
+    }
+
+    return parsed;
+  }
+
+  private async decrementPickupSlotCurrentOrders(
+    tx: Prisma.TransactionClient,
+    pickupSlotId: string,
+  ) {
+    await tx.pickupSlot.updateMany({
+      where: {
+        id: pickupSlotId,
+        currentOrders: { gt: 0 },
+      },
+      data: {
+        currentOrders: { decrement: 1 },
+      },
+    });
   }
 
   private async resolveMerchantProfile(userId: string) {

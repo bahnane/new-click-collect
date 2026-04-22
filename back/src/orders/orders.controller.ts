@@ -48,6 +48,12 @@ export class OrdersController {
     return this.ordersService.getMyOrderById(user.sub, id);
   }
 
+  @Patch('orders/me/:id/cancel')
+  cancelMyOrder(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    this.assertCustomer(user);
+    return this.ordersService.cancelMyOrder(user.sub, id);
+  }
+
   @Get('merchants/me/orders')
   getMerchantOrders(
     @CurrentUser() user: JwtPayload,
