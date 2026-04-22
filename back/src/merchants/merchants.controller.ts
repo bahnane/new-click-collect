@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
@@ -53,9 +54,16 @@ export class MerchantsController {
   }
 
   @Get('admin/merchants')
-  listMerchants(@CurrentUser() user: JwtPayload) {
+  listMerchants(
+    @CurrentUser() user: JwtPayload,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
     this.assertRole(user, Role.ADMIN);
-    return this.merchantsService.listAllMerchants();
+    return this.merchantsService.listAllMerchants(
+      this.toPositiveInt(page, 1),
+      this.toPositiveInt(pageSize, 10),
+    );
   }
 
   @Get('admin/merchants/:id')
@@ -80,5 +88,11 @@ export class MerchantsController {
     if (!user || user.role !== required) {
       throw new ForbiddenException(`Requires role: ${required}`);
     }
+  }
+
+  private toPositiveInt(raw: string | undefined, fallback: number): number {
+    if (!raw) return fallback;
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
   }
 }

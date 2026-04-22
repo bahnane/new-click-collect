@@ -162,17 +162,36 @@ export class MerchantsService {
     return updatedProfile;
   }
 
-  async listAllMerchants() {
-    return this.prisma.merchantProfile.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        openingHours: { orderBy: { dayOfWeek: 'asc' } },
-        pickupHours: { orderBy: { dayOfWeek: 'asc' } },
-        user: {
-          select: { id: true, email: true, status: true, lastLoginAt: true },
+  async listAllMerchants(page = 1, pageSize = 10) {
+    const {
+      skip,
+      take,
+      page: safePage,
+      pageSize: safePageSize,
+    } = this.normalizePagination(page, pageSize);
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.merchantProfile.findMany({
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: {
+          openingHours: { orderBy: { dayOfWeek: 'asc' } },
+          pickupHours: { orderBy: { dayOfWeek: 'asc' } },
+          user: {
+            select: { id: true, email: true, status: true, lastLoginAt: true },
+          },
         },
-      },
-    });
+      }),
+      this.prisma.merchantProfile.count(),
+    ]);
+
+    return {
+      data,
+      total,
+      page: safePage,
+      pageSize: safePageSize,
+    };
   }
 
   async getMerchantById(merchantProfileId: string) {
@@ -243,6 +262,19 @@ export class MerchantsService {
             },
           }
         : {}),
+    };
+  }
+
+  private normalizePagination(page: number, pageSize: number) {
+    const safePage = Number.isInteger(page) && page > 0 ? page : 1;
+    const safePageSize =
+      Number.isInteger(pageSize) && pageSize > 0 ? Math.min(pageSize, 50) : 10;
+
+    return {
+      page: safePage,
+      pageSize: safePageSize,
+      skip: (safePage - 1) * safePageSize,
+      take: safePageSize,
     };
   }
 }
