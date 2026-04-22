@@ -173,6 +173,47 @@ export class MerchantsService {
     };
   }
 
+  async getPublicActiveMerchantById(merchantProfileId: string) {
+    const profile = await this.prisma.merchantProfile.findFirst({
+      where: {
+        id: merchantProfileId,
+        isActive: true,
+      },
+      select: {
+        id: true,
+        storeName: true,
+        description: true,
+        phone: true,
+        address: true,
+        city: true,
+        zipCode: true,
+        isActive: true,
+        openingHours: {
+          orderBy: { dayOfWeek: 'asc' },
+          select: {
+            dayOfWeek: true,
+            startHour: true,
+            endHour: true,
+          },
+        },
+        pickupHours: {
+          orderBy: { dayOfWeek: 'asc' },
+          select: {
+            dayOfWeek: true,
+            startHour: true,
+            endHour: true,
+          },
+        },
+      },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Merchant not found');
+    }
+
+    return profile;
+  }
+
   async updateMyProfile(userId: string, dto: UpdateMerchantProfileDto) {
     const profile = await this.prisma.merchantProfile.findUnique({
       where: { userId },

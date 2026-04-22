@@ -35,6 +35,11 @@ export class MerchantsController {
     );
   }
 
+  @Get('merchants/:id')
+  getPublicMerchantById(@Param('id') id: string) {
+    return this.merchantsService.getPublicActiveMerchantById(id);
+  }
+
   // ── Routes commerçant ────────────────────────────────────────────────────
 
   @UseGuards(JwtAuthGuard)
