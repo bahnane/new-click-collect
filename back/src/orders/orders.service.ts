@@ -58,6 +58,10 @@ export class OrdersService {
     }
 
     const now = new Date();
+    if (pickupSlot.startsAt <= now) {
+      throw new BadRequestException('Pickup slot has already started');
+    }
+
     if (pickupSlot.endsAt <= now) {
       throw new BadRequestException('Pickup slot is expired');
     }
@@ -97,6 +101,7 @@ export class OrdersService {
         where: {
           id: pickupSlot.id,
           isActive: true,
+          startsAt: { gt: now },
           currentOrders: { lt: pickupSlot.maxOrders },
         },
         data: {
@@ -107,7 +112,7 @@ export class OrdersService {
       });
 
       if (reserved.count === 0) {
-        throw new ConflictException('Pickup slot is full');
+        throw new ConflictException('Pickup slot is no longer available');
       }
 
       const createdOrder = await tx.order.create({
