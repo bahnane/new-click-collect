@@ -208,6 +208,7 @@ model PickupSlot {
   merchant MerchantProfile @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   orders   Order[]
 
+  @@unique([merchantId, startsAt, endsAt])
   @@index([merchantId, startsAt])
   @@index([merchantId, isActive])
   @@map("pickup_slots")

@@ -9,6 +9,7 @@ import * as argon2 from 'argon2';
 import { durationToMs } from '../common/utils/duration.util';
 import { generateOpaqueToken, hashToken } from '../common/utils/token.util';
 import { MailService } from '../mail/mail.service';
+import { PickupSlotsService } from '../pickup-slots/pickup-slots.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMerchantDto } from './dto/create-merchant.dto';
 import {
@@ -23,6 +24,7 @@ export class MerchantsService {
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
+    private readonly pickupSlotsService: PickupSlotsService,
   ) {}
 
   async createInvitedMerchant(dto: CreateMerchantDto) {
@@ -144,7 +146,7 @@ export class MerchantsService {
       throw new NotFoundException('Merchant profile not found');
     }
 
-    return this.prisma.merchantProfile.update({
+    const updatedProfile = await this.prisma.merchantProfile.update({
       where: { userId },
       data: this.buildMerchantProfileUpdateData(dto),
       include: {
@@ -152,6 +154,12 @@ export class MerchantsService {
         pickupHours: { orderBy: { dayOfWeek: 'asc' } },
       },
     });
+
+    if (dto.pickupHours) {
+      await this.pickupSlotsService.regenerateMyFutureSlots(userId);
+    }
+
+    return updatedProfile;
   }
 
   async listAllMerchants() {
