@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Role, UserStatus } from '@prisma/client';
+import { Prisma, Role, UserStatus } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { durationToMs } from '../common/utils/duration.util';
 import { generateOpaqueToken, hashToken } from '../common/utils/token.util';
@@ -57,11 +57,34 @@ export class MerchantsService {
               storeName: dto.storeName,
               phone: dto.phone,
               address: dto.address,
+              ...(dto.openingHours?.length
+                ? {
+                    openingHours: {
+                      create: dto.openingHours.map((entry) => ({
+                        dayOfWeek: entry.dayOfWeek,
+                        startHour: entry.startHour,
+                        endHour: entry.endHour,
+                      })),
+                    },
+                  }
+                : {}),
+              pickupHours: {
+                create: dto.pickupHours.map((entry) => ({
+                  dayOfWeek: entry.dayOfWeek,
+                  startHour: entry.startHour,
+                  endHour: entry.endHour,
+                })),
+              },
             },
           },
         },
         include: {
-          merchantProfile: true,
+          merchantProfile: {
+            include: {
+              openingHours: { orderBy: { dayOfWeek: 'asc' } },
+              pickupHours: { orderBy: { dayOfWeek: 'asc' } },
+            },
+          },
         },
       });
 
@@ -99,6 +122,10 @@ export class MerchantsService {
   async getMyProfile(userId: string) {
     const profile = await this.prisma.merchantProfile.findUnique({
       where: { userId },
+      include: {
+        openingHours: { orderBy: { dayOfWeek: 'asc' } },
+        pickupHours: { orderBy: { dayOfWeek: 'asc' } },
+      },
     });
 
     if (!profile) {
@@ -119,7 +146,11 @@ export class MerchantsService {
 
     return this.prisma.merchantProfile.update({
       where: { userId },
-      data: dto,
+      data: this.buildMerchantProfileUpdateData(dto),
+      include: {
+        openingHours: { orderBy: { dayOfWeek: 'asc' } },
+        pickupHours: { orderBy: { dayOfWeek: 'asc' } },
+      },
     });
   }
 
@@ -127,6 +158,8 @@ export class MerchantsService {
     return this.prisma.merchantProfile.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
+        openingHours: { orderBy: { dayOfWeek: 'asc' } },
+        pickupHours: { orderBy: { dayOfWeek: 'asc' } },
         user: {
           select: { id: true, email: true, status: true, lastLoginAt: true },
         },
@@ -138,6 +171,8 @@ export class MerchantsService {
     const profile = await this.prisma.merchantProfile.findUnique({
       where: { id: merchantProfileId },
       include: {
+        openingHours: { orderBy: { dayOfWeek: 'asc' } },
+        pickupHours: { orderBy: { dayOfWeek: 'asc' } },
         user: {
           select: { id: true, email: true, status: true, lastLoginAt: true },
         },
@@ -167,5 +202,39 @@ export class MerchantsService {
       where: { id: merchantProfileId },
       data: { isActive: dto.isActive },
     });
+  }
+
+  private buildMerchantProfileUpdateData(
+    dto: UpdateMerchantProfileDto,
+  ): Prisma.MerchantProfileUpdateInput {
+    const { openingHours, pickupHours, ...profileFields } = dto;
+
+    return {
+      ...profileFields,
+      ...(openingHours
+        ? {
+            openingHours: {
+              deleteMany: {},
+              create: openingHours.map((entry) => ({
+                dayOfWeek: entry.dayOfWeek,
+                startHour: entry.startHour,
+                endHour: entry.endHour,
+              })),
+            },
+          }
+        : {}),
+      ...(pickupHours
+        ? {
+            pickupHours: {
+              deleteMany: {},
+              create: pickupHours.map((entry) => ({
+                dayOfWeek: entry.dayOfWeek,
+                startHour: entry.startHour,
+                endHour: entry.endHour,
+              })),
+            },
+          }
+        : {}),
+    };
   }
 }

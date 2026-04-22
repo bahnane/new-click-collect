@@ -1,10 +1,19 @@
 import {
+  ArrayMinSize,
+  ArrayUnique,
   IsBoolean,
+  IsArray,
   IsOptional,
   IsString,
   MaxLength,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  MerchantOpeningHourDto,
+  MerchantPickupHourDto,
+} from './merchant-weekly-hours.dto';
 
 export class UpdateMerchantProfileDto {
   @IsOptional()
@@ -37,6 +46,21 @@ export class UpdateMerchantProfileDto {
   @IsString()
   @MaxLength(10)
   zipCode?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique((entry: MerchantOpeningHourDto) => entry.dayOfWeek)
+  @ValidateNested({ each: true })
+  @Type(() => MerchantOpeningHourDto)
+  openingHours?: MerchantOpeningHourDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayUnique((entry: MerchantPickupHourDto) => entry.dayOfWeek)
+  @ValidateNested({ each: true })
+  @Type(() => MerchantPickupHourDto)
+  pickupHours?: MerchantPickupHourDto[];
 }
 
 export class UpdateMerchantStatusDto {
