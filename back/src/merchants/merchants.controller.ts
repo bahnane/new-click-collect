@@ -20,19 +20,31 @@ import {
 } from './dto/update-merchant-profile.dto';
 import { MerchantsService } from './merchants.service';
 
-@UseGuards(JwtAuthGuard)
 @Controller()
 export class MerchantsController {
   constructor(private readonly merchantsService: MerchantsService) {}
 
+  @Get('merchants')
+  listPublicMerchants(
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    return this.merchantsService.listPublicActiveMerchants(
+      this.toPositiveInt(page, 1),
+      this.toPositiveInt(pageSize, 12),
+    );
+  }
+
   // ── Routes commerçant ────────────────────────────────────────────────────
 
+  @UseGuards(JwtAuthGuard)
   @Get('merchants/me')
   getMyProfile(@CurrentUser() user: JwtPayload) {
     this.assertRole(user, Role.MERCHANT);
     return this.merchantsService.getMyProfile(user.sub);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('merchants/me')
   updateMyProfile(
     @CurrentUser() user: JwtPayload,
@@ -44,6 +56,7 @@ export class MerchantsController {
 
   // ── Routes admin ─────────────────────────────────────────────────────────
 
+  @UseGuards(JwtAuthGuard)
   @Post('admin/merchants')
   createMerchant(
     @Body() dto: CreateMerchantDto,
@@ -53,6 +66,7 @@ export class MerchantsController {
     return this.merchantsService.createInvitedMerchant(dto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('admin/merchants')
   listMerchants(
     @CurrentUser() user: JwtPayload,
@@ -66,12 +80,14 @@ export class MerchantsController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('admin/merchants/:id')
   getMerchant(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     this.assertRole(user, Role.ADMIN);
     return this.merchantsService.getMerchantById(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('admin/merchants/:id/status')
   updateMerchantStatus(
     @Param('id') id: string,

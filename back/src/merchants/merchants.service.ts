@@ -137,6 +137,42 @@ export class MerchantsService {
     return profile;
   }
 
+  async listPublicActiveMerchants(page = 1, pageSize = 12) {
+    const {
+      skip,
+      take,
+      page: safePage,
+      pageSize: safePageSize,
+    } = this.normalizePagination(page, pageSize);
+
+    const where = { isActive: true };
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.merchantProfile.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        select: {
+          id: true,
+          storeName: true,
+          description: true,
+          city: true,
+          zipCode: true,
+          address: true,
+          isActive: true,
+        },
+      }),
+      this.prisma.merchantProfile.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page: safePage,
+      pageSize: safePageSize,
+    };
+  }
+
   async updateMyProfile(userId: string, dto: UpdateMerchantProfileDto) {
     const profile = await this.prisma.merchantProfile.findUnique({
       where: { userId },
