@@ -13,6 +13,35 @@ import { UpdatePickupSlotDto } from './dto/update-pickup-slot.dto';
 export class PickupSlotsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async listPublicMerchantSlots(merchantId: string) {
+    const merchant = await this.prisma.merchantProfile.findUnique({
+      where: { id: merchantId },
+      select: { id: true, isActive: true },
+    });
+
+    if (!merchant || !merchant.isActive) {
+      throw new NotFoundException('Merchant not found');
+    }
+
+    const slots = await this.prisma.pickupSlot.findMany({
+      where: {
+        merchantId,
+        isActive: true,
+        startsAt: { gt: new Date() },
+      },
+      orderBy: { startsAt: 'asc' },
+      select: {
+        id: true,
+        startsAt: true,
+        endsAt: true,
+        maxOrders: true,
+        currentOrders: true,
+      },
+    });
+
+    return slots.filter((slot) => slot.currentOrders < slot.maxOrders);
+  }
+
   async listMySlots(userId: string) {
     const profile = await this.resolveMerchantProfile(userId);
 

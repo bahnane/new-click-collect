@@ -16,18 +16,24 @@ import { CreatePickupSlotDto } from './dto/create-pickup-slot.dto';
 import { UpdatePickupSlotDto } from './dto/update-pickup-slot.dto';
 import { PickupSlotsService } from './pickup-slots.service';
 
-@UseGuards(JwtAuthGuard)
-@Controller('merchants/me/pickup-slots')
+@Controller()
 export class PickupSlotsController {
   constructor(private readonly pickupSlotsService: PickupSlotsService) {}
 
-  @Get()
+  @Get('merchants/:merchantId/pickup-slots')
+  listPublicMerchantSlots(@Param('merchantId') merchantId: string) {
+    return this.pickupSlotsService.listPublicMerchantSlots(merchantId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('merchants/me/pickup-slots')
   listMySlots(@CurrentUser() user: JwtPayload) {
     this.assertMerchant(user);
     return this.pickupSlotsService.listMySlots(user.sub);
   }
 
-  @Post()
+  @UseGuards(JwtAuthGuard)
+  @Post('merchants/me/pickup-slots')
   createMySlot(
     @CurrentUser() user: JwtPayload,
     @Body() dto: CreatePickupSlotDto,
@@ -36,7 +42,8 @@ export class PickupSlotsController {
     return this.pickupSlotsService.createMySlot(user.sub, dto);
   }
 
-  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @Patch('merchants/me/pickup-slots/:id')
   updateMySlot(
     @CurrentUser() user: JwtPayload,
     @Param('id') id: string,
@@ -46,7 +53,8 @@ export class PickupSlotsController {
     return this.pickupSlotsService.updateMySlot(user.sub, id, dto);
   }
 
-  @Patch(':id/toggle')
+  @UseGuards(JwtAuthGuard)
+  @Patch('merchants/me/pickup-slots/:id/toggle')
   toggleMySlot(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
     this.assertMerchant(user);
     return this.pickupSlotsService.toggleMySlot(user.sub, id);
