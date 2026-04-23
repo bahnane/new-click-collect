@@ -7,7 +7,7 @@ export const routes: Routes = [
       import('./features/auth/login/login.component').then(
         (m) => m.LoginComponent,
       ),
-    title: 'Connexion',
+    title: 'Click & Collect',
   },
   {
     path: '',

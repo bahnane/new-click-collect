@@ -1,0 +1,34 @@
+{
+  "app": {
+    "name": "Click & Collect"
+  },
+  "common": {
+    "languages": {
+      "label": "Langue",
+      "fr": "Français",
+      "ar": "Arabe"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "subtitle": "Accédez à votre espace pour gérer vos commandes et retraits.",
+      "formLabel": "Formulaire de connexion",
+      "email": "Adresse email",
+      "emailPlaceholder": "nom@exemple.fr",
+      "password": "Mot de passe",
+      "forgotPassword": "Mot de passe oublié ?",
+      "submit": "Se connecter",
+      "showPassword": "Afficher le mot de passe",
+      "hidePassword": "Masquer le mot de passe",
+      "errors": {
+        "emailRequired": "L'email est requis.",
+        "emailInvalid": "Email invalide.",
+        "passwordRequired": "Le mot de passe est requis.",
+        "passwordMinLength": "Minimum 8 caractères.",
+        "invalidCredentials": "Email ou mot de passe incorrect.",
+        "generic": "Une erreur est survenue. Veuillez réessayer."
+      }
+    }
+  }
+}

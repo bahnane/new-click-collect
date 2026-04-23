@@ -4,14 +4,14 @@ dist/
 build/
 
 # NestJS
-backend/dist/
-backend/.env
-backend/.env.local
+back/dist/
+back/.env
+back/.env.local
 /generated/prisma
 
 # Angular
-frontend/dist/
-frontend/.angular/
+front/dist/
+front/.angular/
 
 # IDEs
 .vscode/
