@@ -83,6 +83,11 @@
                     {{ 'auth.login.submit' | transloco }}
                     }
                 </button>
+
+                <p class="auth-switch-text">
+                    {{ 'auth.login.registerPrompt' | transloco }}
+                    <a routerLink="/register">{{ 'auth.login.registerLink' | transloco }}</a>
+                </p>
             </form>
         </mat-card-content>
     </mat-card>

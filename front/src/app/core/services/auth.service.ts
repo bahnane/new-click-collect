@@ -10,6 +10,11 @@ interface LoginCredentials {
   password: string;
 }
 
+interface RegisterPayload {
+  email: string;
+  password: string;
+}
+
 interface AuthResponse {
   accessToken: string;
   user: User;
@@ -25,6 +30,19 @@ export class AuthService {
 
   readonly isAuthenticated = computed(() => this._accessToken() !== null);
   readonly currentUser = this._currentUser.asReadonly();
+
+  register(payload: RegisterPayload) {
+    return this.http
+      .post<AuthResponse>(`${environment.apiUrl}/auth/register`, payload, {
+        withCredentials: true,
+      })
+      .pipe(
+        tap((response) => {
+          this._accessToken.set(response.accessToken);
+          this._currentUser.set(response.user);
+        }),
+      );
+  }
 
   login(credentials: LoginCredentials) {
     return this.http

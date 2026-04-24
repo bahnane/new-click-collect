@@ -1,0 +1,87 @@
+<main class="register-page">
+    <mat-card class="register-card">
+        <mat-card-content>
+            <div class="register-header">
+                <div>
+                    <p class="eyebrow">{{ 'app.name' | transloco }}</p>
+                    <h1 class="register-title">{{ 'auth.register.title' | transloco }}</h1>
+                    <p class="register-subtitle">{{ 'auth.register.subtitle' | transloco }}</p>
+                </div>
+
+                <div class="language-switcher" [attr.aria-label]="'common.languages.label' | transloco" role="group">
+                    @for (language of languageService.availableLanguages; track language.code) {
+                    <button mat-stroked-button type="button" class="language-button"
+                        [class.is-active]="languageService.currentLanguage() === language.code"
+                        [attr.aria-pressed]="languageService.currentLanguage() === language.code"
+                        (click)="setLanguage(language.code)">
+                        {{ language.label }}
+                    </button>
+                    }
+                </div>
+            </div>
+
+            <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate
+                [attr.aria-label]="'auth.register.formLabel' | transloco">
+                @if (errorMessageKey()) {
+                <div class="error-banner" role="alert" aria-live="assertive">
+                    <mat-icon aria-hidden="true">error_outline</mat-icon>
+                    <span>{{ errorMessageKey()! | transloco }}</span>
+                </div>
+                }
+
+                <mat-form-field appearance="outline" class="field-full-width">
+                    <mat-label>{{ 'auth.register.email' | transloco }}</mat-label>
+                    <input matInput type="email" formControlName="email" autocomplete="email"
+                        [placeholder]="'auth.register.emailPlaceholder' | transloco"
+                        [attr.aria-describedby]="form.controls.email.invalid && form.controls.email.touched ? 'register-email-error' : null" />
+                    <mat-icon matSuffix aria-hidden="true">email</mat-icon>
+                    @if (form.controls.email.touched) {
+                    @if (form.controls.email.hasError('required')) {
+                    <mat-error id="register-email-error">{{ 'auth.register.errors.emailRequired' | transloco
+                        }}</mat-error>
+                    } @else if (form.controls.email.hasError('email')) {
+                    <mat-error id="register-email-error">{{ 'auth.register.errors.emailInvalid' | transloco
+                        }}</mat-error>
+                    }
+                    }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="field-full-width">
+                    <mat-label>{{ 'auth.register.password' | transloco }}</mat-label>
+                    <input matInput [type]="showPassword() ? 'text' : 'password'" formControlName="password"
+                        autocomplete="new-password"
+                        [attr.aria-describedby]="form.controls.password.invalid && form.controls.password.touched ? 'register-password-error' : null" />
+                    <button type="button" matSuffix mat-icon-button (click)="togglePassword()"
+                        [attr.aria-label]="showPassword() ? ('auth.register.hidePassword' | transloco) : ('auth.register.showPassword' | transloco)">
+                        <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    @if (form.controls.password.touched) {
+                    @if (form.controls.password.hasError('required')) {
+                    <mat-error id="register-password-error">{{ 'auth.register.errors.passwordRequired' | transloco
+                        }}</mat-error>
+                    } @else if (form.controls.password.hasError('minlength')) {
+                    <mat-error id="register-password-error">{{ 'auth.register.errors.passwordMinLength' | transloco
+                        }}</mat-error>
+                    }
+                    }
+                </mat-form-field>
+
+                <p class="register-hint">{{ 'auth.register.passwordHint' | transloco }}</p>
+
+                <button mat-flat-button type="submit" class="submit-button" [disabled]="isLoading()"
+                    [attr.aria-label]="'auth.register.submit' | transloco">
+                    @if (isLoading()) {
+                    <mat-progress-spinner diameter="22" mode="indeterminate" aria-hidden="true" />
+                    } @else {
+                    {{ 'auth.register.submit' | transloco }}
+                    }
+                </button>
+
+                <p class="auth-switch-text">
+                    {{ 'auth.register.loginPrompt' | transloco }}
+                    <a routerLink="/login">{{ 'auth.register.loginLink' | transloco }}</a>
+                </p>
+            </form>
+        </mat-card-content>
+    </mat-card>
+</main>

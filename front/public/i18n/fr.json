@@ -5,6 +5,9 @@
   "routes": {
     "login": {
       "title": "Connexion"
+    },
+    "register": {
+      "title": "Inscription"
     }
   },
   "common": {
@@ -46,6 +49,8 @@
       "password": "Mot de passe",
       "forgotPassword": "Mot de passe oublié ?",
       "submit": "Se connecter",
+      "registerPrompt": "Vous n'avez pas encore de compte ?",
+      "registerLink": "Créer un compte",
       "showPassword": "Afficher le mot de passe",
       "hidePassword": "Masquer le mot de passe",
       "errors": {
@@ -54,6 +59,27 @@
         "passwordRequired": "Le mot de passe est requis.",
         "passwordMinLength": "Minimum 8 caractères.",
         "invalidCredentials": "Email ou mot de passe incorrect.",
+        "generic": "Une erreur est survenue. Veuillez réessayer."
+      }
+    },
+    "register": {
+      "title": "Créer un compte",
+      "subtitle": "Inscrivez-vous pour commander et choisir votre créneau de retrait.",
+      "formLabel": "Formulaire d'inscription",
+      "email": "Adresse email",
+      "emailPlaceholder": "nom@exemple.fr",
+      "password": "Mot de passe",
+      "passwordHint": "Utilisez au minimum 8 caractères.",
+      "submit": "Créer mon compte",
+      "loginPrompt": "Vous avez déjà un compte ?",
+      "loginLink": "Se connecter",
+      "showPassword": "Afficher le mot de passe",
+      "hidePassword": "Masquer le mot de passe",
+      "errors": {
+        "emailRequired": "L'email est requis.",
+        "emailInvalid": "Email invalide.",
+        "passwordRequired": "Le mot de passe est requis.",
+        "passwordMinLength": "Minimum 8 caractères.",
         "generic": "Une erreur est survenue. Veuillez réessayer."
       }
     }
