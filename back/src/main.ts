@@ -1,8 +1,14 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  ValidationError,
+  ValidationPipe,
+} from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { ErrorCodes } from './common/errors/api-error-codes';
+import { ApiExceptionFilter } from './common/errors/api-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,11 +16,24 @@ async function bootstrap() {
   app.use(helmet());
   app.use(cookieParser());
 
+  app.useGlobalFilters(new ApiExceptionFilter());
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      exceptionFactory: (errors: ValidationError[]) =>
+        new BadRequestException({
+          code: ErrorCodes.VALIDATION_ERROR,
+          message: 'Validation failed',
+          details: {
+            errors: errors.map((error) => ({
+              field: error.property,
+              constraints: Object.values(error.constraints ?? {}),
+            })),
+          },
+        }),
     }),
   );
 

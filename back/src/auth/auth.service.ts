@@ -16,6 +16,7 @@ import { generateOpaqueToken, hashToken } from '../common/utils/token.util';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
+import { ErrorCodes } from '../common/errors/api-error-codes';
 import { ActivateInviteDto } from './dto/activate-invite.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -88,7 +89,10 @@ export class AuthService {
     const existingUser = await this.usersService.findByEmail(email);
 
     if (existingUser) {
-      throw new ConflictException('Email is already used');
+      throw new ConflictException({
+        code: ErrorCodes.AUTH_EMAIL_ALREADY_USED,
+        message: 'Email is already used',
+      });
     }
 
     const passwordHash = await argon2.hash(dto.password);
@@ -111,7 +115,10 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
 
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException({
+        code: ErrorCodes.AUTH_INVALID_CREDENTIALS,
+        message: 'Invalid email or password',
+      });
     }
 
     this.assertCanAuthenticate(user);
@@ -121,7 +128,10 @@ export class AuthService {
       dto.password,
     );
     if (!isValidPassword) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException({
+        code: ErrorCodes.AUTH_INVALID_CREDENTIALS,
+        message: 'Invalid email or password',
+      });
     }
 
     const updatedUser = await this.prisma.user.update({
@@ -149,13 +159,17 @@ export class AuthService {
     });
 
     if (!inviteToken) {
-      throw new BadRequestException('Invitation token is invalid or expired');
+      throw new BadRequestException({
+        code: ErrorCodes.AUTH_INVITE_TOKEN_INVALID_OR_EXPIRED,
+        message: 'Invitation token is invalid or expired',
+      });
     }
 
     if (inviteToken.user.role !== Role.MERCHANT) {
-      throw new BadRequestException(
-        'Invitation token is not a merchant invitation',
-      );
+      throw new BadRequestException({
+        code: ErrorCodes.AUTH_INVITE_TOKEN_WRONG_ROLE,
+        message: 'Invitation token is not a merchant invitation',
+      });
     }
 
     const passwordHash = await argon2.hash(dto.password);
@@ -193,7 +207,10 @@ export class AuthService {
 
   async refresh(refreshToken: string | undefined): Promise<SessionResult> {
     if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token is required');
+      throw new UnauthorizedException({
+        code: ErrorCodes.AUTH_REFRESH_TOKEN_REQUIRED,
+        message: 'Refresh token is required',
+      });
     }
 
     const decodedToken = await this.verifyRefreshToken(refreshToken);
@@ -207,18 +224,27 @@ export class AuthService {
     });
 
     if (!storedToken) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException({
+        code: ErrorCodes.AUTH_REFRESH_TOKEN_INVALID,
+        message: 'Invalid refresh token',
+      });
     }
 
     if (storedToken.revokedAt || storedToken.expiresAt <= new Date()) {
-      throw new UnauthorizedException('Refresh token is expired or revoked');
+      throw new UnauthorizedException({
+        code: ErrorCodes.AUTH_REFRESH_TOKEN_EXPIRED_OR_REVOKED,
+        message: 'Refresh token is expired or revoked',
+      });
     }
 
     if (
       decodedToken.type !== 'refresh' ||
       decodedToken.sub !== storedToken.userId
     ) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException({
+        code: ErrorCodes.AUTH_REFRESH_TOKEN_INVALID,
+        message: 'Invalid refresh token',
+      });
     }
 
     this.assertCanAuthenticate(storedToken.user);
@@ -323,9 +349,10 @@ export class AuthService {
     });
 
     if (!resetToken) {
-      throw new BadRequestException(
-        'Password reset token is invalid or expired',
-      );
+      throw new BadRequestException({
+        code: ErrorCodes.AUTH_RESET_TOKEN_INVALID_OR_EXPIRED,
+        message: 'Password reset token is invalid or expired',
+      });
     }
 
     const passwordHash = await argon2.hash(dto.newPassword);
@@ -369,7 +396,10 @@ export class AuthService {
     const user = await this.usersService.findById(userId);
 
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException({
+        code: ErrorCodes.AUTH_USER_NOT_FOUND,
+        message: 'User not found',
+      });
     }
 
     const isCurrentPasswordValid = await argon2.verify(
@@ -378,7 +408,10 @@ export class AuthService {
     );
 
     if (!isCurrentPasswordValid) {
-      throw new UnauthorizedException('Current password is invalid');
+      throw new UnauthorizedException({
+        code: ErrorCodes.AUTH_CURRENT_PASSWORD_INVALID,
+        message: 'Current password is invalid',
+      });
     }
 
     const isSamePassword = await argon2.verify(
@@ -386,9 +419,10 @@ export class AuthService {
       dto.newPassword,
     );
     if (isSamePassword) {
-      throw new BadRequestException(
-        'New password must be different from current password',
-      );
+      throw new BadRequestException({
+        code: ErrorCodes.AUTH_NEW_PASSWORD_SAME_AS_CURRENT,
+        message: 'New password must be different from current password',
+      });
     }
 
     const newPasswordHash = await argon2.hash(dto.newPassword);
@@ -470,13 +504,17 @@ export class AuthService {
 
   private assertCanAuthenticate(user: User): void {
     if (user.status === UserStatus.SUSPENDED) {
-      throw new ForbiddenException('User account is suspended');
+      throw new ForbiddenException({
+        code: ErrorCodes.AUTH_ACCOUNT_SUSPENDED,
+        message: 'User account is suspended',
+      });
     }
 
     if (user.status === UserStatus.INVITED) {
-      throw new ForbiddenException(
-        'User account must be activated before login',
-      );
+      throw new ForbiddenException({
+        code: ErrorCodes.AUTH_ACCOUNT_INVITED_NOT_ACTIVATED,
+        message: 'User account must be activated before login',
+      });
     }
   }
 
@@ -491,7 +529,10 @@ export class AuthService {
         },
       );
     } catch {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException({
+        code: ErrorCodes.AUTH_REFRESH_TOKEN_INVALID,
+        message: 'Invalid refresh token',
+      });
     }
   }
 
