@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { User } from '../models/user.model';
+import { LanguageService } from '../i18n/language.service';
 
 interface LoginCredentials {
   email: string;
@@ -15,6 +16,12 @@ interface RegisterPayload {
   password: string;
 }
 
+interface AuthPayload {
+  email: string;
+  password: string;
+  preferredLanguage: 'fr' | 'ar';
+}
+
 interface AuthResponse {
   accessToken: string;
   user: User;
@@ -24,6 +31,7 @@ interface AuthResponse {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly languageService = inject(LanguageService);
 
   private readonly _accessToken = signal<string | null>(null);
   private readonly _currentUser = signal<User | null>(null);
@@ -32,27 +40,33 @@ export class AuthService {
   readonly currentUser = this._currentUser.asReadonly();
 
   register(payload: RegisterPayload) {
+    const body = this.withCurrentLanguage(payload);
+
     return this.http
-      .post<AuthResponse>(`${environment.apiUrl}/auth/register`, payload, {
+      .post<AuthResponse>(`${environment.apiUrl}/auth/register`, body, {
         withCredentials: true,
       })
       .pipe(
         tap((response) => {
           this._accessToken.set(response.accessToken);
           this._currentUser.set(response.user);
+          this.languageService.setLanguage(response.user.preferredLanguage);
         }),
       );
   }
 
   login(credentials: LoginCredentials) {
+    const body = this.withCurrentLanguage(credentials);
+
     return this.http
-      .post<AuthResponse>(`${environment.apiUrl}/auth/login`, credentials, {
+      .post<AuthResponse>(`${environment.apiUrl}/auth/login`, body, {
         withCredentials: true,
       })
       .pipe(
         tap((response) => {
           this._accessToken.set(response.accessToken);
           this._currentUser.set(response.user);
+          this.languageService.setLanguage(response.user.preferredLanguage);
         }),
       );
   }
@@ -75,5 +89,14 @@ export class AuthService {
 
   getAccessToken(): string | null {
     return this._accessToken();
+  }
+
+  private withCurrentLanguage(
+    payload: RegisterPayload | LoginCredentials,
+  ): AuthPayload {
+    return {
+      ...payload,
+      preferredLanguage: this.languageService.currentLanguage(),
+    };
   }
 }
