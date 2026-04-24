@@ -57,6 +57,7 @@ export class MerchantsService {
           merchantProfile: {
             create: {
               storeName: dto.storeName,
+              businessType: dto.businessType,
               phone: dto.phone,
               address: dto.address,
               ...(dto.openingHours?.length
@@ -155,6 +156,7 @@ export class MerchantsService {
         select: {
           id: true,
           storeName: true,
+          businessType: true,
           description: true,
           city: true,
           zipCode: true,
@@ -182,6 +184,7 @@ export class MerchantsService {
       select: {
         id: true,
         storeName: true,
+        businessType: true,
         description: true,
         phone: true,
         address: true,

@@ -1,10 +1,12 @@
 import {
   IsEmail,
+  IsEnum,
   IsOptional,
   IsString,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { BusinessType } from '@prisma/client';
 import {
   MerchantOpeningHourDto,
   MerchantPickupHourDto,
@@ -25,6 +27,9 @@ export class CreateMerchantDto {
   @MinLength(2)
   @MaxLength(120)
   storeName: string;
+
+  @IsEnum(BusinessType)
+  businessType: BusinessType;
 
   @IsOptional()
   @IsString()

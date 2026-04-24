@@ -5,8 +5,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateProductCategoryDto } from './dto/create-product-category.dto';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateStoreOfferDto } from './dto/create-store-offer.dto';
 import { UpdateStoreOfferDto } from './dto/update-store-offer.dto';
@@ -15,15 +18,87 @@ import { UpdateStoreOfferDto } from './dto/update-store-offer.dto';
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // ── Categories ──────────────────────────────────────────────────────────
+
+  async createCategory(dto: CreateProductCategoryDto) {
+    try {
+      return await this.prisma.productCategory.create({
+        data: {
+          name: dto.name,
+          slug: dto.slug,
+          description: dto.description,
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Category name or slug already exists');
+      }
+      throw error;
+    }
+  }
+
+  async listActiveCategories() {
+    return this.prisma.productCategory.findMany({
+      where: { isActive: true },
+      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+      },
+    });
+  }
+
+  async listAdminCategories() {
+    return this.prisma.productCategory.findMany({
+      orderBy: { name: 'asc' },
+      include: {
+        _count: { select: { products: true } },
+      },
+    });
+  }
+
+  async updateCategory(categoryId: string, dto: UpdateProductCategoryDto) {
+    await this.findCategoryOrFail(categoryId);
+    try {
+      return await this.prisma.productCategory.update({
+        where: { id: categoryId },
+        data: dto,
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Category name or slug already exists');
+      }
+      throw error;
+    }
+  }
+
+  async toggleCategory(categoryId: string) {
+    const category = await this.findCategoryOrFail(categoryId);
+    return this.prisma.productCategory.update({
+      where: { id: categoryId },
+      data: { isActive: !category.isActive },
+    });
+  }
+
   // ── Catalogue global ─────────────────────────────────────────────────────
 
   async createCatalogProduct(dto: CreateProductDto) {
+    await this.findCategoryOrFail(dto.categoryId);
     return this.prisma.product.create({
       data: {
         name: dto.name,
         description: dto.description,
         saleUnit: dto.saleUnit,
         priceInCents: dto.priceInCents,
+        categoryId: dto.categoryId,
       },
     });
   }
@@ -49,6 +124,13 @@ export class ProductsService {
           description: true,
           saleUnit: true,
           priceInCents: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
         },
       }),
       this.prisma.product.count({ where }),
@@ -75,7 +157,17 @@ export class ProductsService {
         orderBy: { name: 'asc' },
         skip,
         take,
-        include: { _count: { select: { storeOffers: true } } },
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              isActive: true,
+            },
+          },
+          _count: { select: { storeOffers: true } },
+        },
       }),
       this.prisma.product.count(),
     ]);
@@ -90,6 +182,9 @@ export class ProductsService {
 
   async updateCatalogProduct(productId: string, dto: UpdateProductDto) {
     await this.findProductOrFailAdmin(productId);
+    if (dto.categoryId) {
+      await this.findCategoryOrFail(dto.categoryId);
+    }
     return this.prisma.product.update({
       where: { id: productId },
       data: dto,
@@ -145,6 +240,13 @@ export class ProductsService {
               description: true,
               saleUnit: true,
               priceInCents: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
             },
           },
         },
@@ -182,6 +284,13 @@ export class ProductsService {
               description: true,
               saleUnit: true,
               priceInCents: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
             },
           },
         },
@@ -228,6 +337,13 @@ export class ProductsService {
               description: true,
               saleUnit: true,
               priceInCents: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
             },
           },
         },
@@ -316,6 +432,13 @@ export class ProductsService {
               description: true,
               saleUnit: true,
               priceInCents: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
             },
           },
         },
@@ -366,6 +489,16 @@ export class ProductsService {
     });
     if (!product) throw new NotFoundException('Product not found');
     return product;
+  }
+
+  private async findCategoryOrFail(categoryId: string) {
+    const category = await this.prisma.productCategory.findUnique({
+      where: { id: categoryId },
+    });
+    if (!category) {
+      throw new NotFoundException('Product category not found');
+    }
+    return category;
   }
 
   private async assertOfferOwnership(offerId: string, merchantId: string) {

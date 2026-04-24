@@ -36,6 +36,11 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum BusinessType {
+  HANOUTE
+  PATISSERIE
+}
+
 model User {
   id                 String   @id @default(cuid())
   email              String   @unique @db.VarChar(191)
@@ -61,6 +66,7 @@ model MerchantProfile {
   id          String   @id @default(cuid())
   userId      String   @unique
   storeName   String   @db.VarChar(120)
+  businessType BusinessType
   description String?  @db.Text
   phone       String?  @db.VarChar(30)
   address     String?  @db.VarChar(255)
@@ -78,6 +84,7 @@ model MerchantProfile {
   orders      Order[]
   pickupSlots PickupSlot[]
 
+  @@index([businessType])
   @@map("merchant_profiles")
 }
 
@@ -121,21 +128,39 @@ enum SaleUnit {
   PORTION
 }
 
-// Catalogue global de produits (normalisé, partagé entre tous les marchands)
-model Product {
+model ProductCategory {
   id          String   @id @default(cuid())
-  name        String   @db.VarChar(191)
-  description String?  @db.Text
-  saleUnit    SaleUnit @default(UNIT)
-  priceInCents Int?
+  name        String   @unique @db.VarChar(80)
+  slug        String   @unique @db.VarChar(80)
+  description String?  @db.VarChar(191)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  products    Product[]
+
+  @@index([isActive])
+  @@map("product_categories")
+}
+
+// Catalogue global de produits (normalisé, partagé entre tous les marchands)
+model Product {
+  id           String   @id @default(cuid())
+  name         String   @db.VarChar(191)
+  description  String?  @db.Text
+  saleUnit     SaleUnit @default(UNIT)
+  priceInCents Int?
+  categoryId   String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  category   ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   storeOffers StoreOffer[]
   orderItems  OrderItem[]
 
   @@index([name])
+  @@index([categoryId])
   @@map("products")
 }
 

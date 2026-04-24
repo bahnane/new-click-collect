@@ -27,4 +27,8 @@ export class CreateProductDto {
   @IsInt()
   @Min(0)
   priceInCents?: number;
+
+  @IsString()
+  @MinLength(1)
+  categoryId: string;
 }

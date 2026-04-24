@@ -29,4 +29,9 @@ export class UpdateProductDto {
   @IsInt()
   @Min(0)
   priceInCents?: number;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  categoryId?: string;
 }

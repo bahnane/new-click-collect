@@ -13,7 +13,9 @@ import { Role } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
+import { CreateProductCategoryDto } from './dto/create-product-category.dto';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateStoreOfferDto } from './dto/create-store-offer.dto';
 import { UpdateStoreOfferDto } from './dto/update-store-offer.dto';
@@ -22,6 +24,53 @@ import { ProductsService } from './products.service';
 @Controller()
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
+
+  // ── Categories — public ─────────────────────────────────────────────────
+
+  @Get('product-categories')
+  listProductCategories() {
+    return this.productsService.listActiveCategories();
+  }
+
+  // ── Categories — ADMIN ──────────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard)
+  @Post('admin/product-categories')
+  createProductCategory(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: CreateProductCategoryDto,
+  ) {
+    this.assertAdmin(user);
+    return this.productsService.createCategory(dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/product-categories')
+  listAdminProductCategories(@CurrentUser() user: JwtPayload) {
+    this.assertAdmin(user);
+    return this.productsService.listAdminCategories();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('admin/product-categories/:id')
+  updateProductCategory(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: UpdateProductCategoryDto,
+  ) {
+    this.assertAdmin(user);
+    return this.productsService.updateCategory(id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('admin/product-categories/:id/toggle')
+  toggleProductCategory(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+  ) {
+    this.assertAdmin(user);
+    return this.productsService.toggleCategory(id);
+  }
 
   // ── Catalogue — public ──────────────────────────────────────────────────
 

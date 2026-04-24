@@ -3,6 +3,7 @@ import {
   ArrayUnique,
   IsBoolean,
   IsArray,
+  IsEnum,
   IsOptional,
   IsString,
   MaxLength,
@@ -10,6 +11,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { BusinessType } from '@prisma/client';
 import {
   MerchantOpeningHourDto,
   MerchantPickupHourDto,
@@ -21,6 +23,10 @@ export class UpdateMerchantProfileDto {
   @MinLength(2)
   @MaxLength(120)
   storeName?: string;
+
+  @IsOptional()
+  @IsEnum(BusinessType)
+  businessType?: BusinessType;
 
   @IsOptional()
   @IsString()
