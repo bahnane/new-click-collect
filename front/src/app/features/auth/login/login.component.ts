@@ -8,6 +8,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
+import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -64,16 +67,25 @@ export class LoginComponent {
       error: (err) => {
         this.isLoading.set(false);
         this.form.enable();
-        this.errorMessageKey.set(
-          err.status === 401
-            ? 'auth.login.errors.invalidCredentials'
-            : 'auth.login.errors.generic',
-        );
+        this.errorMessageKey.set(this.resolveLoginErrorMessageKey(err));
       },
     });
   }
 
   setLanguage(language: 'fr' | 'ar'): void {
     this.languageService.setLanguage(language);
+  }
+
+  private resolveLoginErrorMessageKey(error: unknown): string {
+    const code = extractApiErrorCode(error);
+    if (code) {
+      return AUTH_ERROR_I18N_KEY_BY_CODE[code] ?? 'auth.login.errors.generic';
+    }
+
+    if (error instanceof HttpErrorResponse && error.status === 401) {
+      return 'auth.apiErrors.AUTH_INVALID_CREDENTIALS';
+    }
+
+    return 'auth.login.errors.generic';
   }
 }

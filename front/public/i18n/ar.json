@@ -15,6 +15,28 @@
     }
   },
   "auth": {
+    "apiErrors": {
+      "VALIDATION_ERROR": "بيانات غير صالحة. يرجى التحقق من الحقول.",
+      "BAD_REQUEST": "الطلب غير صالح.",
+      "AUTH_UNAUTHORIZED": "غير مصرح. يرجى تسجيل الدخول مرة أخرى.",
+      "AUTH_FORBIDDEN": "تم رفض الوصول.",
+      "AUTH_EMAIL_ALREADY_USED": "هذا البريد الإلكتروني مستخدم بالفعل.",
+      "AUTH_INVALID_CREDENTIALS": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+      "AUTH_ACCOUNT_SUSPENDED": "حسابك موقوف.",
+      "AUTH_ACCOUNT_INVITED_NOT_ACTIVATED": "يجب تفعيل حساب التاجر قبل تسجيل الدخول.",
+      "AUTH_REFRESH_TOKEN_REQUIRED": "جلسة غير صالحة. يرجى تسجيل الدخول مرة أخرى.",
+      "AUTH_REFRESH_TOKEN_INVALID": "جلسة غير صالحة. يرجى تسجيل الدخول مرة أخرى.",
+      "AUTH_REFRESH_TOKEN_EXPIRED_OR_REVOKED": "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.",
+      "AUTH_INVITE_TOKEN_INVALID_OR_EXPIRED": "رابط الدعوة غير صالح أو منتهي الصلاحية.",
+      "AUTH_INVITE_TOKEN_WRONG_ROLE": "رابط الدعوة لا يطابق نوع الحساب.",
+      "AUTH_RESET_TOKEN_INVALID_OR_EXPIRED": "رابط إعادة تعيين كلمة المرور غير صالح أو منتهي الصلاحية.",
+      "AUTH_USER_NOT_FOUND": "المستخدم غير موجود.",
+      "AUTH_CURRENT_PASSWORD_INVALID": "كلمة المرور الحالية غير صحيحة.",
+      "AUTH_NEW_PASSWORD_SAME_AS_CURRENT": "يجب أن تكون كلمة المرور الجديدة مختلفة عن الحالية.",
+      "RESOURCE_NOT_FOUND": "المورد غير موجود.",
+      "CONFLICT": "يوجد تعارض في البيانات.",
+      "INTERNAL_SERVER_ERROR": "خطأ داخلي في الخادم. حاول مرة أخرى لاحقًا."
+    },
     "login": {
       "title": "تسجيل الدخول",
       "subtitle": "ادخل إلى مساحتك لإدارة الطلبات ومواعيد الاستلام.",

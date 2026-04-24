@@ -15,6 +15,28 @@
     }
   },
   "auth": {
+    "apiErrors": {
+      "VALIDATION_ERROR": "Données invalides. Vérifiez les champs du formulaire.",
+      "BAD_REQUEST": "Requête invalide.",
+      "AUTH_UNAUTHORIZED": "Non autorisé. Veuillez vous reconnecter.",
+      "AUTH_FORBIDDEN": "Accès refusé.",
+      "AUTH_EMAIL_ALREADY_USED": "Cet email est déjà utilisé.",
+      "AUTH_INVALID_CREDENTIALS": "Email ou mot de passe incorrect.",
+      "AUTH_ACCOUNT_SUSPENDED": "Votre compte est suspendu.",
+      "AUTH_ACCOUNT_INVITED_NOT_ACTIVATED": "Votre compte marchand doit être activé avant la connexion.",
+      "AUTH_REFRESH_TOKEN_REQUIRED": "Session invalide. Veuillez vous reconnecter.",
+      "AUTH_REFRESH_TOKEN_INVALID": "Session invalide. Veuillez vous reconnecter.",
+      "AUTH_REFRESH_TOKEN_EXPIRED_OR_REVOKED": "Session expirée. Veuillez vous reconnecter.",
+      "AUTH_INVITE_TOKEN_INVALID_OR_EXPIRED": "Le lien d'invitation est invalide ou expiré.",
+      "AUTH_INVITE_TOKEN_WRONG_ROLE": "Ce lien d'invitation ne correspond pas au bon type de compte.",
+      "AUTH_RESET_TOKEN_INVALID_OR_EXPIRED": "Le lien de réinitialisation est invalide ou expiré.",
+      "AUTH_USER_NOT_FOUND": "Utilisateur introuvable.",
+      "AUTH_CURRENT_PASSWORD_INVALID": "Mot de passe actuel invalide.",
+      "AUTH_NEW_PASSWORD_SAME_AS_CURRENT": "Le nouveau mot de passe doit être différent de l'actuel.",
+      "RESOURCE_NOT_FOUND": "Ressource introuvable.",
+      "CONFLICT": "Conflit de données détecté.",
+      "INTERNAL_SERVER_ERROR": "Erreur interne du serveur. Réessayez plus tard."
+    },
     "login": {
       "title": "Connexion",
       "subtitle": "Accédez à votre espace pour gérer vos commandes et retraits.",
