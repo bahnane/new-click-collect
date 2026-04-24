@@ -1,3 +1,4 @@
+import { AppLanguage } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { normalizeEmail } from 'src/common/utils/mail.utils';
@@ -15,6 +16,16 @@ export class UsersService {
       where: {
         email: normalizeEmail(email),
       },
+    });
+  }
+
+  async updatePreferredLanguage(
+    userId: string,
+    preferredLanguage: AppLanguage,
+  ) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { preferredLanguage },
     });
   }
 }

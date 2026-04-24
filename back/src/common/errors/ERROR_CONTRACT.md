@@ -32,6 +32,12 @@ Example:
 - AUTH_EMAIL_ALREADY_USED
 - VALIDATION_ERROR
 
+## Preferred language update
+
+- VALIDATION_ERROR
+- AUTH_UNAUTHORIZED
+- AUTH_FORBIDDEN
+
 ## Shared auth codes
 
 - AUTH_EMAIL_ALREADY_USED

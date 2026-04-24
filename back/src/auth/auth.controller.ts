@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Patch,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthService } from './auth.service';
@@ -8,6 +16,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UpdatePreferredLanguageDto } from './dto/update-preferred-language.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
@@ -97,6 +106,15 @@ export class AuthController {
     const result = await this.authService.resetPassword(dto);
     this.authService.clearRefreshTokenCookie(response);
     return result;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/preferred-language')
+  updatePreferredLanguage(
+    @CurrentUser('sub') userId: string,
+    @Body() dto: UpdatePreferredLanguageDto,
+  ) {
+    return this.authService.updatePreferredLanguage(userId, dto);
   }
 
   @UseGuards(JwtAuthGuard)

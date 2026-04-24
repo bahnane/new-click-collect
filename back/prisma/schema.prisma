@@ -18,6 +18,11 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum AppLanguage {
+  fr
+  ar
+}
+
 enum Weekday {
   SUNDAY
   MONDAY
@@ -47,6 +52,7 @@ model User {
   passwordHash       String   @db.VarChar(255)
   role               Role     @default(CUSTOMER)
   status             UserStatus @default(ACTIVE)
+  preferredLanguage  AppLanguage @default(fr)
   mustChangePassword Boolean  @default(false)
   lastLoginAt        DateTime?
   createdAt          DateTime @default(now())

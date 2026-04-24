@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Role, User, UserStatus } from '@prisma/client';
+import { AppLanguage, Role, User, UserStatus } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { randomUUID } from 'crypto';
 import { CookieOptions, Request, Response } from 'express';
@@ -23,6 +23,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UpdatePreferredLanguageDto } from './dto/update-preferred-language.dto';
 import { JwtPayload } from './types/jwt-payload.type';
 import { normalizeEmail } from 'src/common/utils/mail.utils';
 
@@ -31,6 +32,7 @@ type AuthenticatedUser = {
   email: string;
   role: Role;
   status: UserStatus;
+  preferredLanguage: AppLanguage;
   mustChangePassword: boolean;
 };
 
@@ -102,6 +104,7 @@ export class AuthService {
         passwordHash,
         role: Role.CUSTOMER,
         status: UserStatus.ACTIVE,
+        preferredLanguage: dto.preferredLanguage ?? AppLanguage.fr,
         mustChangePassword: false,
         lastLoginAt: new Date(),
       },
@@ -136,7 +139,10 @@ export class AuthService {
 
     const updatedUser = await this.prisma.user.update({
       where: { id: user.id },
-      data: { lastLoginAt: new Date() },
+      data: {
+        lastLoginAt: new Date(),
+        preferredLanguage: dto.preferredLanguage,
+      },
     });
 
     return this.createSession(updatedUser);
@@ -454,6 +460,27 @@ export class AuthService {
     };
   }
 
+  async updatePreferredLanguage(
+    userId: string,
+    dto: UpdatePreferredLanguageDto,
+  ): Promise<AuthenticatedUser> {
+    const user = await this.usersService.findById(userId);
+
+    if (!user) {
+      throw new UnauthorizedException({
+        code: ErrorCodes.AUTH_USER_NOT_FOUND,
+        message: 'User not found',
+      });
+    }
+
+    const updatedUser = await this.usersService.updatePreferredLanguage(
+      userId,
+      dto.preferredLanguage,
+    );
+
+    return this.toAuthenticatedUser(updatedUser);
+  }
+
   private async createSession(user: User): Promise<SessionResult> {
     const payload: JwtPayload = {
       sub: user.id,
@@ -498,6 +525,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       status: user.status,
+      preferredLanguage: user.preferredLanguage,
       mustChangePassword: user.mustChangePassword,
     };
   }
