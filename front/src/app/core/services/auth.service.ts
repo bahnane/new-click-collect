@@ -27,6 +27,19 @@ interface AuthResponse {
   user: User;
 }
 
+interface ForgotPasswordPayload {
+  email: string;
+}
+
+interface ResetPasswordPayload {
+  token: string;
+  newPassword: string;
+}
+
+interface MessageResponse {
+  message: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -85,6 +98,26 @@ export class AuthService {
           this.router.navigate(['/login']);
         }),
       );
+  }
+
+  forgotPassword(payload: ForgotPasswordPayload) {
+    return this.http.post<MessageResponse>(
+      `${environment.apiUrl}/auth/forgot-password`,
+      payload,
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
+  resetPassword(payload: ResetPasswordPayload) {
+    return this.http.post<MessageResponse>(
+      `${environment.apiUrl}/auth/reset-password`,
+      payload,
+      {
+        withCredentials: true,
+      },
+    );
   }
 
   getAccessToken(): string | null {

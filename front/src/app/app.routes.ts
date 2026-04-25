@@ -2,6 +2,22 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent,
+      ),
+    title: 'routes.forgotPassword.title',
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent,
+      ),
+    title: 'routes.resetPassword.title',
+  },
+  {
     path: 'register',
     loadComponent: () =>
       import('./features/auth/register/register.component').then(

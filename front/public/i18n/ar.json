@@ -3,6 +3,12 @@
     "name": "انقر واستلم"
   },
   "routes": {
+    "forgotPassword": {
+      "title": "نسيت كلمة المرور"
+    },
+    "resetPassword": {
+      "title": "إعادة تعيين كلمة المرور"
+    },
     "login": {
       "title": "تسجيل الدخول"
     },
@@ -80,6 +86,42 @@
         "emailInvalid": "البريد الإلكتروني غير صالح.",
         "passwordRequired": "كلمة المرور مطلوبة.",
         "passwordMinLength": "8 أحرف على الأقل.",
+        "generic": "حدث خطأ. يرجى المحاولة مرة أخرى."
+      }
+    },
+    "forgotPassword": {
+      "title": "نسيت كلمة المرور",
+      "subtitle": "أدخل بريدك الإلكتروني لإرسال رابط إعادة التعيين.",
+      "formLabel": "نموذج نسيت كلمة المرور",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "name@example.com",
+      "submit": "إرسال الرابط",
+      "backToLogin": "العودة إلى تسجيل الدخول",
+      "successMessage": "إذا كان البريد الإلكتروني موجودًا، تم إرسال رابط إعادة التعيين.",
+      "errors": {
+        "emailRequired": "البريد الإلكتروني مطلوب.",
+        "emailInvalid": "البريد الإلكتروني غير صالح.",
+        "generic": "حدث خطأ. يرجى المحاولة مرة أخرى."
+      }
+    },
+    "resetPassword": {
+      "title": "إعادة تعيين كلمة المرور",
+      "subtitle": "اختر كلمة مرور جديدة وآمنة.",
+      "formLabel": "نموذج إعادة تعيين كلمة المرور",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "submit": "تحديث كلمة المرور",
+      "showPassword": "إظهار كلمة المرور",
+      "hidePassword": "إخفاء كلمة المرور",
+      "backToLogin": "العودة إلى تسجيل الدخول",
+      "requestNewLink": "طلب رابط جديد",
+      "successMessage": "تم تحديث كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.",
+      "errors": {
+        "passwordRequired": "كلمة المرور مطلوبة.",
+        "passwordMinLength": "8 أحرف على الأقل.",
+        "confirmPasswordRequired": "تأكيد كلمة المرور مطلوب.",
+        "passwordMismatch": "كلمتا المرور غير متطابقتين.",
+        "tokenMissing": "رابط إعادة التعيين غير مكتمل أو غير صالح.",
         "generic": "حدث خطأ. يرجى المحاولة مرة أخرى."
       }
     }

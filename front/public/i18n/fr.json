@@ -3,6 +3,12 @@
     "name": "Click & Collect"
   },
   "routes": {
+    "forgotPassword": {
+      "title": "Mot de passe oublié"
+    },
+    "resetPassword": {
+      "title": "Réinitialiser le mot de passe"
+    },
     "login": {
       "title": "Connexion"
     },
@@ -80,6 +86,42 @@
         "emailInvalid": "Email invalide.",
         "passwordRequired": "Le mot de passe est requis.",
         "passwordMinLength": "Minimum 8 caractères.",
+        "generic": "Une erreur est survenue. Veuillez réessayer."
+      }
+    },
+    "forgotPassword": {
+      "title": "Mot de passe oublié",
+      "subtitle": "Entrez votre email pour recevoir un lien de réinitialisation.",
+      "formLabel": "Formulaire mot de passe oublié",
+      "email": "Adresse email",
+      "emailPlaceholder": "nom@exemple.fr",
+      "submit": "Envoyer le lien",
+      "backToLogin": "Retour à la connexion",
+      "successMessage": "Si cet email existe, un lien de réinitialisation vient d'être envoyé.",
+      "errors": {
+        "emailRequired": "L'email est requis.",
+        "emailInvalid": "Email invalide.",
+        "generic": "Une erreur est survenue. Veuillez réessayer."
+      }
+    },
+    "resetPassword": {
+      "title": "Réinitialiser le mot de passe",
+      "subtitle": "Choisissez un nouveau mot de passe sécurisé.",
+      "formLabel": "Formulaire de réinitialisation du mot de passe",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "submit": "Mettre à jour le mot de passe",
+      "showPassword": "Afficher le mot de passe",
+      "hidePassword": "Masquer le mot de passe",
+      "backToLogin": "Retour à la connexion",
+      "requestNewLink": "Demander un nouveau lien",
+      "successMessage": "Votre mot de passe a été mis à jour. Vous pouvez maintenant vous connecter.",
+      "errors": {
+        "passwordRequired": "Le mot de passe est requis.",
+        "passwordMinLength": "Minimum 8 caractères.",
+        "confirmPasswordRequired": "La confirmation du mot de passe est requise.",
+        "passwordMismatch": "Les mots de passe ne correspondent pas.",
+        "tokenMissing": "Le lien de réinitialisation est incomplet ou invalide.",
         "generic": "Une erreur est survenue. Veuillez réessayer."
       }
     }

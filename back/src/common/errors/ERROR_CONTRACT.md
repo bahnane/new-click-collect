@@ -12,12 +12,12 @@ All API errors follow this payload shape:
 Example:
 
 {
-  "statusCode": 401,
-  "code": "AUTH_INVALID_CREDENTIALS",
-  "message": "Invalid email or password",
-  "details": null,
-  "path": "/auth/login",
-  "timestamp": "2026-04-24T20:00:00.000Z"
+"statusCode": 401,
+"code": "AUTH_INVALID_CREDENTIALS",
+"message": "Invalid email or password",
+"details": null,
+"path": "/auth/login",
+"timestamp": "2026-04-24T20:00:00.000Z"
 }
 
 ## Login-related codes
@@ -30,6 +30,15 @@ Example:
 ## Register-related codes
 
 - AUTH_EMAIL_ALREADY_USED
+- VALIDATION_ERROR
+
+## Forgot password-related codes
+
+- VALIDATION_ERROR
+
+## Reset password-related codes
+
+- AUTH_RESET_TOKEN_INVALID_OR_EXPIRED
 - VALIDATION_ERROR
 
 ## Preferred language update
