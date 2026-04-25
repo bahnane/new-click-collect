@@ -1,0 +1,31 @@
+<main class="verify-email-page">
+    <mat-card class="verify-email-card">
+        <mat-card-content>
+            <div class="verify-email-header">
+                <p class="eyebrow">{{ 'app.name' | transloco }}</p>
+                <h1 class="verify-email-title">{{ 'auth.verifyEmail.title' | transloco }}</h1>
+            </div>
+
+            @if (state() === 'loading') {
+            <div class="status-banner info-banner" role="status" aria-live="polite">
+                <mat-progress-spinner diameter="22" mode="indeterminate" aria-hidden="true" />
+                <span>{{ messageKey() | transloco }}</span>
+            </div>
+            } @else if (state() === 'success') {
+            <div class="status-banner success-banner" role="status" aria-live="polite">
+                <mat-icon aria-hidden="true">check_circle</mat-icon>
+                <span>{{ messageKey() | transloco }}</span>
+            </div>
+            } @else {
+            <div class="status-banner error-banner" role="alert" aria-live="assertive">
+                <mat-icon aria-hidden="true">error_outline</mat-icon>
+                <span>{{ messageKey() | transloco }}</span>
+            </div>
+            }
+
+            <p class="auth-switch-text">
+                <a routerLink="/login">{{ 'auth.verifyEmail.backToLogin' | transloco }}</a>
+            </p>
+        </mat-card-content>
+    </mat-card>
+</main>

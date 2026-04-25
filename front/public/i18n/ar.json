@@ -3,6 +3,9 @@
     "name": "انقر واستلم"
   },
   "routes": {
+    "verifyEmail": {
+      "title": "تأكيد البريد الإلكتروني"
+    },
     "forgotPassword": {
       "title": "نسيت كلمة المرور"
     },
@@ -33,9 +36,11 @@
       "AUTH_INVALID_CREDENTIALS": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
       "AUTH_ACCOUNT_SUSPENDED": "حسابك موقوف.",
       "AUTH_ACCOUNT_INVITED_NOT_ACTIVATED": "يجب تفعيل حساب التاجر قبل تسجيل الدخول.",
+      "AUTH_EMAIL_NOT_VERIFIED": "لم يتم تأكيد بريدك الإلكتروني بعد.",
       "AUTH_REFRESH_TOKEN_REQUIRED": "جلسة غير صالحة. يرجى تسجيل الدخول مرة أخرى.",
       "AUTH_REFRESH_TOKEN_INVALID": "جلسة غير صالحة. يرجى تسجيل الدخول مرة أخرى.",
       "AUTH_REFRESH_TOKEN_EXPIRED_OR_REVOKED": "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.",
+      "AUTH_EMAIL_VERIFICATION_TOKEN_INVALID_OR_EXPIRED": "رابط تأكيد البريد الإلكتروني غير صالح أو منتهي الصلاحية.",
       "AUTH_INVITE_TOKEN_INVALID_OR_EXPIRED": "رابط الدعوة غير صالح أو منتهي الصلاحية.",
       "AUTH_INVITE_TOKEN_WRONG_ROLE": "رابط الدعوة لا يطابق نوع الحساب.",
       "AUTH_RESET_TOKEN_INVALID_OR_EXPIRED": "رابط إعادة تعيين كلمة المرور غير صالح أو منتهي الصلاحية.",
@@ -78,9 +83,11 @@
       "passwordHint": "استخدم 8 أحرف على الأقل.",
       "submit": "إنشاء الحساب",
       "loginPrompt": "لديك حساب بالفعل؟",
+      "loginAfterSuccessPrompt": "تم تأكيد بريدك؟",
       "loginLink": "تسجيل الدخول",
       "showPassword": "إظهار كلمة المرور",
       "hidePassword": "إخفاء كلمة المرور",
+      "successMessage": "تم إنشاء الحساب. يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول.",
       "errors": {
         "emailRequired": "البريد الإلكتروني مطلوب.",
         "emailInvalid": "البريد الإلكتروني غير صالح.",
@@ -123,6 +130,16 @@
         "passwordMismatch": "كلمتا المرور غير متطابقتين.",
         "tokenMissing": "رابط إعادة التعيين غير مكتمل أو غير صالح.",
         "generic": "حدث خطأ. يرجى المحاولة مرة أخرى."
+      }
+    },
+    "verifyEmail": {
+      "title": "تأكيد بريدك الإلكتروني",
+      "loading": "جارٍ التحقق...",
+      "successMessage": "تم تأكيد البريد الإلكتروني بنجاح. يمكنك الآن تسجيل الدخول.",
+      "backToLogin": "الذهاب إلى تسجيل الدخول",
+      "errors": {
+        "tokenMissing": "رابط التحقق غير مكتمل أو غير صالح.",
+        "generic": "تعذر تأكيد البريد الإلكتروني. حاول مرة أخرى."
       }
     }
   }

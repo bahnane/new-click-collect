@@ -40,6 +40,10 @@ interface MessageResponse {
   message: string;
 }
 
+interface VerifyEmailPayload {
+  token: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -55,17 +59,13 @@ export class AuthService {
   register(payload: RegisterPayload) {
     const body = this.withCurrentLanguage(payload);
 
-    return this.http
-      .post<AuthResponse>(`${environment.apiUrl}/auth/register`, body, {
+    return this.http.post<MessageResponse>(
+      `${environment.apiUrl}/auth/register`,
+      body,
+      {
         withCredentials: true,
-      })
-      .pipe(
-        tap((response) => {
-          this._accessToken.set(response.accessToken);
-          this._currentUser.set(response.user);
-          this.languageService.setLanguage(response.user.preferredLanguage);
-        }),
-      );
+      },
+    );
   }
 
   login(credentials: LoginCredentials) {
@@ -113,6 +113,16 @@ export class AuthService {
   resetPassword(payload: ResetPasswordPayload) {
     return this.http.post<MessageResponse>(
       `${environment.apiUrl}/auth/reset-password`,
+      payload,
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
+  verifyEmail(payload: VerifyEmailPayload) {
+    return this.http.post<MessageResponse>(
+      `${environment.apiUrl}/auth/verify-email`,
       payload,
       {
         withCredentials: true,

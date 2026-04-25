@@ -3,6 +3,9 @@
     "name": "Click & Collect"
   },
   "routes": {
+    "verifyEmail": {
+      "title": "Vérification de l'email"
+    },
     "forgotPassword": {
       "title": "Mot de passe oublié"
     },
@@ -33,9 +36,11 @@
       "AUTH_INVALID_CREDENTIALS": "Email ou mot de passe incorrect.",
       "AUTH_ACCOUNT_SUSPENDED": "Votre compte est suspendu.",
       "AUTH_ACCOUNT_INVITED_NOT_ACTIVATED": "Votre compte marchand doit être activé avant la connexion.",
+      "AUTH_EMAIL_NOT_VERIFIED": "Votre email n'est pas encore vérifié.",
       "AUTH_REFRESH_TOKEN_REQUIRED": "Session invalide. Veuillez vous reconnecter.",
       "AUTH_REFRESH_TOKEN_INVALID": "Session invalide. Veuillez vous reconnecter.",
       "AUTH_REFRESH_TOKEN_EXPIRED_OR_REVOKED": "Session expirée. Veuillez vous reconnecter.",
+      "AUTH_EMAIL_VERIFICATION_TOKEN_INVALID_OR_EXPIRED": "Le lien de vérification est invalide ou expiré.",
       "AUTH_INVITE_TOKEN_INVALID_OR_EXPIRED": "Le lien d'invitation est invalide ou expiré.",
       "AUTH_INVITE_TOKEN_WRONG_ROLE": "Ce lien d'invitation ne correspond pas au bon type de compte.",
       "AUTH_RESET_TOKEN_INVALID_OR_EXPIRED": "Le lien de réinitialisation est invalide ou expiré.",
@@ -78,9 +83,11 @@
       "passwordHint": "Utilisez au minimum 8 caractères.",
       "submit": "Créer mon compte",
       "loginPrompt": "Vous avez déjà un compte ?",
+      "loginAfterSuccessPrompt": "Email vérifié ?",
       "loginLink": "Se connecter",
       "showPassword": "Afficher le mot de passe",
       "hidePassword": "Masquer le mot de passe",
+      "successMessage": "Compte créé. Vérifiez votre email avant de vous connecter.",
       "errors": {
         "emailRequired": "L'email est requis.",
         "emailInvalid": "Email invalide.",
@@ -123,6 +130,16 @@
         "passwordMismatch": "Les mots de passe ne correspondent pas.",
         "tokenMissing": "Le lien de réinitialisation est incomplet ou invalide.",
         "generic": "Une erreur est survenue. Veuillez réessayer."
+      }
+    },
+    "verifyEmail": {
+      "title": "Vérification de votre email",
+      "loading": "Vérification en cours...",
+      "successMessage": "Email vérifié avec succès. Vous pouvez maintenant vous connecter.",
+      "backToLogin": "Aller à la connexion",
+      "errors": {
+        "tokenMissing": "Le lien de vérification est incomplet ou invalide.",
+        "generic": "Impossible de vérifier cet email. Veuillez réessayer."
       }
     }
   }
