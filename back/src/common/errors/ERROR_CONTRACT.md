@@ -39,6 +39,12 @@ Example:
 - AUTH_INVITE_TOKEN_WRONG_ROLE
 - VALIDATION_ERROR
 
+## Activate invite-related codes
+
+- AUTH_INVITE_TOKEN_INVALID_OR_EXPIRED
+- AUTH_INVITE_TOKEN_WRONG_ROLE
+- VALIDATION_ERROR
+
 ## Forgot password-related codes
 
 - VALIDATION_ERROR

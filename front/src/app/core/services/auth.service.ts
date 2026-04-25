@@ -44,6 +44,11 @@ interface VerifyEmailPayload {
   token: string;
 }
 
+interface ActivateInvitePayload {
+  token: string;
+  password: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -128,6 +133,24 @@ export class AuthService {
         withCredentials: true,
       },
     );
+  }
+
+  activateInvite(payload: ActivateInvitePayload) {
+    return this.http
+      .post<AuthResponse>(
+        `${environment.apiUrl}/auth/activate-invite`,
+        payload,
+        {
+          withCredentials: true,
+        },
+      )
+      .pipe(
+        tap((response) => {
+          this._accessToken.set(response.accessToken);
+          this._currentUser.set(response.user);
+          this.languageService.setLanguage(response.user.preferredLanguage);
+        }),
+      );
   }
 
   getAccessToken(): string | null {

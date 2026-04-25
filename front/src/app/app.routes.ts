@@ -2,6 +2,14 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
+    path: 'activate-invite',
+    loadComponent: () =>
+      import('./features/auth/activate-invite/activate-invite.component').then(
+        (m) => m.ActivateInviteComponent,
+      ),
+    title: 'routes.activateInvite.title',
+  },
+  {
     path: 'verify-email',
     loadComponent: () =>
       import('./features/auth/verify-email/verify-email.component').then(

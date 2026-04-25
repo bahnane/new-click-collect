@@ -3,6 +3,9 @@
     "name": "Click & Collect"
   },
   "routes": {
+    "activateInvite": {
+      "title": "Activation du compte marchand"
+    },
     "verifyEmail": {
       "title": "Vérification de l'email"
     },
@@ -140,6 +143,26 @@
       "errors": {
         "tokenMissing": "Le lien de vérification est incomplet ou invalide.",
         "generic": "Impossible de vérifier cet email. Veuillez réessayer."
+      }
+    },
+    "activateInvite": {
+      "title": "Activez votre compte marchand",
+      "subtitle": "Définissez votre mot de passe pour finaliser l'activation.",
+      "formLabel": "Formulaire d'activation du compte marchand",
+      "password": "Mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "submit": "Activer mon compte",
+      "showPassword": "Afficher le mot de passe",
+      "hidePassword": "Masquer le mot de passe",
+      "backToLogin": "Retour à la connexion",
+      "successMessage": "Compte marchand activé avec succès.",
+      "errors": {
+        "passwordRequired": "Le mot de passe est requis.",
+        "passwordMinLength": "Minimum 8 caractères.",
+        "confirmPasswordRequired": "La confirmation du mot de passe est requise.",
+        "passwordMismatch": "Les mots de passe ne correspondent pas.",
+        "tokenMissing": "Le lien d'activation est incomplet ou invalide.",
+        "generic": "Impossible d'activer ce compte. Veuillez réessayer."
       }
     }
   }

@@ -1,0 +1,100 @@
+<main class="activate-invite-page">
+    <mat-card class="activate-invite-card">
+        <mat-card-content>
+            <div class="activate-invite-header">
+                <div>
+                    <p class="eyebrow">{{ 'app.name' | transloco }}</p>
+                    <h1 class="activate-invite-title">{{ 'auth.activateInvite.title' | transloco }}</h1>
+                    <p class="activate-invite-subtitle">{{ 'auth.activateInvite.subtitle' | transloco }}</p>
+                </div>
+            </div>
+
+            @if (!token()) {
+            <div class="error-banner" role="alert" aria-live="assertive">
+                <mat-icon aria-hidden="true">error_outline</mat-icon>
+                <span>{{ 'auth.activateInvite.errors.tokenMissing' | transloco }}</span>
+            </div>
+
+            <p class="auth-switch-text">
+                <a routerLink="/login">{{ 'auth.activateInvite.backToLogin' | transloco }}</a>
+            </p>
+            } @else {
+            <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate
+                [attr.aria-label]="'auth.activateInvite.formLabel' | transloco">
+                @if (errorMessageKey()) {
+                <div class="error-banner" role="alert" aria-live="assertive">
+                    <mat-icon aria-hidden="true">error_outline</mat-icon>
+                    <span>{{ errorMessageKey()! | transloco }}</span>
+                </div>
+                }
+
+                @if (successMessageKey()) {
+                <div class="success-banner" role="status" aria-live="polite">
+                    <mat-icon aria-hidden="true">check_circle</mat-icon>
+                    <span>{{ successMessageKey()! | transloco }}</span>
+                </div>
+                }
+
+                @if (!successMessageKey()) {
+                <mat-form-field appearance="outline" class="field-full-width">
+                    <mat-label>{{ 'auth.activateInvite.password' | transloco }}</mat-label>
+                    <input matInput [type]="showPassword() ? 'text' : 'password'" formControlName="password"
+                        autocomplete="new-password"
+                        [attr.aria-describedby]="form.controls.password.invalid && form.controls.password.touched ? 'activate-password-error' : null" />
+                    <button type="button" matSuffix mat-icon-button (click)="togglePassword()"
+                        [attr.aria-label]="showPassword() ? ('auth.activateInvite.hidePassword' | transloco) : ('auth.activateInvite.showPassword' | transloco)">
+                        <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    @if (form.controls.password.touched) {
+                    @if (form.controls.password.hasError('required')) {
+                    <mat-error id="activate-password-error">{{ 'auth.activateInvite.errors.passwordRequired' | transloco
+                        }}</mat-error>
+                    } @else if (form.controls.password.hasError('minlength')) {
+                    <mat-error id="activate-password-error">{{ 'auth.activateInvite.errors.passwordMinLength' |
+                        transloco }}</mat-error>
+                    }
+                    }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="field-full-width">
+                    <mat-label>{{ 'auth.activateInvite.confirmPassword' | transloco }}</mat-label>
+                    <input matInput [type]="showConfirmPassword() ? 'text' : 'password'"
+                        formControlName="confirmPassword" autocomplete="new-password" [attr.aria-describedby]="
+                  (form.controls.confirmPassword.invalid && form.controls.confirmPassword.touched) ||
+                  (form.hasError('passwordMismatch') && form.controls.confirmPassword.touched)
+                    ? 'activate-confirm-password-error'
+                    : null
+                " />
+                    <button type="button" matSuffix mat-icon-button (click)="toggleConfirmPassword()"
+                        [attr.aria-label]="showConfirmPassword() ? ('auth.activateInvite.hidePassword' | transloco) : ('auth.activateInvite.showPassword' | transloco)">
+                        <mat-icon>{{ showConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    @if (form.controls.confirmPassword.touched) {
+                    @if (form.controls.confirmPassword.hasError('required')) {
+                    <mat-error id="activate-confirm-password-error">{{
+                        'auth.activateInvite.errors.confirmPasswordRequired' | transloco }}</mat-error>
+                    } @else if (form.hasError('passwordMismatch')) {
+                    <mat-error id="activate-confirm-password-error">{{ 'auth.activateInvite.errors.passwordMismatch' |
+                        transloco }}</mat-error>
+                    }
+                    }
+                </mat-form-field>
+
+                <button mat-flat-button type="submit" class="submit-button" [disabled]="isLoading()"
+                    [attr.aria-label]="'auth.activateInvite.submit' | transloco">
+                    @if (isLoading()) {
+                    <mat-progress-spinner diameter="22" mode="indeterminate" aria-hidden="true" />
+                    } @else {
+                    {{ 'auth.activateInvite.submit' | transloco }}
+                    }
+                </button>
+                }
+
+                <p class="auth-switch-text">
+                    <a routerLink="/login">{{ 'auth.activateInvite.backToLogin' | transloco }}</a>
+                </p>
+            </form>
+            }
+        </mat-card-content>
+    </mat-card>
+</main>
