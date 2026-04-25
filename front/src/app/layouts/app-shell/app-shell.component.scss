@@ -1,0 +1,116 @@
+.shell {
+  min-height: 100dvh;
+  background-color: var(--mat-sys-surface-container-lowest);
+}
+
+.shell-header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-block-end: 1px solid
+    color-mix(in srgb, var(--mat-sys-outline) 35%, transparent);
+  background-color: color-mix(in srgb, var(--mat-sys-surface) 92%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.brand {
+  text-decoration: none;
+}
+
+.brand-title {
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-title-medium);
+}
+
+.menu-toggle {
+  justify-self: end;
+}
+
+.shell-nav {
+  grid-column: 1 / -1;
+  display: none;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-block-start: 0.25rem;
+}
+
+.shell-nav.is-open {
+  display: flex;
+}
+
+.shell-nav a,
+.shell-nav button {
+  justify-content: flex-start;
+}
+
+.nav-divider {
+  block-size: 1px;
+  background-color: color-mix(in srgb, var(--mat-sys-outline) 35%, transparent);
+  margin-block: 0.25rem;
+}
+
+.language-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.language-button {
+  min-width: 0;
+}
+
+.language-button.is-active {
+  border-color: var(--mat-sys-primary);
+  background-color: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+}
+
+.logout-button {
+  width: fit-content;
+}
+
+.is-active {
+  background-color: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+}
+
+.shell-content {
+  padding: 1rem;
+}
+
+@media (min-width: 56rem) {
+  .shell-header {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    padding-inline: 1.25rem;
+  }
+
+  .menu-toggle {
+    display: none;
+  }
+
+  .shell-nav {
+    display: flex;
+    grid-column: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-block-start: 0;
+  }
+
+  .nav-divider {
+    inline-size: 1px;
+    block-size: 2rem;
+    margin-inline: 0.25rem;
+    margin-block: 0;
+  }
+
+  .shell-content {
+    padding: 1.25rem;
+  }
+}

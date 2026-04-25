@@ -3,6 +3,15 @@
     "name": "انقر واستلم"
   },
   "routes": {
+    "dashboard": {
+      "title": "لوحة التحكم"
+    },
+    "merchantSpace": {
+      "title": "مساحة التاجر"
+    },
+    "adminSpace": {
+      "title": "مساحة الإدارة"
+    },
     "activateInvite": {
       "title": "تفعيل حساب التاجر"
     },
@@ -164,6 +173,33 @@
         "tokenMissing": "رابط التفعيل غير مكتمل أو غير صالح.",
         "generic": "تعذر تفعيل هذا الحساب. حاول مرة أخرى."
       }
+    }
+  },
+  "shell": {
+    "header": {
+      "toggleMenu": "فتح أو إغلاق القائمة",
+      "navigationLabel": "التنقل الرئيسي"
+    },
+    "nav": {
+      "dashboard": "لوحة التحكم",
+      "merchant": "مساحة التاجر",
+      "admin": "مساحة الإدارة",
+      "logout": "تسجيل الخروج"
+    },
+    "dashboard": {
+      "eyebrow": "مساحة متصلة",
+      "title": "مرحبًا",
+      "subtitle": "تم تجهيز shell التطبيقي. ستتم إضافة الميزات القادمة هنا.",
+      "emailLabel": "البريد الإلكتروني",
+      "roleLabel": "الدور"
+    },
+    "merchantSpace": {
+      "title": "مساحة التاجر",
+      "subtitle": "هذه المنطقة مخصصة لحسابات التجار."
+    },
+    "adminSpace": {
+      "title": "مساحة الإدارة",
+      "subtitle": "هذه المنطقة مخصصة لحسابات المدراء."
     }
   }
 }

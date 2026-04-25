@@ -1,5 +1,9 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import {
+  provideHttpClient,
+  withFetch,
+  withInterceptors,
+} from '@angular/common/http';
 import { ENVIRONMENT_INITIALIZER, inject } from '@angular/core';
 import {
   provideRouter,
@@ -11,13 +15,14 @@ import { environment } from '../environments/environment';
 import { I18nTitleStrategy } from './core/i18n/i18n-title.strategy';
 import { LanguageService } from './core/i18n/language.service';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader.service';
+import { authInterceptor } from './core/http/auth.interceptor';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(withFetch()),
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     provideTransloco({
       config: {
         availableLangs: ['fr', 'ar'],

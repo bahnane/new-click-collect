@@ -3,6 +3,15 @@
     "name": "Click & Collect"
   },
   "routes": {
+    "dashboard": {
+      "title": "Tableau de bord"
+    },
+    "merchantSpace": {
+      "title": "Espace marchand"
+    },
+    "adminSpace": {
+      "title": "Espace admin"
+    },
     "activateInvite": {
       "title": "Activation du compte marchand"
     },
@@ -164,6 +173,33 @@
         "tokenMissing": "Le lien d'activation est incomplet ou invalide.",
         "generic": "Impossible d'activer ce compte. Veuillez réessayer."
       }
+    }
+  },
+  "shell": {
+    "header": {
+      "toggleMenu": "Ouvrir ou fermer le menu",
+      "navigationLabel": "Navigation principale"
+    },
+    "nav": {
+      "dashboard": "Tableau de bord",
+      "merchant": "Espace marchand",
+      "admin": "Espace admin",
+      "logout": "Se deconnecter"
+    },
+    "dashboard": {
+      "eyebrow": "Espace connecté",
+      "title": "Bienvenue",
+      "subtitle": "Votre shell applicatif est prêt. Les prochaines fonctionnalités seront ajoutées ici.",
+      "emailLabel": "Email",
+      "roleLabel": "Rôle"
+    },
+    "merchantSpace": {
+      "title": "Espace marchand",
+      "subtitle": "Cette zone est réservée aux comptes marchands."
+    },
+    "adminSpace": {
+      "title": "Espace admin",
+      "subtitle": "Cette zone est réservée aux comptes administrateurs."
     }
   }
 }

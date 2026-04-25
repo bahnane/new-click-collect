@@ -1,0 +1,22 @@
+<section class="dashboard">
+    <mat-card class="dashboard-card">
+        <mat-card-content>
+            <p class="eyebrow">{{ 'shell.dashboard.eyebrow' | transloco }}</p>
+            <h1 class="dashboard-title">{{ 'shell.dashboard.title' | transloco }}</h1>
+            <p class="dashboard-subtitle">{{ 'shell.dashboard.subtitle' | transloco }}</p>
+
+            @if (currentUser(); as user) {
+            <dl class="user-meta">
+                <div>
+                    <dt>{{ 'shell.dashboard.emailLabel' | transloco }}</dt>
+                    <dd>{{ user.email }}</dd>
+                </div>
+                <div>
+                    <dt>{{ 'shell.dashboard.roleLabel' | transloco }}</dt>
+                    <dd>{{ user.role }}</dd>
+                </div>
+            </dl>
+            }
+        </mat-card-content>
+    </mat-card>
+</section>
