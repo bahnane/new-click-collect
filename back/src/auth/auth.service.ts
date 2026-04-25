@@ -24,6 +24,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UpdatePreferredLanguageDto } from './dto/update-preferred-language.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 import { JwtPayload } from './types/jwt-payload.type';
 import { normalizeEmail } from 'src/common/utils/mail.utils';
 
@@ -86,7 +87,7 @@ export class AuthService {
     });
   }
 
-  async register(dto: RegisterDto): Promise<SessionResult> {
+  async register(dto: RegisterDto): Promise<{ message: string }> {
     const email = normalizeEmail(dto.email);
     const existingUser = await this.usersService.findByEmail(email);
 
@@ -103,14 +104,106 @@ export class AuthService {
         email,
         passwordHash,
         role: Role.CUSTOMER,
-        status: UserStatus.ACTIVE,
+        status: UserStatus.INVITED,
         preferredLanguage: dto.preferredLanguage ?? AppLanguage.fr,
         mustChangePassword: false,
-        lastLoginAt: new Date(),
       },
     });
 
-    return this.createSession(user);
+    const rawToken = generateOpaqueToken();
+    const tokenHash = hashToken(rawToken);
+    const expiresAt = new Date(
+      Date.now() +
+        durationToMs(
+          this.configService.get<string>('EMAIL_VERIFICATION_EXPIRES_IN') ??
+            '24h',
+          24 * 60 * 60 * 1000,
+        ),
+    );
+    const now = new Date();
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.inviteToken.updateMany({
+        where: {
+          userId: user.id,
+          usedAt: null,
+        },
+        data: {
+          usedAt: now,
+        },
+      });
+
+      await tx.inviteToken.create({
+        data: {
+          userId: user.id,
+          tokenHash,
+          expiresAt,
+        },
+      });
+    });
+
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
+    const verificationLink = `${frontendUrl.replace(/\/$/, '')}/verify-email?token=${rawToken}`;
+
+    await this.mailService.sendCustomerEmailVerificationEmail(
+      user.email,
+      verificationLink,
+    );
+
+    return {
+      message: 'Account created. Please verify your email before logging in.',
+    };
+  }
+
+  async verifyEmail(dto: VerifyEmailDto): Promise<{ message: string }> {
+    const tokenHash = hashToken(dto.token);
+    const verificationToken = await this.prisma.inviteToken.findFirst({
+      where: {
+        tokenHash,
+        usedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!verificationToken) {
+      throw new BadRequestException({
+        code: ErrorCodes.AUTH_EMAIL_VERIFICATION_TOKEN_INVALID_OR_EXPIRED,
+        message: 'Email verification token is invalid or expired',
+      });
+    }
+
+    if (verificationToken.user.role !== Role.CUSTOMER) {
+      throw new BadRequestException({
+        code: ErrorCodes.AUTH_INVITE_TOKEN_WRONG_ROLE,
+        message: 'Email verification token is not a customer token',
+      });
+    }
+
+    const now = new Date();
+    await this.prisma.$transaction(async (tx) => {
+      await tx.inviteToken.update({
+        where: { id: verificationToken.id },
+        data: { usedAt: now },
+      });
+
+      await tx.user.update({
+        where: { id: verificationToken.userId },
+        data: {
+          status: UserStatus.ACTIVE,
+          mustChangePassword: false,
+        },
+      });
+    });
+
+    return {
+      message: 'Email verified successfully. You can now log in.',
+    };
   }
 
   async login(dto: LoginDto): Promise<SessionResult> {
@@ -539,9 +632,16 @@ export class AuthService {
     }
 
     if (user.status === UserStatus.INVITED) {
+      if (user.role === Role.MERCHANT) {
+        throw new ForbiddenException({
+          code: ErrorCodes.AUTH_ACCOUNT_INVITED_NOT_ACTIVATED,
+          message: 'User account must be activated before login',
+        });
+      }
+
       throw new ForbiddenException({
-        code: ErrorCodes.AUTH_ACCOUNT_INVITED_NOT_ACTIVATED,
-        message: 'User account must be activated before login',
+        code: ErrorCodes.AUTH_EMAIL_NOT_VERIFIED,
+        message: 'Email must be verified before login',
       });
     }
   }

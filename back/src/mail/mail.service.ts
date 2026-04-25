@@ -20,14 +20,14 @@ export class MailService {
   private readonly fromAddress: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.fromAddress =
-      this.configService.get<string>('MAIL_FROM') ??
-      'no-reply@click-and-collect.local';
+    this.fromAddress = this.configService.getOrThrow<string>('MAIL_FROM');
 
-    const host = this.configService.get<string>('SMTP_HOST');
-    const port = Number(this.configService.get<string>('SMTP_PORT') ?? 587);
-    const user = this.configService.get<string>('SMTP_USER');
-    const pass = this.configService.get<string>('SMTP_PASS');
+    const host = this.configService.getOrThrow<string>('SMTP_HOST');
+    const port = Number(
+      this.configService.getOrThrow<string>('SMTP_PORT') ?? 587,
+    );
+    const user = this.configService.getOrThrow<string>('SMTP_USER');
+    const pass = this.configService.getOrThrow<string>('SMTP_PASS');
 
     const hasSmtpCredentials =
       Boolean(host) &&
@@ -84,6 +84,24 @@ export class MailService {
       resetLink,
       '',
       "Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.",
+    ].join('\n');
+
+    await this.sendMail({ to, subject, text });
+  }
+
+  async sendCustomerEmailVerificationEmail(
+    to: string,
+    verificationLink: string,
+  ): Promise<void> {
+    const subject = 'Confirmez votre adresse email';
+    const text = [
+      'Bonjour,',
+      '',
+      'Merci pour votre inscription sur Click & Collect.',
+      'Confirmez votre adresse email en cliquant sur ce lien :',
+      verificationLink,
+      '',
+      "Si vous n'etes pas a l'origine de cette inscription, ignorez cet email.",
     ].join('\n');
 
     await this.sendMail({ to, subject, text });

@@ -17,6 +17,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UpdatePreferredLanguageDto } from './dto/update-preferred-language.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
@@ -24,17 +25,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  async register(
-    @Body() dto: RegisterDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    const session = await this.authService.register(dto);
-    this.authService.setRefreshTokenCookie(response, session.refreshToken);
+  async register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto);
+  }
 
-    return {
-      accessToken: session.accessToken,
-      user: session.user,
-    };
+  @Post('verify-email')
+  verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto);
   }
 
   @Post('login')
