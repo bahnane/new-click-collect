@@ -59,6 +59,7 @@ export class AuthService {
 
   private readonly _accessToken = signal<string | null>(null);
   private readonly _currentUser = signal<User | null>(null);
+  private readonly _loggingOut = signal(false);
   private refreshInFlight$: Observable<string | null> | null = null;
 
   readonly isAuthenticated = computed(() => this._accessToken() !== null);
@@ -91,6 +92,8 @@ export class AuthService {
   }
 
   logout() {
+    this._loggingOut.set(true);
+
     return this.http
       .post<void>(
         `${environment.apiUrl}/auth/logout`,
@@ -101,6 +104,9 @@ export class AuthService {
         tap(() => {
           this.clearSession();
           this.router.navigate(['/login']);
+        }),
+        finalize(() => {
+          this._loggingOut.set(false);
         }),
       );
   }
@@ -152,6 +158,10 @@ export class AuthService {
   }
 
   refreshAccessToken(): Observable<string | null> {
+    if (this._loggingOut()) {
+      return of(null);
+    }
+
     if (this.refreshInFlight$) {
       return this.refreshInFlight$;
     }
@@ -188,6 +198,25 @@ export class AuthService {
 
   getAccessToken(): string | null {
     return this._accessToken();
+  }
+
+  isLoggingOut(): boolean {
+    return this._loggingOut();
+  }
+
+  updatePreferredLanguage(language: 'fr' | 'ar'): Observable<User> {
+    return this.http
+      .patch<User>(
+        `${environment.apiUrl}/auth/me/preferred-language`,
+        { preferredLanguage: language },
+        { withCredentials: true },
+      )
+      .pipe(
+        tap((updatedUser) => {
+          this._currentUser.set(updatedUser);
+          this.languageService.setLanguage(language);
+        }),
+      );
   }
 
   private setSession(response: AuthResponse): void {

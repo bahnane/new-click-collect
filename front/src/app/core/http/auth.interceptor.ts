@@ -39,6 +39,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
 
+      if (authService.isLoggingOut()) {
+        return throwError(() => error);
+      }
+
       const shouldSkipRetry = AUTH_ENDPOINTS_WITHOUT_RETRY.some((endpoint) =>
         req.url.includes(endpoint),
       );

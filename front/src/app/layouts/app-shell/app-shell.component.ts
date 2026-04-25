@@ -44,6 +44,6 @@ export class AppShellComponent {
   }
 
   setLanguage(language: 'fr' | 'ar'): void {
-    this.languageService.setLanguage(language);
+    this.authService.updatePreferredLanguage(language).subscribe();
   }
 }
