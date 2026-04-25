@@ -60,6 +60,10 @@ Example:
 - AUTH_UNAUTHORIZED
 - AUTH_FORBIDDEN
 
+## Merchant Shop-related codes
+
+- RESOURCE_NOT_FOUND (merchant not found)
+
 ## Shared auth codes
 
 - AUTH_EMAIL_ALREADY_USED

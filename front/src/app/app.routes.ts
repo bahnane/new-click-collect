@@ -100,6 +100,14 @@ export const routes: Routes = [
     title: 'routes.login.title',
   },
   {
+    path: 'shop/:merchantId',
+    loadComponent: () =>
+      import('./features/shop/merchant-shop/merchant-shop.component').then(
+        (m) => m.MerchantShopComponent,
+      ),
+    title: 'routes.merchantShop.title',
+  },
+  {
     path: '**',
     redirectTo: 'dashboard',
   },

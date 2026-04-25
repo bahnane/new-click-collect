@@ -200,6 +200,44 @@
     "adminSpace": {
       "title": "Espace admin",
       "subtitle": "Cette zone est réservée aux comptes administrateurs."
+    },
+    "merchantShop": {
+      "title": "Boutique"
     }
+  },
+  "shop": {
+    "title": "Boutique",
+    "loading": "Chargement...",
+    "goBack": "Retour",
+    "merchantNotFound": "Marchand non trouvé.",
+    "failedToLoadProducts": "Impossible de charger les produits.",
+    "businessType": {
+      "hanoute": "Épicerie",
+      "patisserie": "Pâtisserie"
+    },
+    "openingHours": "Horaires d'ouverture",
+    "pickupHours": "Créneau de retrait",
+    "day": {
+      "SUNDAY": "Dimanche",
+      "MONDAY": "Lundi",
+      "TUESDAY": "Mardi",
+      "WEDNESDAY": "Mercredi",
+      "THURSDAY": "Jeudi",
+      "FRIDAY": "Vendredi",
+      "SATURDAY": "Samedi"
+    },
+    "products": "Produits",
+    "noProducts": "Aucun produit disponible pour le moment.",
+    "currency": "DA",
+    "saleUnit": {
+      "kg": "kg",
+      "g": "g",
+      "liter": "L",
+      "unit": "pcs",
+      "portion": "portion"
+    },
+    "minOrder": "Commande minimale :",
+    "stepQty": "Pas de :",
+    "addToCart": "Ajouter au panier"
   }
 }

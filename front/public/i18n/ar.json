@@ -200,6 +200,44 @@
     "adminSpace": {
       "title": "مساحة الإدارة",
       "subtitle": "هذه المنطقة مخصصة لحسابات المدراء."
+    },
+    "merchantShop": {
+      "title": "المتجر"
     }
+  },
+  "shop": {
+    "title": "المتجر",
+    "loading": "جاري التحميل...",
+    "goBack": "العودة",
+    "merchantNotFound": "لم يتم العثور على التاجر.",
+    "failedToLoadProducts": "فشل تحميل المنتجات.",
+    "businessType": {
+      "hanoute": "بقالة",
+      "patisserie": "مخبزة"
+    },
+    "openingHours": "ساعات العمل",
+    "pickupHours": "وقت الاستلام",
+    "day": {
+      "SUNDAY": "الأحد",
+      "MONDAY": "الاثنين",
+      "TUESDAY": "الثلاثاء",
+      "WEDNESDAY": "الأربعاء",
+      "THURSDAY": "الخميس",
+      "FRIDAY": "الجمعة",
+      "SATURDAY": "السبت"
+    },
+    "products": "المنتجات",
+    "noProducts": "لا توجد منتجات متاحة في الوقت الحالي.",
+    "currency": "دج",
+    "saleUnit": {
+      "kg": "كغ",
+      "g": "غ",
+      "liter": "ل",
+      "unit": "قطعة",
+      "portion": "حصة"
+    },
+    "minOrder": "الحد الأدنى للطلب :",
+    "stepQty": "الخطوة :",
+    "addToCart": "إضافة إلى السلة"
   }
 }

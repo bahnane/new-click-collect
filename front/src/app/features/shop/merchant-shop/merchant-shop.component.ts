@@ -1,0 +1,114 @@
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { MerchantShopService } from '../../../core/services/merchant-shop.service';
+import { LanguageService } from '../../../core/i18n/language.service';
+import {
+  MerchantShopInfo,
+  StoreOffersPaginatedResponse,
+} from '../../../core/models/merchant-shop.model';
+
+@Component({
+  selector: 'app-merchant-shop',
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatProgressSpinnerModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatPaginatorModule,
+    TranslocoPipe,
+  ],
+  templateUrl: './merchant-shop.component.html',
+  styleUrl: './merchant-shop.component.scss',
+})
+export class MerchantShopComponent implements OnInit {
+  private readonly merchantShopService = inject(MerchantShopService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  protected readonly languageService = inject(LanguageService);
+
+  readonly merchantInfo = signal<MerchantShopInfo | null>(null);
+  readonly products = signal<StoreOffersPaginatedResponse | null>(null);
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
+  readonly currentPage = signal(1);
+
+  readonly businessTypeLabel = computed(() => {
+    const type = this.merchantInfo()?.businessType;
+    return type ? `shop.businessType.${type.toLowerCase()}` : '';
+  });
+
+  readonly isRtl = this.languageService.isRtl;
+  readonly currentDirection = this.languageService.currentDirection;
+
+  ngOnInit(): void {
+    const merchantId = this.route.snapshot.paramMap.get('merchantId');
+    if (!merchantId) {
+      this.error.set('shop.merchantNotFound');
+      this.loading.set(false);
+      return;
+    }
+
+    this.loadMerchantAndProducts(merchantId);
+  }
+
+  private loadMerchantAndProducts(merchantId: string): void {
+    this.merchantShopService.getMerchantInfo(merchantId).subscribe({
+      next: (info) => {
+        this.merchantInfo.set(info);
+        this.loadProducts(merchantId);
+      },
+      error: () => {
+        this.error.set('shop.merchantNotFound');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  private loadProducts(merchantId: string, page = 1): void {
+    this.merchantShopService.getMerchantProducts(merchantId, page).subscribe({
+      next: (response) => {
+        this.products.set(response);
+        this.currentPage.set(page);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('shop.failedToLoadProducts');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  onPageChange(event: PageEvent): void {
+    const merchantId = this.route.snapshot.paramMap.get('merchantId');
+    if (merchantId) {
+      this.loading.set(true);
+      this.loadProducts(merchantId, event.pageIndex + 1);
+    }
+  }
+
+  getPrice(
+    storeOfferPrice: number | null,
+    productPrice: number | null,
+  ): string {
+    const price = storeOfferPrice ?? productPrice;
+    if (!price) return '—';
+    return (price / 100).toFixed(2);
+  }
+
+  getSaleUnit(unit: string): string {
+    return `shop.saleUnit.${unit.toLowerCase()}`;
+  }
+
+  goBack(): void {
+    this.router.navigate(['/']);
+  }
+}

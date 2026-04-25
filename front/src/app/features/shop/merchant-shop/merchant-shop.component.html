@@ -1,0 +1,186 @@
+<div [dir]="currentDirection()" class="merchant-shop" [class.is-rtl]="isRtl()">
+    <div class="shop-header">
+        <button class="back-button" mat-icon-button (click)="goBack()" [attr.aria-label]="'shop.goBack' | transloco">
+            <mat-icon>{{ isRtl() ? 'arrow_forward' : 'arrow_back' }}</mat-icon>
+        </button>
+        <h1>{{ 'shop.title' | transloco }}</h1>
+    </div>
+
+    @if (loading()) {
+    <div class="loading-container">
+        <mat-progress-spinner mode="indeterminate" diameter="48">
+        </mat-progress-spinner>
+        <p>{{ 'shop.loading' | transloco }}</p>
+    </div>
+    }
+
+    @if (error() && !loading()) {
+    <div class="error-container">
+        <mat-icon class="error-icon">error_outline</mat-icon>
+        <p>{{ error() | transloco }}</p>
+        <button mat-raised-button color="primary" (click)="goBack()">
+            {{ 'shop.goBack' | transloco }}
+        </button>
+    </div>
+    }
+
+    @if (merchantInfo() && !loading() && !error()) {
+    <mat-card class="merchant-info-card">
+        <mat-card-header>
+            <mat-card-title>{{ merchantInfo()!.storeName }}</mat-card-title>
+            <mat-card-subtitle>
+                {{ businessTypeLabel() | transloco }}
+            </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+            <div class="merchant-details">
+                @if (merchantInfo()!.description) {
+                <p class="description">
+                    {{ merchantInfo()!.description }}
+                </p>
+                }
+
+                <div class="contact-info">
+                    @if (merchantInfo()!.phone) {
+                    <span class="contact-item">
+                        <mat-icon>phone</mat-icon>
+                        <span>{{ merchantInfo()!.phone }}</span>
+                    </span>
+                    }
+
+                    @if (merchantInfo()!.address) {
+                    <span class="contact-item">
+                        <mat-icon>location_on</mat-icon>
+                        <span>{{ merchantInfo()!.address }}</span>
+                    </span>
+                    }
+
+                    @if (merchantInfo()!.city) {
+                    <span class="contact-item">
+                        <mat-icon>location_city</mat-icon>
+                        <span>{{ merchantInfo()!.city }}
+                            {{ merchantInfo()!.zipCode ? ', ' + merchantInfo()!.zipCode : ''
+                            }}</span>
+                    </span>
+                    }
+                </div>
+
+                <div class="hours-grid">
+                    @if (merchantInfo()!.openingHours.length) {
+                    <div class="hours-section">
+                        <h3>{{ 'shop.openingHours' | transloco }}</h3>
+                        <ul class="hours-list">
+                            @for (hour of merchantInfo()!.openingHours; track hour.dayOfWeek) {
+                            <li class="hour-item">
+                                <span class="day">
+                                    {{ 'shop.day.' + hour.dayOfWeek | transloco }}
+                                </span>
+                                <span class="time">
+                                    {{ hour.startHour }}:00 - {{ hour.endHour }}:00
+                                </span>
+                            </li>
+                            }
+                        </ul>
+                    </div>
+                    }
+
+                    @if (merchantInfo()!.pickupHours.length) {
+                    <div class="hours-section">
+                        <h3>{{ 'shop.pickupHours' | transloco }}</h3>
+                        <ul class="hours-list">
+                            @for (hour of merchantInfo()!.pickupHours; track hour.dayOfWeek) {
+                            <li class="hour-item">
+                                <span class="day">
+                                    {{ 'shop.day.' + hour.dayOfWeek | transloco }}
+                                </span>
+                                <span class="time">
+                                    {{ hour.startHour }}:00 - {{ hour.endHour }}:00
+                                </span>
+                            </li>
+                            }
+                        </ul>
+                    </div>
+                    }
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    @if (products()) {
+    <section class="products-section">
+        <h2>{{ 'shop.products' | transloco }}</h2>
+
+        @if (products()!.data.length > 0) {
+        <div class="products-grid">
+            @for (offer of products()!.data; track offer.id) {
+            <mat-card class="product-card">
+                <mat-card-header>
+                    <mat-card-title>{{ offer.product.name }}</mat-card-title>
+                    <mat-card-subtitle>
+                        {{ offer.product.category.name }}
+                    </mat-card-subtitle>
+                </mat-card-header>
+
+                <mat-card-content>
+                    @if (offer.product.description) {
+                    <p class="product-description">
+                        {{ offer.product.description }}
+                    </p>
+                    }
+
+                    <div class="product-details">
+                        <span class="price">
+                            {{ getPrice(offer.priceInCents, offer.product.priceInCents) }}
+                            {{ 'shop.currency' | transloco }}
+                        </span>
+
+                        <span class="unit">
+                            / {{ getSaleUnit(offer.product.saleUnit) | transloco }}
+                        </span>
+                    </div>
+
+                    @if (offer.minOrderQty > 1 || offer.stepQty > 1) {
+                    <div class="quantity-info">
+                        @if (offer.minOrderQty > 1) {
+                        <small>
+                            {{ 'shop.minOrder' | transloco }}
+                            {{ offer.minOrderQty }}
+                        </small>
+                        }
+                        @if (offer.stepQty > 1) {
+                        <small>
+                            {{ 'shop.stepQty' | transloco }}
+                            {{ offer.stepQty }}
+                        </small>
+                        }
+                    </div>
+                    }
+                </mat-card-content>
+
+                <mat-card-actions>
+                    <button mat-stroked-button color="primary" disabled>
+                        {{ 'shop.addToCart' | transloco }}
+                    </button>
+                </mat-card-actions>
+            </mat-card>
+            }
+        </div>
+
+        <div class="paginator-container">
+            <mat-paginator [length]="products()!.total" [pageSize]="products()!.pageSize"
+                [pageSizeOptions]="[12, 24, 48]" [pageIndex]="currentPage() - 1" (page)="onPageChange($event)">
+            </mat-paginator>
+        </div>
+        }
+
+        @if (products()!.data.length === 0) {
+        <div class="no-products">
+            <mat-icon>inventory_2</mat-icon>
+            <p>{{ 'shop.noProducts' | transloco }}</p>
+        </div>
+        }
+    </section>
+    }
+    }
+</div>
