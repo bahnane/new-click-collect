@@ -48,6 +48,12 @@ export class LanguageService {
     }
   }
 
+  clearStoredLanguage(): void {
+    if (this.isBrowser) {
+      window.localStorage.removeItem(STORAGE_KEY);
+    }
+  }
+
   private resolveInitialLanguage(): AppLanguage {
     if (!this.isBrowser) {
       return DEFAULT_LANGUAGE;

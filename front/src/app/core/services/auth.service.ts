@@ -18,7 +18,7 @@ interface RegisterPayload {
   password: string;
 }
 
-interface AuthPayload {
+interface RegisterPayloadWithLanguage {
   email: string;
   password: string;
   preferredLanguage: 'fr' | 'ar';
@@ -78,10 +78,8 @@ export class AuthService {
   }
 
   login(credentials: LoginCredentials) {
-    const body = this.withCurrentLanguage(credentials);
-
     return this.http
-      .post<AuthResponse>(`${environment.apiUrl}/auth/login`, body, {
+      .post<AuthResponse>(`${environment.apiUrl}/auth/login`, credentials, {
         withCredentials: true,
       })
       .pipe(
@@ -194,6 +192,7 @@ export class AuthService {
   clearSession(): void {
     this._accessToken.set(null);
     this._currentUser.set(null);
+    this.languageService.clearStoredLanguage();
   }
 
   getAccessToken(): string | null {
@@ -226,8 +225,8 @@ export class AuthService {
   }
 
   private withCurrentLanguage(
-    payload: RegisterPayload | LoginCredentials,
-  ): AuthPayload {
+    payload: RegisterPayload,
+  ): RegisterPayloadWithLanguage {
     return {
       ...payload,
       preferredLanguage: this.languageService.currentLanguage(),

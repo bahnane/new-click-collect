@@ -234,7 +234,6 @@ export class AuthService {
       where: { id: user.id },
       data: {
         lastLoginAt: new Date(),
-        preferredLanguage: dto.preferredLanguage,
       },
     });
 
