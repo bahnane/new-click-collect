@@ -1,7 +1,16 @@
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, finalize, map, Observable, of, shareReplay } from 'rxjs';
+import {
+  catchError,
+  finalize,
+  from,
+  map,
+  Observable,
+  of,
+  shareReplay,
+  switchMap,
+} from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { SKIP_AUTH_INTERCEPTOR } from '../http/auth-context';
@@ -99,9 +108,9 @@ export class AuthService {
         { withCredentials: true },
       )
       .pipe(
-        tap(() => {
+        switchMap(() => {
           this.clearSession();
-          this.router.navigate(['/login']);
+          return from(this.router.navigate(['/login']));
         }),
         finalize(() => {
           this._loggingOut.set(false);

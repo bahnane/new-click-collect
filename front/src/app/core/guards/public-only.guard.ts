@@ -1,6 +1,5 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
-import { map } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 export const publicOnlyGuard: CanActivateFn = () => {
@@ -11,9 +10,5 @@ export const publicOnlyGuard: CanActivateFn = () => {
     return router.createUrlTree(['/dashboard']);
   }
 
-  return authService
-    .refreshAccessToken()
-    .pipe(
-      map((token) => (token ? router.createUrlTree(['/dashboard']) : true)),
-    );
+  return true;
 };
