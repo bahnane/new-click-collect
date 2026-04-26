@@ -1,3 +1,28 @@
+// ============================================================================
+// Global Styles & Theming
+// ============================================================================
+// Imports design tokens (business-type aware themes) and Angular Material theming
+//
+// RTL/LTR Support:
+// The design tokens system now includes automatic RTL/LTR support via:
+// - Font selection: var(--font-family-base) for LTR, var(--font-family-rtl) for RTL
+// - Text alignment: var(--text-align-start) and var(--text-align-end) for logical properties
+// - direction: rtl on html[dir="rtl"]
+//
+// For component styles, use logical CSS properties for better RTL support:
+// - padding-inline, padding-inline-start, padding-inline-end (instead of left/right)
+// - margin-inline, margin-inline-start, margin-inline-end (instead of left/right)
+// - inset-inline-start, inset-inline-end (instead of left/right positioning)
+// - border-inline-start, border-inline-end (instead of border-left/right)
+// - text-align: var(--text-align-start) instead of text-align: left
+//
+// Example: Instead of margin-left: var(--space-lg), use:
+// margin-inline-start: var(--space-lg)
+// ============================================================================
+
+// Import design tokens first (defines CSS custom properties for each theme)
+@import "styles/design-tokens";
+
 // Include theming for Angular Material with `mat.theme()`.
 // This Sass mixin will define CSS variables that are used for styling Angular Material
 // components according to the Material 3 design spec.
@@ -17,12 +42,6 @@ html {
       density: 0,
     )
   );
-}
-
-html[dir="rtl"] {
-  body {
-    font-family: Roboto, "Noto Sans Arabic", sans-serif;
-  }
 }
 
 body {

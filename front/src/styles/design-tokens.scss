@@ -1,0 +1,212 @@
+// ============================================================================
+// Design Tokens - Centralized theming system
+// ============================================================================
+// This file defines design tokens for different business types.
+// Apply theme-specific tokens by using [data-theme] attribute on html/body.
+// Default theme: hanoute
+// ============================================================================
+
+// Base theme mixin - shared structure
+@mixin theme-base() {
+  // Spacing scale (rem-based for scalability)
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 0.75rem;
+  --space-lg: 1rem;
+  --space-xl: 1.25rem;
+  --space-2xl: 1.5rem;
+  --space-3xl: 2rem;
+
+  // Border radius
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  // Z-index scale
+  --z-dropdown: 5;
+  --z-sticky: 10;
+  --z-fixed: 20;
+  --z-modal: 100;
+
+  // Shadow scale
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  // Typography scale
+  --font-family-base: Roboto, sans-serif;
+  --font-family-rtl: Roboto, "Noto Sans Arabic", sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  // Text alignment (logical properties for RTL/LTR support)
+  --text-align-start: start; // left in LTR, right in RTL
+  --text-align-end: end; // right in LTR, left in RTL
+
+  // Breakpoints (pixel values for media queries)
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 960px;
+  --breakpoint-lg: 1280px;
+}
+
+// ============================================================================
+// Theme: Hanoute (Default)
+// ============================================================================
+// Warm, earthy palette suited for traditional grocery/food businesses
+@mixin theme-hanoute() {
+  @include theme-base();
+
+  // Primary colors
+  --color-primary: #d97706; // Warm amber-orange
+  --color-primary-light: #f59e0b;
+  --color-primary-dark: #b45309;
+  --color-primary-container: #fef3c7;
+
+  // Secondary colors
+  --color-secondary: #6b7280; // Neutral gray
+  --color-secondary-light: #9ca3af;
+  --color-secondary-dark: #4b5563;
+
+  // Surfaces & backgrounds
+  --color-bg-primary: #fafafa; // Light gray background
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f3f4f6;
+  --color-bg-container: #ffffff;
+  --color-bg-container-light: #faf5f0; // Warm off-white
+
+  // Text colors
+  --color-text-primary: #212121;
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #999999;
+  --color-text-on-primary: #ffffff;
+
+  // Semantic colors
+  --color-success: #16a34a;
+  --color-success-light: #86efac;
+  --color-warning: #ca8a04;
+  --color-warning-light: #fde047;
+  --color-error: #b3261e;
+  --color-error-light: #f87171;
+
+  // Borders & dividers
+  --color-border: #e5e7eb;
+  --color-divider: #e0e0e0;
+
+  // Overlay & transparency
+  --color-overlay-light: rgba(0, 0, 0, 0.05);
+  --color-overlay-medium: rgba(0, 0, 0, 0.12);
+  --color-overlay-heavy: rgba(0, 0, 0, 0.35);
+}
+
+// ============================================================================
+// Theme: Patisserie
+// ============================================================================
+// Soft, elegant palette suited for pastry/bakery businesses
+@mixin theme-patisserie() {
+  @include theme-base();
+
+  // Primary colors
+  --color-primary: #c1121f; // Elegant rose-red
+  --color-primary-light: #e50000;
+  --color-primary-dark: #8b0000;
+  --color-primary-container: #ffe0e0;
+
+  // Secondary colors
+  --color-secondary: #8b5e8c; // Muted purple
+  --color-secondary-light: #b394b8;
+  --color-secondary-dark: #6b4861;
+
+  // Surfaces & backgrounds
+  --color-bg-primary: #fef9f7; // Very soft warm off-white
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f5f0ed;
+  --color-bg-container: #ffffff;
+  --color-bg-container-light: #fff5f2; // Pinkish off-white
+
+  // Text colors
+  --color-text-primary: #2c2c2c;
+  --color-text-secondary: #6b6b6b;
+  --color-text-tertiary: #a0a0a0;
+  --color-text-on-primary: #ffffff;
+
+  // Semantic colors
+  --color-success: #2d6a4f;
+  --color-success-light: #a8dadc;
+  --color-warning: #d4a574;
+  --color-warning-light: #f4d9b8;
+  --color-error: #c1121f;
+  --color-error-light: #ff9a9a;
+
+  // Borders & dividers
+  --color-border: #e8d9d5;
+  --color-divider: #e0d0cc;
+
+  // Overlay & transparency
+  --color-overlay-light: rgba(193, 18, 31, 0.04);
+  --color-overlay-medium: rgba(193, 18, 31, 0.1);
+  --color-overlay-heavy: rgba(139, 94, 140, 0.35);
+}
+
+// ============================================================================
+// Theme Application
+// ============================================================================
+// Default theme: Hanoute (no attribute required)
+html {
+  @include theme-hanoute();
+
+  // Optional: Support explicit theme selection via data-theme attribute
+  &[data-theme="patisserie"] {
+    @include theme-patisserie();
+  }
+
+  &[data-theme="hanoute"] {
+    @include theme-hanoute();
+  }
+}
+
+// ============================================================================
+// Directional Support (RTL/LTR)
+// ============================================================================
+// Apply font family and direction based on dir attribute
+// The html[dir] attribute should be set by Angular or application code
+html[dir="ltr"],
+html:not([dir]) {
+  font-family: var(--font-family-base);
+}
+
+html[dir="rtl"] {
+  font-family: var(--font-family-rtl);
+  direction: rtl;
+}
+
+// Fallback: Also support body-level theme attribute for flexibility
+body[data-theme="patisserie"] {
+  @include theme-patisserie();
+}
+
+body[data-theme="hanoute"] {
+  @include theme-hanoute();
+}
+
+// ============================================================================
+// Helper classes for theme-aware styling (optional, for manual overrides)
+// ============================================================================
+.theme-patisserie {
+  @include theme-patisserie();
+}
+
+.theme-hanoute {
+  @include theme-hanoute();
+}

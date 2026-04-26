@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client';
 
 // TODO: check values
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? 'admin@click-collect.local';
-const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? 'Admin1234!';
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? 'admin123';
 
 async function main() {
   const databaseUrl = process.env.DATABASE_URL;
