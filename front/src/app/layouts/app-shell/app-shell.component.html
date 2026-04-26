@@ -22,6 +22,12 @@
             </a>
             }
 
+            @if (isCustomer()) {
+            <a routerLink="/cart" routerLinkActive="is-active" mat-button type="button" (click)="closeMenu()">
+                {{ 'shell.nav.cart' | transloco }}
+            </a>
+            }
+
             @if (isMerchant()) {
             <a routerLink="/merchant-space" routerLinkActive="is-active" mat-button type="button" (click)="closeMenu()">
                 {{ 'shell.nav.merchant' | transloco }}

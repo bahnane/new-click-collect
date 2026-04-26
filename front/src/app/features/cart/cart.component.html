@@ -1,0 +1,128 @@
+<section [dir]="currentDirection()" class="cart-page">
+    <header class="cart-header">
+        <h1>{{ 'cart.title' | transloco }}</h1>
+        <p>{{ 'cart.subtitle' | transloco }}</p>
+    </header>
+
+    @if (errorMessageKey()) {
+    <div class="error-banner" role="alert" aria-live="polite">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <span>{{ errorMessageKey()! | transloco }}</span>
+        <button mat-stroked-button type="button" (click)="loadCart()">
+            {{ 'cart.retry' | transloco }}
+        </button>
+    </div>
+    }
+
+    @if (loading()) {
+    <div class="state-block">
+        <mat-progress-spinner mode="indeterminate" diameter="42" />
+        <p>{{ 'cart.loading' | transloco }}</p>
+    </div>
+    }
+
+    @if (!loading() && hasItems() && cart(); as currentCart) {
+    <div class="cart-layout">
+        <div class="items-list" role="list" [attr.aria-label]="'cart.itemsList' | transloco">
+            @for (item of currentCart.items; track item.id) {
+            <mat-card class="item-card" role="listitem">
+                <mat-card-content>
+                    <div class="item-main">
+                        <div>
+                            <h2>{{ item.product.name }}</h2>
+                            <p class="item-meta">
+                                {{ getPriceInDa(item.effectivePriceInCents) }} {{ 'shop.currency' |
+                                transloco }}
+                                / {{ getSaleUnit(item.product.saleUnit) | transloco }}
+                            </p>
+
+                            <div class="item-quantity-control">
+                                <button mat-icon-button type="button"
+                                    [attr.aria-label]="'common.quantity.decrease' | transloco"
+                                    [disabled]="updatingItemId() === item.id || removingItemId() === item.id"
+                                    (click)="decreaseItemQuantity(item)">
+                                    <mat-icon>remove</mat-icon>
+                                </button>
+
+                                <input class="item-quantity-input" type="number" [value]="item.quantity" readonly
+                                    [attr.aria-label]="'cart.quantityValue' | transloco" />
+
+                                <button mat-icon-button type="button"
+                                    [attr.aria-label]="'common.quantity.increase' | transloco"
+                                    [disabled]="updatingItemId() === item.id || removingItemId() === item.id"
+                                    (click)="increaseItemQuantity(item)">
+                                    <mat-icon>add</mat-icon>
+                                </button>
+
+                                @if (updatingItemId() === item.id) {
+                                <span class="updating-hint">{{ 'cart.updatingQuantity' | transloco }}</span>
+                                }
+                            </div>
+
+                            @if (item.product.description) {
+                            <p class="item-description">{{ item.product.description }}</p>
+                            }
+                        </div>
+
+                        <div class="item-total">
+                            {{ getPriceInDa(item.lineTotalInCents) }} {{ 'shop.currency' | transloco }}
+                        </div>
+                    </div>
+                </mat-card-content>
+
+                <mat-card-actions>
+                    <button mat-stroked-button type="button" (click)="removeItem(item.id)"
+                        [disabled]="removingItemId() === item.id">
+                        @if (removingItemId() === item.id) {
+                        {{ 'cart.removing' | transloco }}
+                        } @else {
+                        {{ 'cart.removeItem' | transloco }}
+                        }
+                    </button>
+                </mat-card-actions>
+            </mat-card>
+            }
+        </div>
+
+        <mat-card class="summary-card">
+            <mat-card-content>
+                @if (currentCart.merchant?.storeName) {
+                <p class="merchant-name">
+                    {{ 'cart.merchant' | transloco }}: {{ currentCart.merchant?.storeName }}
+                </p>
+                }
+
+                <dl class="summary-values">
+                    <div>
+                        <dt>{{ 'cart.itemsCount' | transloco }}</dt>
+                        <dd>{{ currentCart.items.length }}</dd>
+                    </div>
+                    <div>
+                        <dt>{{ 'cart.total' | transloco }}</dt>
+                        <dd>{{ getPriceInDa(currentCart.totalEstimatedInCents) }} {{ 'shop.currency' | transloco }}</dd>
+                    </div>
+                </dl>
+
+                <div class="summary-actions">
+                    <button mat-flat-button color="primary" type="button" disabled>
+                        {{ 'cart.checkoutSoon' | transloco }}
+                    </button>
+                    <button mat-stroked-button type="button" (click)="continueShopping()">
+                        {{ 'cart.continueShopping' | transloco }}
+                    </button>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+    }
+
+    @if (!loading() && !hasItems()) {
+    <div class="state-block empty-state">
+        <mat-icon aria-hidden="true">shopping_cart</mat-icon>
+        <p>{{ 'cart.empty' | transloco }}</p>
+        <button mat-flat-button color="primary" type="button" (click)="continueShopping()">
+            {{ 'cart.continueShopping' | transloco }}
+        </button>
+    </div>
+    }
+</section>

@@ -26,6 +26,13 @@ export const routes: Routes = [
         title: 'routes.dashboard.title',
       },
       {
+        path: 'cart',
+        canActivate: [roleGuard(['CUSTOMER'])],
+        loadComponent: () =>
+          import('./features/cart/cart.component').then((m) => m.CartComponent),
+        title: 'routes.cart.title',
+      },
+      {
         path: 'merchant-space',
         canActivate: [roleGuard(['MERCHANT'])],
         loadComponent: () =>

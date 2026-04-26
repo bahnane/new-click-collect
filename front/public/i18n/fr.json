@@ -29,6 +29,9 @@
     },
     "register": {
       "title": "Inscription"
+    },
+    "cart": {
+      "title": "Panier"
     }
   },
   "common": {
@@ -36,6 +39,10 @@
       "label": "Langue",
       "fr": "Français",
       "ar": "Arabe"
+    },
+    "quantity": {
+      "decrease": "Diminuer la quantite",
+      "increase": "Augmenter la quantite"
     }
   },
   "auth": {
@@ -182,6 +189,7 @@
     },
     "nav": {
       "dashboard": "Tableau de bord",
+      "cart": "Panier",
       "merchant": "Espace marchand",
       "admin": "Espace admin",
       "logout": "Se deconnecter"
@@ -238,6 +246,35 @@
     },
     "minOrder": "Commande minimale :",
     "stepQty": "Pas de :",
-    "addToCart": "Ajouter au panier"
+    "addToCart": "Ajouter au panier",
+    "addingToCart": "Ajout en cours...",
+    "addedToCart": "Produit ajouté au panier.",
+    "quantityLabel": "Quantite",
+    "quantityInvalid": "Quantite invalide. Respectez la quantite minimale et le pas.",
+    "goToCart": "Voir le panier",
+    "requiresCustomerRole": "Vous devez etre connecte en tant que client pour ajouter au panier.",
+    "addToCartFailed": "Impossible d'ajouter cet article au panier."
+  },
+  "cart": {
+    "title": "Votre panier",
+    "subtitle": "Revoyez vos articles avant de passer commande.",
+    "loading": "Chargement du panier...",
+    "retry": "Reessayer",
+    "empty": "Votre panier est vide pour le moment.",
+    "itemsList": "Articles du panier",
+    "removeItem": "Retirer",
+    "removing": "Suppression...",
+    "updatingQuantity": "Mise a jour...",
+    "quantityValue": "Quantite",
+    "merchant": "Boutique",
+    "itemsCount": "Articles",
+    "total": "Total estime",
+    "continueShopping": "Continuer les achats",
+    "checkoutSoon": "Checkout bientot disponible",
+    "errors": {
+      "loadFailed": "Impossible de charger votre panier.",
+      "removeFailed": "Impossible de retirer cet article.",
+      "updateFailed": "Impossible de mettre a jour la quantite."
+    }
   }
 }

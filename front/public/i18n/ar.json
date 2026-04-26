@@ -29,6 +29,9 @@
     },
     "register": {
       "title": "إنشاء حساب"
+    },
+    "cart": {
+      "title": "السلة"
     }
   },
   "common": {
@@ -36,6 +39,10 @@
       "label": "اللغة",
       "fr": "الفرنسية",
       "ar": "العربية"
+    },
+    "quantity": {
+      "decrease": "تقليل الكمية",
+      "increase": "زيادة الكمية"
     }
   },
   "auth": {
@@ -182,6 +189,7 @@
     },
     "nav": {
       "dashboard": "لوحة التحكم",
+      "cart": "السلة",
       "merchant": "مساحة التاجر",
       "admin": "مساحة الإدارة",
       "logout": "تسجيل الخروج"
@@ -238,6 +246,35 @@
     },
     "minOrder": "الحد الأدنى للطلب :",
     "stepQty": "الخطوة :",
-    "addToCart": "إضافة إلى السلة"
+    "addToCart": "إضافة إلى السلة",
+    "addingToCart": "جار إضافة المنتج...",
+    "addedToCart": "تمت إضافة المنتج إلى السلة.",
+    "quantityLabel": "الكمية",
+    "quantityInvalid": "كمية غير صالحة. يرجى احترام الحد الأدنى وخطوة الكمية.",
+    "goToCart": "عرض السلة",
+    "requiresCustomerRole": "يجب تسجيل الدخول كعميل لإضافة المنتجات إلى السلة.",
+    "addToCartFailed": "تعذر إضافة هذا المنتج إلى السلة."
+  },
+  "cart": {
+    "title": "سلتك",
+    "subtitle": "راجع منتجاتك قبل إتمام الطلب.",
+    "loading": "جار تحميل السلة...",
+    "retry": "إعادة المحاولة",
+    "empty": "السلة فارغة حاليا.",
+    "itemsList": "عناصر السلة",
+    "removeItem": "حذف",
+    "removing": "جار الحذف...",
+    "updatingQuantity": "جار التحديث...",
+    "quantityValue": "الكمية",
+    "merchant": "المتجر",
+    "itemsCount": "عدد العناصر",
+    "total": "الإجمالي التقديري",
+    "continueShopping": "متابعة التسوق",
+    "checkoutSoon": "الدفع سيتوفر قريبا",
+    "errors": {
+      "loadFailed": "تعذر تحميل سلتك.",
+      "removeFailed": "تعذر حذف هذا المنتج.",
+      "updateFailed": "تعذر تحديث الكمية."
+    }
   }
 }

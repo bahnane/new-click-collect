@@ -30,6 +30,7 @@ export class AppShellComponent {
 
   readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
   readonly isMerchant = computed(() => this.currentUser()?.role === 'MERCHANT');
+  readonly isCustomer = computed(() => this.currentUser()?.role === 'CUSTOMER');
   readonly merchantShopSlug = resolvePostAuthMerchantSlug();
 
   toggleMenu(): void {
