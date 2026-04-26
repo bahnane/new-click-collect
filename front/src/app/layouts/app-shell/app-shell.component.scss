@@ -2,7 +2,7 @@
 
 .shell {
   min-height: 100dvh;
-  background-color: var(--mat-sys-surface-container-lowest);
+  background-color: var(--color-bg-primary);
 }
 
 .shell-header {
@@ -16,8 +16,12 @@
   padding-block: var(--space-md);
   padding-inline: var(--space-lg);
   border-block-end: 1px solid
-    color-mix(in srgb, var(--mat-sys-outline) 35%, transparent);
-  background-color: color-mix(in srgb, var(--mat-sys-surface) 92%, transparent);
+    color-mix(in srgb, var(--color-divider) 70%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-bg-secondary) 92%,
+    transparent
+  );
   backdrop-filter: blur(6px);
 }
 
@@ -26,7 +30,7 @@
 }
 
 .brand-title {
-  color: var(--mat-sys-on-surface);
+  color: var(--color-text-primary);
   font: var(--mat-sys-title-medium);
 }
 
@@ -53,14 +57,14 @@
 
 .nav-divider {
   block-size: 1px;
-  background-color: color-mix(in srgb, var(--mat-sys-outline) 35%, transparent);
+  background-color: color-mix(in srgb, var(--color-divider) 70%, transparent);
   margin-block: var(--space-xs);
 }
 
 @include languageSwitcher.language-switcher-base();
 @include languageSwitcher.language-switcher-active(
-  var(--mat-sys-primary),
-  color-mix(in srgb, var(--mat-sys-primary) 12%, transparent)
+  var(--color-primary),
+  color-mix(in srgb, var(--color-primary) 12%, transparent)
 );
 
 .logout-button {
@@ -68,7 +72,7 @@
 }
 
 .is-active {
-  background-color: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+  background-color: color-mix(in srgb, var(--color-primary) 14%, transparent);
 }
 
 .shell-content {
