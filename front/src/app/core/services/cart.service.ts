@@ -9,6 +9,19 @@ interface UpsertCartItemPayload {
   quantity: number;
 }
 
+export interface PublicPickupSlot {
+  id: string;
+  startsAt: string;
+  endsAt: string;
+  maxOrders: number;
+  currentOrders: number;
+}
+
+interface CheckoutOrderPayload {
+  pickupSlotId: string;
+  note?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CartService {
   private readonly http = inject(HttpClient);
@@ -44,5 +57,25 @@ export class CartService {
         withCredentials: true,
       },
     );
+  }
+
+  listPublicPickupSlots(merchantId: string): Observable<PublicPickupSlot[]> {
+    return this.http.get<PublicPickupSlot[]>(
+      `${environment.apiUrl}/merchants/${encodeURIComponent(merchantId)}/pickup-slots`,
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
+  checkoutOrder(pickupSlotId: string, note?: string): Observable<unknown> {
+    const payload: CheckoutOrderPayload = {
+      pickupSlotId,
+      ...(note?.trim() ? { note: note.trim() } : {}),
+    };
+
+    return this.http.post(`${environment.apiUrl}/orders/checkout`, payload, {
+      withCredentials: true,
+    });
   }
 }

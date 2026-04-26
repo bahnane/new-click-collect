@@ -104,9 +104,62 @@
                 </dl>
 
                 <div class="summary-actions">
-                    <button mat-flat-button color="primary" type="button" disabled>
-                        {{ 'cart.checkoutSoon' | transloco }}
+                    @if (checkoutErrorMessageKey()) {
+                    <p class="checkout-message checkout-error" role="alert" aria-live="assertive">
+                        {{ checkoutErrorMessageKey()! | transloco }}
+                    </p>
+                    }
+
+                    @if (checkoutSuccessMessageKey()) {
+                    <p class="checkout-message checkout-success" role="status" aria-live="polite">
+                        {{ checkoutSuccessMessageKey()! | transloco }}
+                    </p>
+                    }
+
+                    @if (slotsErrorMessageKey()) {
+                    <p class="checkout-message checkout-error" role="alert" aria-live="polite">
+                        {{ slotsErrorMessageKey()! | transloco }}
+                    </p>
+                    }
+
+                    <div class="checkout-form">
+                        <label class="checkout-field" for="pickup-slot-select">
+                            {{ 'cart.checkout.slotLabel' | transloco }}
+                        </label>
+
+                        @if (loadingSlots()) {
+                        <p class="checkout-loading">{{ 'cart.checkout.loadingSlots' | transloco }}</p>
+                        } @else {
+                        <select id="pickup-slot-select" class="checkout-select"
+                            [formControl]="checkoutForm.controls.pickupSlotId"
+                            [disabled]="pickupSlots().length === 0 || checkoutLoading()">
+                            @for (slot of pickupSlots(); track slot.id) {
+                            <option [value]="slot.id">{{ getPickupSlotLabel(slot) }}</option>
+                            }
+                        </select>
+                        }
+
+                        @if (!loadingSlots() && pickupSlots().length === 0) {
+                        <p class="checkout-hint">{{ 'cart.checkout.noSlots' | transloco }}</p>
+                        }
+
+                        <label class="checkout-field" for="checkout-note">
+                            {{ 'cart.checkout.noteLabel' | transloco }}
+                        </label>
+                        <textarea id="checkout-note" class="checkout-textarea" rows="3" maxlength="1000"
+                            [formControl]="checkoutForm.controls.note"
+                            [placeholder]="'cart.checkout.notePlaceholder' | transloco"></textarea>
+                    </div>
+
+                    <button mat-flat-button color="primary" type="button" (click)="submitCheckout()"
+                        [disabled]="checkoutLoading() || pickupSlots().length === 0 || loadingSlots() || removingItemId() !== null || updatingItemId() !== null">
+                        @if (checkoutLoading()) {
+                        {{ 'cart.checkout.submitting' | transloco }}
+                        } @else {
+                        {{ 'cart.checkout.submit' | transloco }}
+                        }
                     </button>
+
                     <button mat-stroked-button type="button" (click)="continueShopping()">
                         {{ 'cart.continueShopping' | transloco }}
                     </button>

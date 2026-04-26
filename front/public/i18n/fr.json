@@ -271,6 +271,24 @@
     "total": "Total estime",
     "continueShopping": "Continuer les achats",
     "checkoutSoon": "Checkout bientot disponible",
+    "checkout": {
+      "slotLabel": "Choisir un creneau de retrait",
+      "loadingSlots": "Chargement des creneaux...",
+      "noSlots": "Aucun creneau disponible actuellement.",
+      "noteLabel": "Note pour la commande (optionnel)",
+      "notePlaceholder": "Exemple: j'arrive vers 18h",
+      "submit": "Valider la commande",
+      "submitting": "Validation en cours...",
+      "success": "Commande validee avec succes.",
+      "errors": {
+        "slotRequired": "Veuillez selectionner un creneau.",
+        "loadSlotsFailed": "Impossible de charger les creneaux du marchand.",
+        "slotNotFound": "Le creneau selectionne est introuvable.",
+        "slotUnavailable": "Ce creneau n'est plus disponible.",
+        "invalidRequest": "Impossible de finaliser la commande avec les informations actuelles.",
+        "generic": "Impossible de valider la commande. Veuillez reessayer."
+      }
+    },
     "errors": {
       "loadFailed": "Impossible de charger votre panier.",
       "removeFailed": "Impossible de retirer cet article.",

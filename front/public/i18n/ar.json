@@ -271,6 +271,24 @@
     "total": "الإجمالي التقديري",
     "continueShopping": "متابعة التسوق",
     "checkoutSoon": "الدفع سيتوفر قريبا",
+    "checkout": {
+      "slotLabel": "اختر موعد الاستلام",
+      "loadingSlots": "جار تحميل المواعيد...",
+      "noSlots": "لا توجد مواعيد متاحة حاليا.",
+      "noteLabel": "ملاحظة للطلب (اختياري)",
+      "notePlaceholder": "مثال: ساصل حوالي 18:00",
+      "submit": "تأكيد الطلب",
+      "submitting": "جار التأكيد...",
+      "success": "تم تأكيد الطلب بنجاح.",
+      "errors": {
+        "slotRequired": "يرجى اختيار موعد.",
+        "loadSlotsFailed": "تعذر تحميل مواعيد التاجر.",
+        "slotNotFound": "الموعد المحدد غير موجود.",
+        "slotUnavailable": "هذا الموعد لم يعد متاحا.",
+        "invalidRequest": "تعذر إكمال الطلب بالمعلومات الحالية.",
+        "generic": "تعذر تأكيد الطلب. يرجى المحاولة مرة أخرى."
+      }
+    },
     "errors": {
       "loadFailed": "تعذر تحميل سلتك.",
       "removeFailed": "تعذر حذف هذا المنتج.",
