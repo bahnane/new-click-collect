@@ -14,6 +14,8 @@ import {
   StoreOffersPaginatedResponse,
 } from '../../../core/models/merchant-shop.model';
 
+const LAST_MERCHANT_STORAGE_KEY = 'shop.lastMerchantSlug';
+
 @Component({
   selector: 'app-merchant-shop',
   standalone: true,
@@ -50,21 +52,25 @@ export class MerchantShopComponent implements OnInit {
   readonly currentDirection = this.languageService.currentDirection;
 
   ngOnInit(): void {
-    const merchantId = this.route.snapshot.paramMap.get('merchantId');
-    if (!merchantId) {
+    const merchantSlug = this.route.snapshot.paramMap.get('merchantSlug');
+    if (!merchantSlug) {
       this.error.set('shop.merchantNotFound');
       this.loading.set(false);
       return;
     }
 
-    this.loadMerchantAndProducts(merchantId);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(LAST_MERCHANT_STORAGE_KEY, merchantSlug);
+    }
+
+    this.loadMerchantAndProducts(merchantSlug);
   }
 
-  private loadMerchantAndProducts(merchantId: string): void {
-    this.merchantShopService.getMerchantInfo(merchantId).subscribe({
+  private loadMerchantAndProducts(merchantSlug: string): void {
+    this.merchantShopService.getMerchantInfo(merchantSlug).subscribe({
       next: (info) => {
         this.merchantInfo.set(info);
-        this.loadProducts(merchantId);
+        this.loadProducts(merchantSlug);
       },
       error: () => {
         this.error.set('shop.merchantNotFound');
@@ -73,8 +79,8 @@ export class MerchantShopComponent implements OnInit {
     });
   }
 
-  private loadProducts(merchantId: string, page = 1): void {
-    this.merchantShopService.getMerchantProducts(merchantId, page).subscribe({
+  private loadProducts(merchantSlug: string, page = 1): void {
+    this.merchantShopService.getMerchantProducts(merchantSlug, page).subscribe({
       next: (response) => {
         this.products.set(response);
         this.currentPage.set(page);
@@ -88,10 +94,10 @@ export class MerchantShopComponent implements OnInit {
   }
 
   onPageChange(event: PageEvent): void {
-    const merchantId = this.route.snapshot.paramMap.get('merchantId');
-    if (merchantId) {
+    const merchantSlug = this.route.snapshot.paramMap.get('merchantSlug');
+    if (merchantSlug) {
       this.loading.set(true);
-      this.loadProducts(merchantId, event.pageIndex + 1);
+      this.loadProducts(merchantSlug, event.pageIndex + 1);
     }
   }
 

@@ -11,19 +11,19 @@ import {
 export class MerchantShopService {
   private readonly http = inject(HttpClient);
 
-  getMerchantInfo(merchantId: string): Observable<MerchantShopInfo> {
+  getMerchantInfo(merchantSlug: string): Observable<MerchantShopInfo> {
     return this.http.get<MerchantShopInfo>(
-      `${environment.apiUrl}/merchants/${merchantId}`,
+      `${environment.apiUrl}/merchants/${merchantSlug}`,
     );
   }
 
   getMerchantProducts(
-    merchantId: string,
+    merchantSlug: string,
     page: number = 1,
     pageSize: number = 24,
   ): Observable<StoreOffersPaginatedResponse> {
     return this.http.get<StoreOffersPaginatedResponse>(
-      `${environment.apiUrl}/merchants/${merchantId}/products`,
+      `${environment.apiUrl}/merchants/${merchantSlug}/products`,
       {
         params: { page: page.toString(), pageSize: pageSize.toString() },
       },
