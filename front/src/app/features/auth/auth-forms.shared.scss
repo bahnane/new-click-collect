@@ -10,14 +10,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100dvh;
+  min-height: var(--size-app-min-height);
   padding: var(--space-lg);
   background-color: var(--color-bg-primary);
 }
 
 .auth-card {
   width: 100%;
-  max-width: 420px;
+  max-width: var(--size-card-auth);
   padding-block: var(--space-lg);
   padding-block-end: var(--space-2xl);
   padding-inline: var(--space-sm);
@@ -124,7 +124,7 @@
 // Submit button
 .submit-button {
   width: 100%;
-  min-height: 2.75rem;
+  min-height: var(--size-button-height-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -152,7 +152,7 @@
 // Responsive adjustments
 @media (min-width: 40rem) {
   .auth-card {
-    max-width: 480px;
+    max-width: var(--size-card-auth-wide);
     padding-inline: var(--space-lg);
     padding-block-end: var(--space-3xl);
   }

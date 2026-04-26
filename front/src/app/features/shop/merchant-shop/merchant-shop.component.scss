@@ -1,7 +1,7 @@
 @use "../../../shared/styles/language-switcher.shared" as languageSwitcher;
 
 .merchant-shop {
-  min-height: 100vh;
+  min-height: var(--size-page-min-height);
   background-color: var(--color-bg-primary);
   padding: 0;
 }
@@ -62,7 +62,7 @@
   }
 
   .shop-header h1 {
-    width: calc(100% - 3rem);
+    width: calc(100% - var(--size-icon-xl));
     order: 1;
   }
 
@@ -79,7 +79,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  min-height: var(--size-state-min-height);
   gap: var(--space-lg);
   color: var(--color-text-secondary);
 }
@@ -95,7 +95,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  min-height: var(--size-state-min-height);
   gap: var(--space-lg);
   color: var(--color-error);
   text-align: center;
@@ -103,9 +103,9 @@
 }
 
 .error-icon {
-  font-size: 3rem;
-  width: 3rem;
-  height: 3rem;
+  font-size: var(--size-icon-xl);
+  width: var(--size-icon-xl);
+  height: var(--size-icon-xl);
 }
 
 .error-container p {
@@ -148,9 +148,9 @@
 }
 
 .contact-item mat-icon {
-  font-size: 1.25rem;
-  width: 1.25rem;
-  height: 1.25rem;
+  font-size: var(--size-icon-md);
+  width: var(--size-icon-md);
+  height: var(--size-icon-md);
   flex-shrink: 0;
   color: var(--color-primary);
 }
@@ -300,15 +300,15 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-lg);
-  min-height: 300px;
+  min-height: var(--size-empty-state-min-height);
   color: var(--color-text-secondary);
   text-align: center;
 }
 
 .no-products mat-icon {
-  font-size: 3rem;
-  width: 3rem;
-  height: 3rem;
+  font-size: var(--size-icon-xl);
+  width: var(--size-icon-xl);
+  height: var(--size-icon-xl);
   opacity: 0.5;
 }
 

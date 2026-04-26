@@ -1,7 +1,7 @@
 @use "../../shared/styles/language-switcher.shared" as languageSwitcher;
 
 .shell {
-  min-height: 100dvh;
+  min-height: var(--size-app-min-height);
   background-color: var(--color-bg-primary);
 }
 
@@ -104,7 +104,7 @@
 
   .nav-divider {
     inline-size: 1px;
-    block-size: 2rem;
+    block-size: var(--size-nav-divider-block);
     margin-inline: var(--space-xs);
     margin-block: 0;
   }

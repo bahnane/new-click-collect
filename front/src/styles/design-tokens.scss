@@ -23,6 +23,19 @@
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
 
+  // Semantic component sizes
+  --size-app-min-height: 100dvh;
+  --size-page-min-height: 100vh;
+  --size-state-min-height: 60vh;
+  --size-empty-state-min-height: 18.75rem;
+  --size-button-height-md: 2.75rem;
+  --size-icon-md: 1.25rem;
+  --size-icon-xl: 3rem;
+  --size-card-auth: 26.25rem;
+  --size-card-auth-wide: 30rem;
+  --size-card-content: 44rem;
+  --size-nav-divider-block: 2rem;
+
   // Z-index scale
   --z-dropdown: 5;
   --z-sticky: 10;
