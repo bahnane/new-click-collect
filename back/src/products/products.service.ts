@@ -390,12 +390,12 @@ export class ProductsService {
   // ── Public ───────────────────────────────────────────────────────────────
 
   async getPublicOffersForMerchant(
-    merchantProfileId: string,
+    merchantSlug: string,
     page = 1,
     pageSize = 10,
   ) {
     const profile = await this.prisma.merchantProfile.findUnique({
-      where: { id: merchantProfileId },
+      where: { slug: merchantSlug },
     });
 
     if (!profile || !profile.isActive) {
@@ -410,7 +410,7 @@ export class ProductsService {
     } = this.normalizePagination(page, pageSize);
 
     const where = {
-      merchantId: merchantProfileId,
+      merchantId: profile.id,
       isActive: true,
       OR: [
         { priceInCents: { not: null } },

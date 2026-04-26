@@ -181,14 +181,14 @@ export class ProductsController {
 
   // ── Public — produits d'un marchand ─────────────────────────────────────
 
-  @Get('merchants/:merchantId/products')
+  @Get('merchants/:merchantSlug/products')
   getPublicOffersForMerchant(
-    @Param('merchantId') merchantId: string,
+    @Param('merchantSlug') merchantSlug: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
   ) {
     return this.productsService.getPublicOffersForMerchant(
-      merchantId,
+      merchantSlug,
       this.toPositiveInt(page, 1),
       this.toPositiveInt(pageSize, 10),
     );

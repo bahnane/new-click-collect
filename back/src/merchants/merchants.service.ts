@@ -47,6 +47,8 @@ export class MerchantsService {
     const inviteExpiresAt = new Date(Date.now() + inviteTokenTtlMs);
 
     const createdUser = await this.prisma.$transaction(async (tx) => {
+      const slug = await this.buildUniqueMerchantSlug(tx, dto.storeName);
+
       const user = await tx.user.create({
         data: {
           email,
@@ -56,6 +58,7 @@ export class MerchantsService {
           mustChangePassword: true,
           merchantProfile: {
             create: {
+              slug,
               storeName: dto.storeName,
               businessType: dto.businessType,
               phone: dto.phone,
@@ -155,6 +158,7 @@ export class MerchantsService {
         take,
         select: {
           id: true,
+          slug: true,
           storeName: true,
           businessType: true,
           description: true,
@@ -175,14 +179,12 @@ export class MerchantsService {
     };
   }
 
-  async getPublicActiveMerchantById(merchantProfileId: string) {
-    const profile = await this.prisma.merchantProfile.findFirst({
-      where: {
-        id: merchantProfileId,
-        isActive: true,
-      },
+  async getPublicActiveMerchantBySlug(slug: string) {
+    const profile = await this.prisma.merchantProfile.findUnique({
+      where: { slug },
       select: {
         id: true,
+        slug: true,
         storeName: true,
         businessType: true,
         description: true,
@@ -210,7 +212,7 @@ export class MerchantsService {
       },
     });
 
-    if (!profile) {
+    if (!profile || !profile.isActive) {
       throw new NotFoundException('Merchant not found');
     }
 
@@ -356,5 +358,42 @@ export class MerchantsService {
       skip: (safePage - 1) * safePageSize,
       take: safePageSize,
     };
+  }
+
+  private async buildUniqueMerchantSlug(
+    tx: Prisma.TransactionClient | PrismaService,
+    storeName: string,
+    excludeMerchantId?: string,
+  ): Promise<string> {
+    const baseSlug = this.toSlug(storeName);
+
+    let candidate = baseSlug;
+    let index = 2;
+
+    while (true) {
+      const existing = await tx.merchantProfile.findUnique({
+        where: { slug: candidate },
+        select: { id: true },
+      });
+
+      if (!existing || existing.id === excludeMerchantId) {
+        return candidate;
+      }
+
+      candidate = `${baseSlug}-${index}`;
+      index += 1;
+    }
+  }
+
+  private toSlug(value: string): string {
+    const slug = value
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    return slug || 'merchant';
   }
 }

@@ -35,9 +35,9 @@ export class MerchantsController {
     );
   }
 
-  @Get('merchants/:id')
-  getPublicMerchantById(@Param('id') id: string) {
-    return this.merchantsService.getPublicActiveMerchantById(id);
+  @Get('merchants/:slug')
+  getPublicMerchantBySlug(@Param('slug') slug: string) {
+    return this.merchantsService.getPublicActiveMerchantBySlug(slug);
   }
 
   // ── Routes commerçant ────────────────────────────────────────────────────

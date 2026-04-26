@@ -71,6 +71,7 @@ model User {
 model MerchantProfile {
   id          String   @id @default(cuid())
   userId      String   @unique
+  slug        String   @unique @db.VarChar(140)
   storeName   String   @db.VarChar(120)
   businessType BusinessType
   description String?  @db.Text
