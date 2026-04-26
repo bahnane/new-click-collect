@@ -1,0 +1,30 @@
+@mixin language-switcher-base() {
+  .language-switcher {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .language-button {
+    min-width: 0;
+  }
+}
+
+@mixin language-switcher-active(
+  $border-color,
+  $background-color: null,
+  $text-color: null
+) {
+  .language-button.is-active {
+    border-color: $border-color;
+
+    @if $background-color != null {
+      background-color: $background-color;
+    }
+
+    @if $text-color != null {
+      color: $text-color;
+    }
+  }
+}

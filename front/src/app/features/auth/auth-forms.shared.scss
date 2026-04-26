@@ -1,0 +1,164 @@
+@use "../../shared/styles/language-switcher.shared" as languageSwitcher;
+
+// ============================================================================
+// Shared Auth Forms Styles
+// ============================================================================
+// Common styles for all auth form pages (login, register, password reset, etc.)
+// Imported by each auth component to reduce duplication
+
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: var(--space-lg);
+  background-color: var(--mat-sys-surface-container-lowest);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding-block: var(--space-lg);
+  padding-block-end: var(--space-2xl);
+  padding-inline: var(--space-sm);
+}
+
+.auth-header {
+  display: grid;
+  gap: var(--space-lg);
+  margin-block-end: var(--space-2xl);
+}
+
+.eyebrow {
+  margin: 0;
+  margin-block-end: var(--space-sm);
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-large);
+}
+
+.auth-title {
+  font: var(--mat-sys-headline-small);
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+  text-align: var(--text-align-start);
+}
+
+.auth-subtitle {
+  margin: 0;
+  margin-block-start: var(--space-sm);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  text-align: var(--text-align-start);
+}
+
+// Form field styling
+.field-full-width {
+  display: block;
+  width: 100%;
+  margin-block-end: var(--space-xs);
+}
+
+// Banner notifications
+.error-banner,
+.success-banner,
+.info-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  border-radius: var(--radius-md);
+  padding-inline: var(--space-lg);
+  padding-block: var(--space-md);
+  margin-block-end: var(--space-lg);
+  font: var(--mat-sys-body-small);
+}
+
+.error-banner {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.success-banner {
+  background-color: color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+  color: var(--mat-sys-on-surface);
+}
+
+.info-banner {
+  background-color: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// Links (forgot password, register link, etc.)
+.auth-link {
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+  font: var(--mat-sys-body-small);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+}
+
+.forgot-link {
+  text-align: var(--text-align-end);
+  margin-block-end: var(--space-2xl);
+
+  a {
+    @extend .auth-link;
+  }
+}
+
+.auth-hint {
+  margin: 0;
+  margin-block-end: var(--space-lg);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  text-align: var(--text-align-start);
+}
+
+// Submit button
+.submit-button {
+  width: 100%;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Auth switch text (e.g., "Don't have an account? Sign up")
+.auth-switch-text {
+  margin: 0;
+  margin-block-start: var(--space-lg);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  text-align: center;
+
+  a {
+    @extend .auth-link;
+  }
+}
+
+@include languageSwitcher.language-switcher-base();
+@include languageSwitcher.language-switcher-active(
+  var(--mat-sys-primary),
+  color-mix(in srgb, var(--mat-sys-primary) 12%, transparent)
+);
+
+// Responsive adjustments
+@media (min-width: 40rem) {
+  .auth-card {
+    max-width: 480px;
+    padding-inline: var(--space-lg);
+    padding-block-end: var(--space-3xl);
+  }
+
+  .auth-header {
+    grid-template-columns: 1fr auto;
+    align-items: start;
+  }
+}

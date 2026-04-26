@@ -1,42 +1,39 @@
+@use "../../../shared/styles/language-switcher.shared" as languageSwitcher;
+
 .merchant-shop {
   min-height: 100vh;
-  background-color: var(--mdc-theme-background, #fafafa);
+  background-color: var(--color-bg-primary);
   padding: 0;
 }
 
 /* Header */
 .shop-header {
   position: sticky;
-  top: 0;
-  z-index: 10;
-  background-color: white;
-  border-bottom: 1px solid var(--mdc-theme-divider, #e0e0e0);
+  inset-block-start: 0;
+  z-index: var(--z-sticky);
+  background-color: var(--color-bg-secondary);
+  border-block-end: 1px solid var(--color-divider);
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  gap: var(--space-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .shop-header-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: var(--space-md);
   flex-wrap: wrap;
 }
 
-.language-switcher {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.language-button.is-active {
-  border-color: var(--mdc-theme-primary, #1976d2);
-  color: var(--mdc-theme-primary, #1976d2);
-}
+@include languageSwitcher.language-switcher-base();
+@include languageSwitcher.language-switcher-active(
+  var(--color-primary),
+  null,
+  var(--color-primary)
+);
 
 .logout-button {
   white-space: nowrap;
@@ -48,9 +45,9 @@
 
 .shop-header h1 {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: var(--mdc-theme-on-surface, #212121);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -83,13 +80,13 @@
   align-items: center;
   justify-content: center;
   min-height: 60vh;
-  gap: 1rem;
-  color: var(--mdc-theme-on-surface-variant, #666);
+  gap: var(--space-lg);
+  color: var(--color-text-secondary);
 }
 
 .loading-container p {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
 }
 
 /* Error State */
@@ -99,10 +96,10 @@
   align-items: center;
   justify-content: center;
   min-height: 60vh;
-  gap: 1rem;
-  color: var(--mdc-theme-error, #b3261e);
+  gap: var(--space-lg);
+  color: var(--color-error);
   text-align: center;
-  padding: 1rem;
+  padding: var(--space-lg);
 }
 
 .error-icon {
@@ -118,36 +115,36 @@
 
 /* Merchant Info Card */
 .merchant-info-card {
-  margin: 1rem;
+  margin: var(--space-lg);
   margin-bottom: 0;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
 .merchant-details {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-2xl);
 }
 
 .description {
   margin: 0;
   font-size: 0.9375rem;
   line-height: 1.5;
-  color: var(--mdc-theme-on-surface-variant, #666);
+  color: var(--color-text-secondary);
 }
 
 .contact-info {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-md);
 }
 
 .contact-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 0.875rem;
-  color: var(--mdc-theme-on-surface, #212121);
+  gap: var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
 }
 
 .contact-item mat-icon {
@@ -155,13 +152,13 @@
   width: 1.25rem;
   height: 1.25rem;
   flex-shrink: 0;
-  color: var(--mdc-theme-primary, #1976d2);
+  color: var(--color-primary);
 }
 
 .hours-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
+  gap: var(--space-2xl);
 }
 
 @media (min-width: 600px) {
@@ -171,10 +168,11 @@
 }
 
 .hours-section h3 {
-  margin: 0 0 0.75rem 0;
+  margin: 0;
+  margin-block-end: var(--space-md);
   font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--mdc-theme-on-surface, #212121);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
 }
 
 .hours-list {
@@ -183,59 +181,47 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-sm);
 }
 
 .hour-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.875rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--mdc-theme-divider, #e0e0e0);
+  font-size: var(--font-size-sm);
+  padding-block: var(--space-sm);
+  gap: var(--space-md);
+  border-block-end: 1px solid var(--color-divider);
 }
 
 .hour-item .day {
-  font-weight: 500;
-  color: var(--mdc-theme-on-surface, #212121);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
 }
 
 .hour-item .time {
-  color: var(--mdc-theme-on-surface-variant, #666);
-}
-
-/* RTL Support */
-.is-rtl .hour-item {
-  flex-direction: row-reverse;
-}
-
-.is-rtl .shop-header-actions {
-  justify-content: flex-start;
-}
-
-@media (max-width: 959px) {
-  .is-rtl .shop-header-actions {
-    justify-content: flex-end;
-  }
+  color: var(--color-text-secondary);
+  text-align: var(--text-align-end);
 }
 
 /* Products Section */
 .products-section {
-  padding: 1rem;
+  padding: var(--space-lg);
 }
 
 .products-section h2 {
-  margin: 0 0 1rem 0;
-  font-size: 1.125rem;
-  font-weight: 500;
-  color: var(--mdc-theme-on-surface, #212121);
+  margin: 0;
+  margin-block-end: var(--space-lg);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
 }
 
 .products-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: var(--space-lg);
+  margin-block-end: var(--space-3xl);
 }
 
 @media (min-width: 600px) {
@@ -251,7 +237,7 @@
 }
 
 .product-card {
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -262,14 +248,15 @@
 
 .product-card mat-card-subtitle {
   font-size: 0.8125rem;
-  color: var(--mdc-theme-on-surface-variant, #666);
+  color: var(--color-text-secondary);
 }
 
 .product-description {
-  margin: 0 0 0.75rem 0;
+  margin: 0;
+  margin-block-end: var(--space-md);
   font-size: 0.8125rem;
   line-height: 1.4;
-  color: var(--mdc-theme-on-surface-variant, #666);
+  color: var(--color-text-secondary);
   overflow: hidden;
   display: -webkit-box;
   line-clamp: 2;
@@ -280,27 +267,27 @@
 .product-details {
   display: flex;
   align-items: baseline;
-  gap: 0.5rem;
-  margin: 0.75rem 0;
+  gap: var(--space-sm);
+  margin-block: var(--space-md);
 }
 
 .product-details .price {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--mdc-theme-primary, #1976d2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
 }
 
 .product-details .unit {
   font-size: 0.8125rem;
-  color: var(--mdc-theme-on-surface-variant, #666);
+  color: var(--color-text-secondary);
 }
 
 .quantity-info {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.75rem;
-  color: var(--mdc-theme-on-surface-variant, #666);
+  gap: var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
 }
 
 .quantity-info small {
@@ -312,9 +299,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: var(--space-lg);
   min-height: 300px;
-  color: var(--mdc-theme-on-surface-variant, #666);
+  color: var(--color-text-secondary);
   text-align: center;
 }
 
@@ -330,12 +317,12 @@
   font-size: 0.9375rem;
 }
 
-/* Paginator */
 .paginator-container {
   display: flex;
   justify-content: center;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+  padding-block: var(--space-sm);
+  margin-block-start: var(--space-3xl);
+  margin-block-end: var(--space-lg);
 }
 
 /* Accessibility */

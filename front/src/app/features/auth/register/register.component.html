@@ -1,11 +1,11 @@
-<main class="register-page">
-    <mat-card class="register-card">
+<main class="auth-page">
+    <mat-card class="auth-card">
         <mat-card-content>
-            <div class="register-header">
+            <div class="auth-header">
                 <div>
                     <p class="eyebrow">{{ 'app.name' | transloco }}</p>
-                    <h1 class="register-title">{{ 'auth.register.title' | transloco }}</h1>
-                    <p class="register-subtitle">{{ 'auth.register.subtitle' | transloco }}</p>
+                    <h1 class="auth-title">{{ 'auth.register.title' | transloco }}</h1>
+                    <p class="auth-subtitle">{{ 'auth.register.subtitle' | transloco }}</p>
                 </div>
 
                 <div class="language-switcher" [attr.aria-label]="'common.languages.label' | transloco" role="group">
@@ -74,7 +74,7 @@
                     }
                 </mat-form-field>
 
-                <p class="register-hint">{{ 'auth.register.passwordHint' | transloco }}</p>
+                <p class="auth-hint">{{ 'auth.register.passwordHint' | transloco }}</p>
 
                 <button mat-flat-button type="submit" class="submit-button" [disabled]="isLoading()"
                     [attr.aria-label]="'auth.register.submit' | transloco">

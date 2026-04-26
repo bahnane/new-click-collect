@@ -1,3 +1,5 @@
+@use "../../shared/styles/language-switcher.shared" as languageSwitcher;
+
 .shell {
   min-height: 100dvh;
   background-color: var(--mat-sys-surface-container-lowest);
@@ -6,12 +8,13 @@
 .shell-header {
   position: sticky;
   inset-block-start: 0;
-  z-index: 10;
+  z-index: var(--z-sticky);
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  gap: var(--space-md);
+  padding-block: var(--space-md);
+  padding-inline: var(--space-lg);
   border-block-end: 1px solid
     color-mix(in srgb, var(--mat-sys-outline) 35%, transparent);
   background-color: color-mix(in srgb, var(--mat-sys-surface) 92%, transparent);
@@ -35,8 +38,8 @@
   grid-column: 1 / -1;
   display: none;
   flex-direction: column;
-  gap: 0.5rem;
-  padding-block-start: 0.25rem;
+  gap: var(--space-sm);
+  padding-block-start: var(--space-xs);
 }
 
 .shell-nav.is-open {
@@ -51,23 +54,14 @@
 .nav-divider {
   block-size: 1px;
   background-color: color-mix(in srgb, var(--mat-sys-outline) 35%, transparent);
-  margin-block: 0.25rem;
+  margin-block: var(--space-xs);
 }
 
-.language-switcher {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.language-button {
-  min-width: 0;
-}
-
-.language-button.is-active {
-  border-color: var(--mat-sys-primary);
-  background-color: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
-}
+@include languageSwitcher.language-switcher-base();
+@include languageSwitcher.language-switcher-active(
+  var(--mat-sys-primary),
+  color-mix(in srgb, var(--mat-sys-primary) 12%, transparent)
+);
 
 .logout-button {
   width: fit-content;
@@ -78,15 +72,16 @@
 }
 
 .shell-content {
-  padding: 1rem;
+  padding-block: var(--space-lg);
+  padding-inline: var(--space-lg);
 }
 
 @media (min-width: 56rem) {
   .shell-header {
     grid-template-columns: auto 1fr;
     align-items: center;
-    gap: 1rem;
-    padding-inline: 1.25rem;
+    gap: var(--space-lg);
+    padding-inline: var(--space-xl);
   }
 
   .menu-toggle {
@@ -99,18 +94,19 @@
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
-    gap: 0.5rem;
+    gap: var(--space-sm);
     padding-block-start: 0;
   }
 
   .nav-divider {
     inline-size: 1px;
     block-size: 2rem;
-    margin-inline: 0.25rem;
+    margin-inline: var(--space-xs);
     margin-block: 0;
   }
 
   .shell-content {
-    padding: 1.25rem;
+    padding-block: var(--space-xl);
+    padding-inline: var(--space-xl);
   }
 }

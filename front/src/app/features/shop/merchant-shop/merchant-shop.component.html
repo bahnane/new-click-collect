@@ -1,4 +1,4 @@
-<div [dir]="currentDirection()" class="merchant-shop" [class.is-rtl]="isRtl()">
+<div [dir]="currentDirection()" class="merchant-shop">
     <div class="shop-header">
         <button class="back-button" mat-icon-button (click)="goBack()" [attr.aria-label]="'shop.goBack' | transloco">
             <mat-icon>{{ isRtl() ? 'arrow_forward' : 'arrow_back' }}</mat-icon>
