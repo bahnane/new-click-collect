@@ -38,6 +38,7 @@
   // Typography scale
   --font-family-base: Roboto, sans-serif;
   --font-family-rtl: Roboto, "Noto Sans Arabic", sans-serif;
+  --font-family-current: var(--font-family-base);
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
@@ -50,6 +51,20 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
+
+  // Semantic typography tokens
+  --font-label-medium: var(--font-weight-medium) var(--font-size-xs) / 1rem
+    var(--font-family-current);
+  --font-label-large: var(--font-weight-medium) var(--font-size-sm) / 1.25rem
+    var(--font-family-current);
+  --font-body-small: var(--font-weight-regular) var(--font-size-sm) / 1.25rem
+    var(--font-family-current);
+  --font-body-medium: var(--font-weight-regular) var(--font-size-md) / 1.5rem
+    var(--font-family-current);
+  --font-title-medium: var(--font-weight-medium) var(--font-size-lg) / 1.5rem
+    var(--font-family-current);
+  --font-headline-small: var(--font-weight-regular) var(--font-size-2xl) / 2rem
+    var(--font-family-current);
 
   // Text alignment (logical properties for RTL/LTR support)
   --text-align-start: start; // left in LTR, right in RTL
@@ -183,10 +198,12 @@ html {
 // The html[dir] attribute should be set by Angular or application code
 html[dir="ltr"],
 html:not([dir]) {
+  --font-family-current: var(--font-family-base);
   font-family: var(--font-family-base);
 }
 
 html[dir="rtl"] {
+  --font-family-current: var(--font-family-rtl);
   font-family: var(--font-family-rtl);
   direction: rtl;
 }

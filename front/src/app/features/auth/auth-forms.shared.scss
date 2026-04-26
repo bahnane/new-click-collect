@@ -33,11 +33,11 @@
   margin: 0;
   margin-block-end: var(--space-sm);
   color: var(--color-primary);
-  font: var(--mat-sys-label-large);
+  font: var(--font-label-large);
 }
 
 .auth-title {
-  font: var(--mat-sys-headline-small);
+  font: var(--font-headline-small);
   margin: 0;
   color: var(--color-text-primary);
   text-align: var(--text-align-start);
@@ -47,7 +47,7 @@
   margin: 0;
   margin-block-start: var(--space-sm);
   color: var(--color-text-secondary);
-  font: var(--mat-sys-body-medium);
+  font: var(--font-body-medium);
   text-align: var(--text-align-start);
 }
 
@@ -69,7 +69,7 @@
   padding-inline: var(--space-lg);
   padding-block: var(--space-md);
   margin-block-end: var(--space-lg);
-  font: var(--mat-sys-body-small);
+  font: var(--font-body-small);
 }
 
 .error-banner {
@@ -91,7 +91,7 @@
 .auth-link {
   color: var(--color-primary);
   text-decoration: none;
-  font: var(--mat-sys-body-small);
+  font: var(--font-body-small);
   cursor: pointer;
 
   &:hover {
@@ -117,7 +117,7 @@
   margin: 0;
   margin-block-end: var(--space-lg);
   color: var(--color-text-secondary);
-  font: var(--mat-sys-body-small);
+  font: var(--font-body-small);
   text-align: var(--text-align-start);
 }
 
@@ -135,7 +135,7 @@
   margin: 0;
   margin-block-start: var(--space-lg);
   color: var(--color-text-secondary);
-  font: var(--mat-sys-body-small);
+  font: var(--font-body-small);
   text-align: center;
 
   a {
