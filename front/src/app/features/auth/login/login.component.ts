@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -13,6 +13,7 @@ import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { resolvePostAuthMerchantSlug } from '../../../core/utils/post-auth-redirect.util';
 
 @Component({
   selector: 'app-login',
@@ -34,6 +35,7 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   protected readonly languageService = inject(LanguageService);
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
   readonly isLoading = signal(false);
@@ -62,7 +64,16 @@ export class LoginComponent {
     this.authService.login(this.form.getRawValue()).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.router.navigate(['/']);
+        const merchantSlug = resolvePostAuthMerchantSlug(
+          this.route.snapshot.queryParamMap.get('merchantSlug'),
+        );
+
+        if (merchantSlug) {
+          this.router.navigate(['/shop', merchantSlug]);
+          return;
+        }
+
+        this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.isLoading.set(false);

@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,6 +10,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { MerchantShopService } from '../../../core/services/merchant-shop.service';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { AuthService } from '../../../core/services/auth.service';
 import {
   MerchantShopInfo,
   StoreOffersPaginatedResponse,
@@ -21,6 +23,7 @@ const LAST_MERCHANT_STORAGE_KEY = 'shop.lastMerchantSlug';
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     MatProgressSpinnerModule,
     MatCardModule,
     MatButtonModule,
@@ -35,6 +38,7 @@ export class MerchantShopComponent implements OnInit {
   private readonly merchantShopService = inject(MerchantShopService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
   protected readonly languageService = inject(LanguageService);
 
   readonly merchantInfo = signal<MerchantShopInfo | null>(null);
@@ -42,6 +46,11 @@ export class MerchantShopComponent implements OnInit {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly currentPage = signal(1);
+  readonly currentUser = this.authService.currentUser;
+  readonly isAuthenticated = this.authService.isAuthenticated;
+
+  readonly isMerchant = computed(() => this.currentUser()?.role === 'MERCHANT');
+  readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
 
   readonly businessTypeLabel = computed(() => {
     const type = this.merchantInfo()?.businessType;
@@ -112,6 +121,19 @@ export class MerchantShopComponent implements OnInit {
 
   getSaleUnit(unit: string): string {
     return `shop.saleUnit.${unit.toLowerCase()}`;
+  }
+
+  logout(): void {
+    this.authService.logout().subscribe();
+  }
+
+  setLanguage(language: 'fr' | 'ar'): void {
+    if (this.isAuthenticated()) {
+      this.authService.updatePreferredLanguage(language).subscribe();
+      return;
+    }
+
+    this.languageService.setLanguage(language);
   }
 
   goBack(): void {

@@ -20,6 +20,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { AuthService } from '../../../core/services/auth.service';
+import { resolvePostAuthMerchantSlug } from '../../../core/utils/post-auth-redirect.util';
 
 const passwordMatchValidator: ValidatorFn = (
   control: AbstractControl,
@@ -112,7 +113,16 @@ export class ActivateInviteComponent {
         next: () => {
           this.isLoading.set(false);
           this.successMessageKey.set('auth.activateInvite.successMessage');
-          this.router.navigate(['/']);
+          const merchantSlug = resolvePostAuthMerchantSlug(
+            this.route.snapshot.queryParamMap.get('merchantSlug'),
+          );
+
+          if (merchantSlug) {
+            this.router.navigate(['/shop', merchantSlug]);
+            return;
+          }
+
+          this.router.navigate(['/dashboard']);
         },
         error: (error) => {
           this.isLoading.set(false);

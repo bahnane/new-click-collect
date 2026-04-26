@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
-import { dashboardRedirectGuard } from './core/guards/dashboard-redirect.guard';
 import { publicOnlyGuard } from './core/guards/public-only.guard';
 import { roleGuard } from './core/guards/role.guard';
 
@@ -20,7 +19,6 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        canActivate: [dashboardRedirectGuard],
         loadComponent: () =>
           import('./features/dashboard/dashboard.component').then(
             (m) => m.DashboardComponent,
