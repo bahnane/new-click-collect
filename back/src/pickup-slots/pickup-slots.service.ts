@@ -6,9 +6,13 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Weekday } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePickupSlotDto } from './dto/create-pickup-slot.dto';
+import {
+  addDays,
+  generatePickupSlotsForWindow,
+  startOfDay,
+} from './pickup-slot-generation.util';
 import { UpdatePickupSlotDto } from './dto/update-pickup-slot.dto';
 
 @Injectable()
@@ -217,8 +221,8 @@ export class PickupSlotsService {
     },
   ) {
     const daysAhead = options.daysAhead;
-    const windowStart = this.startOfDay(new Date());
-    const windowEnd = this.addDays(windowStart, daysAhead);
+    const windowStart = startOfDay(new Date());
+    const windowEnd = addDays(windowStart, daysAhead);
 
     const profile = await this.prisma.merchantProfile.findUnique({
       where: { id: merchantId },
@@ -239,60 +243,15 @@ export class PickupSlotsService {
       throw new NotFoundException('Merchant profile not found');
     }
 
-    const schedule = new Map<Weekday, { startHour: number; endHour: number }>();
-    for (const row of profile.pickupHours) {
-      schedule.set(row.dayOfWeek, {
-        startHour: row.startHour,
-        endHour: row.endHour,
-      });
-    }
-
-    if (schedule.size === 0) {
-      return {
-        createdCount: 0,
-        deletedCount: 0,
-        daysAhead,
-      };
-    }
-
     const now = new Date();
-    const rowsToCreate: {
-      merchantId: string;
-      startsAt: Date;
-      endsAt: Date;
-      maxOrders: number;
-    }[] = [];
-
-    for (let offset = 0; offset < daysAhead; offset += 1) {
-      const dayDate = this.addDays(windowStart, offset);
-      const dayKey = this.getWeekdayEnum(dayDate);
-      const daySchedule = schedule.get(dayKey);
-
-      if (!daySchedule) {
-        continue;
-      }
-
-      const dayStart = this.withHour(dayDate, daySchedule.startHour);
-      const dayEnd = this.withHour(dayDate, daySchedule.endHour);
-
-      for (
-        let startsAt = new Date(dayStart);
-        startsAt < dayEnd;
-        startsAt = this.addHours(startsAt, 2)
-      ) {
-        const endsAt = this.addHours(startsAt, 2);
-        if (endsAt > dayEnd || startsAt <= now) {
-          continue;
-        }
-
-        rowsToCreate.push({
-          merchantId,
-          startsAt,
-          endsAt,
-          maxOrders: 10,
-        });
-      }
-    }
+    const rowsToCreate = generatePickupSlotsForWindow({
+      merchantId,
+      pickupHours: profile.pickupHours,
+      daysAhead,
+      now,
+      slotDurationHours: 2,
+      maxOrdersPerSlot: 10,
+    });
 
     let deletedCount = 0;
     if (options.replaceUnbookedInWindow) {
@@ -324,43 +283,6 @@ export class PickupSlotsService {
       deletedCount,
       daysAhead,
     };
-  }
-
-  private getWeekdayEnum(date: Date): Weekday {
-    const map: Weekday[] = [
-      Weekday.SUNDAY,
-      Weekday.MONDAY,
-      Weekday.TUESDAY,
-      Weekday.WEDNESDAY,
-      Weekday.THURSDAY,
-      Weekday.FRIDAY,
-      Weekday.SATURDAY,
-    ];
-
-    return map[date.getDay()];
-  }
-
-  private startOfDay(input: Date) {
-    const date = new Date(input);
-    date.setHours(0, 0, 0, 0);
-    return date;
-  }
-
-  private addDays(input: Date, days: number) {
-    const date = new Date(input);
-    date.setDate(date.getDate() + days);
-    return date;
-  }
-
-  private withHour(day: Date, hour: number) {
-    const date = new Date(day);
-    date.setHours(0, 0, 0, 0);
-    date.setHours(hour, 0, 0, 0);
-    return date;
-  }
-
-  private addHours(input: Date, hours: number) {
-    return new Date(input.getTime() + hours * 60 * 60 * 1000);
   }
 
   private async hasOverlappingSlot(

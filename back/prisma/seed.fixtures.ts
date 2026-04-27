@@ -7,8 +7,10 @@ import {
   PrismaClient,
   Role,
   SaleUnit,
+  Weekday,
   UserStatus,
 } from '@prisma/client';
+import { generatePickupSlotsForWindow } from '../src/pickup-slots/pickup-slot-generation.util';
 
 const FIXTURE = {
   merchantEmail:
@@ -20,9 +22,26 @@ const FIXTURE = {
     process.env.SEED_FIXTURE_MERCHANT_STORE_NAME ?? 'Boutique Fixture',
   productsCount: Number(process.env.SEED_FIXTURE_PRODUCTS_COUNT ?? 120),
   offersCount: Number(process.env.SEED_FIXTURE_OFFERS_COUNT ?? 80),
+  slotDaysAhead: Number(process.env.SEED_FIXTURE_SLOT_DAYS_AHEAD ?? 14),
+  slotDurationHours: Number(process.env.SEED_FIXTURE_SLOT_DURATION_HOURS ?? 2),
+  slotMaxOrders: Number(process.env.SEED_FIXTURE_SLOT_MAX_ORDERS ?? 10),
   productPrefix: process.env.SEED_FIXTURE_PRODUCT_PREFIX ?? '[FIXTURE] Produit',
   categoryPrefix: process.env.SEED_FIXTURE_CATEGORY_PREFIX ?? 'fixture-',
 };
+
+const PICKUP_HOUR_SEEDS: Array<{
+  dayOfWeek: Weekday;
+  startHour: number;
+  endHour: number;
+}> = [
+  { dayOfWeek: Weekday.MONDAY, startHour: 9, endHour: 21 },
+  { dayOfWeek: Weekday.TUESDAY, startHour: 9, endHour: 21 },
+  { dayOfWeek: Weekday.WEDNESDAY, startHour: 9, endHour: 21 },
+  { dayOfWeek: Weekday.THURSDAY, startHour: 9, endHour: 21 },
+  { dayOfWeek: Weekday.FRIDAY, startHour: 9, endHour: 21 },
+  { dayOfWeek: Weekday.SATURDAY, startHour: 9, endHour: 21 },
+  { dayOfWeek: Weekday.SUNDAY, startHour: 9, endHour: 21 },
+];
 
 const CATEGORY_SEEDS = [
   { name: 'Fixture Epicerie', slug: 'fixture-epicerie' },
@@ -106,7 +125,29 @@ async function main() {
       select: { id: true },
     });
 
-    // 3) Categories fixture
+    // 3) Pickup hours fixture
+    for (const pickupHour of PICKUP_HOUR_SEEDS) {
+      await prisma.merchantPickupHour.upsert({
+        where: {
+          merchantId_dayOfWeek: {
+            merchantId: merchantProfile.id,
+            dayOfWeek: pickupHour.dayOfWeek,
+          },
+        },
+        update: {
+          startHour: pickupHour.startHour,
+          endHour: pickupHour.endHour,
+        },
+        create: {
+          merchantId: merchantProfile.id,
+          dayOfWeek: pickupHour.dayOfWeek,
+          startHour: pickupHour.startHour,
+          endHour: pickupHour.endHour,
+        },
+      });
+    }
+
+    // 4) Categories fixture
     const categories = [];
     for (const c of CATEGORY_SEEDS) {
       const slug = c.slug.startsWith(FIXTURE.categoryPrefix)
@@ -127,7 +168,7 @@ async function main() {
       categories.push(category);
     }
 
-    // 4) Products fixture
+    // 5) Products fixture
     const createdOrExistingProductIds: string[] = [];
 
     for (let i = 1; i <= FIXTURE.productsCount; i++) {
@@ -161,7 +202,7 @@ async function main() {
       createdOrExistingProductIds.push(created.id);
     }
 
-    // 5) Store offers fixture (subset des produits)
+    // 6) Store offers fixture (subset des produits)
     const offerCount = Math.min(
       FIXTURE.offersCount,
       createdOrExistingProductIds.length,
@@ -195,10 +236,30 @@ async function main() {
       });
     }
 
+    // 7) Pickup slots fixture (prochains jours)
+    const rowsToCreate = generatePickupSlotsForWindow({
+      merchantId: merchantProfile.id,
+      pickupHours: PICKUP_HOUR_SEEDS,
+      daysAhead: FIXTURE.slotDaysAhead,
+      now: new Date(),
+      slotDurationHours: FIXTURE.slotDurationHours,
+      maxOrdersPerSlot: FIXTURE.slotMaxOrders,
+    });
+
+    const createdSlots =
+      rowsToCreate.length > 0
+        ? await prisma.pickupSlot.createMany({
+            data: rowsToCreate,
+            skipDuplicates: true,
+          })
+        : { count: 0 };
+
     console.log('✓ Fixture seed completed');
     console.log(`  Merchant slug: ${FIXTURE.merchantSlug}`);
     console.log(`  Products target: ${FIXTURE.productsCount}`);
     console.log(`  Offers target: ${offerCount}`);
+    console.log(`  Pickup hours seeded: ${PICKUP_HOUR_SEEDS.length}`);
+    console.log(`  Pickup slots created: ${createdSlots.count}`);
   } finally {
     await prisma.$disconnect();
   }
