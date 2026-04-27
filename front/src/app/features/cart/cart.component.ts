@@ -200,11 +200,9 @@ export class CartComponent implements OnInit {
     this.cartService
       .checkoutOrder(pickupSlotId, this.checkoutForm.controls.note.value)
       .subscribe({
-        next: () => {
+        next: (order) => {
           this.checkoutLoading.set(false);
-          this.checkoutSuccessMessageKey.set('cart.checkout.success');
-          this.checkoutForm.controls.note.setValue('');
-          this.loadCart();
+          this.router.navigate(['/order-confirmation', order.id]);
         },
         error: (error: unknown) => {
           this.checkoutLoading.set(false);

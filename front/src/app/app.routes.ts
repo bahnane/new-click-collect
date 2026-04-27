@@ -33,6 +33,15 @@ export const routes: Routes = [
         title: 'routes.cart.title',
       },
       {
+        path: 'order-confirmation/:id',
+        canActivate: [roleGuard(['CUSTOMER'])],
+        loadComponent: () =>
+          import('./features/order-confirmation/order-confirmation.component').then(
+            (m) => m.OrderConfirmationComponent,
+          ),
+        title: 'routes.orderConfirmation.title',
+      },
+      {
         path: 'merchant-space',
         canActivate: [roleGuard(['MERCHANT'])],
         loadComponent: () =>

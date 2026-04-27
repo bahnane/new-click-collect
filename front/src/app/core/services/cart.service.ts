@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { CartResponse } from '../models/cart.model';
+import { Order } from '../models/order.model';
 
 interface UpsertCartItemPayload {
   storeOfferId: string;
@@ -68,14 +69,18 @@ export class CartService {
     );
   }
 
-  checkoutOrder(pickupSlotId: string, note?: string): Observable<unknown> {
+  checkoutOrder(pickupSlotId: string, note?: string): Observable<Order> {
     const payload: CheckoutOrderPayload = {
       pickupSlotId,
       ...(note?.trim() ? { note: note.trim() } : {}),
     };
 
-    return this.http.post(`${environment.apiUrl}/orders/checkout`, payload, {
-      withCredentials: true,
-    });
+    return this.http.post<Order>(
+      `${environment.apiUrl}/orders/checkout`,
+      payload,
+      {
+        withCredentials: true,
+      },
+    );
   }
 }

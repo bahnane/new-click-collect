@@ -32,9 +32,13 @@
     },
     "cart": {
       "title": "Panier"
+    },
+    "orderConfirmation": {
+      "title": "Confirmation de commande"
     }
   },
   "common": {
+    "retry": "Réessayer",
     "languages": {
       "label": "Langue",
       "fr": "Français",
@@ -293,6 +297,35 @@
       "loadFailed": "Impossible de charger votre panier.",
       "removeFailed": "Impossible de retirer cet article.",
       "updateFailed": "Impossible de mettre a jour la quantite."
+    }
+  },
+  "order": {
+    "confirmation": {
+      "title": "Commande confirmée",
+      "subtitle": "Votre commande a été reçue. Vous pouvez la récupérer au créneau prévu.",
+      "loading": "Chargement des détails de la commande...",
+      "orderNumber": "Numéro de commande",
+      "merchant": "Boutique",
+      "status": "Statut",
+      "pickupTime": "Créneau de retrait",
+      "items": "Articles",
+      "note": "Note",
+      "itemsCount": "Nombre d'articles",
+      "total": "Total",
+      "viewAllOrders": "Voir toutes mes commandes",
+      "goToDashboard": "Retour à l'accueil",
+      "info": "Un email de confirmation a été envoyé à votre adresse. Le marchand confirmer votre commande rapidement.",
+      "errors": {
+        "notFound": "La commande n'a pas été trouvée.",
+        "loadFailed": "Impossible de charger les détails de la commande."
+      }
+    },
+    "status": {
+      "pending": "En attente de confirmation",
+      "confirmed": "Confirmée",
+      "ready": "Prête pour retrait",
+      "collected": "Retirée",
+      "cancelled": "Annulée"
     }
   }
 }
