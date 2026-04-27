@@ -19,4 +19,66 @@
             }
         </mat-card-content>
     </mat-card>
+
+    @if (isCustomer()) {
+    <mat-card id="my-orders" class="dashboard-card orders-card">
+        <mat-card-content>
+            <div class="orders-header">
+                <h2>{{ 'shell.dashboard.orders.title' | transloco }}</h2>
+                <p>{{ 'shell.dashboard.orders.subtitle' | transloco }}</p>
+            </div>
+
+            @if (ordersErrorKey()) {
+            <div class="orders-feedback error" role="alert" aria-live="polite">
+                <mat-icon aria-hidden="true">error_outline</mat-icon>
+                <span>{{ ordersErrorKey()! | transloco }}</span>
+                <button mat-stroked-button type="button" (click)="loadMyOrders()">
+                    {{ 'common.retry' | transloco }}
+                </button>
+            </div>
+            }
+
+            @if (loadingOrders()) {
+            <div class="orders-state">
+                <mat-progress-spinner mode="indeterminate" diameter="36" />
+                <p>{{ 'shell.dashboard.orders.loading' | transloco }}</p>
+            </div>
+            } @else if (ordersPage(); as page) {
+            @if (page.data.length === 0) {
+            <p class="orders-empty">{{ 'shell.dashboard.orders.empty' | transloco }}</p>
+            } @else {
+            <div class="orders-list" role="list" [attr.aria-label]="'shell.dashboard.orders.title' | transloco">
+                @for (order of page.data; track order.id) {
+                <article class="order-row" role="listitem">
+                    <div class="order-row-main">
+                        <p class="order-id">{{ order.id }}</p>
+                        <p class="order-meta">
+                            {{ order.merchant.storeName }}
+                            <span class="dot">•</span>
+                            {{ 'order.status.' + order.status.toLowerCase() | transloco }}
+                        </p>
+                    </div>
+                    <div class="order-row-side">
+                        <p class="order-total">
+                            {{ (order.finalTotalInCents ?? order.estimatedTotalInCents) / 100 | number:'1.2-2' }}
+                            {{ 'shop.currency' | transloco }}
+                        </p>
+                        <button mat-stroked-button type="button" (click)="goToOrderDetail(order.id)">
+                            {{ 'shell.dashboard.orders.viewDetail' | transloco }}
+                        </button>
+                    </div>
+                </article>
+                }
+            </div>
+
+            <div class="orders-paginator">
+                <mat-paginator [length]="page.total" [pageIndex]="page.page - 1" [pageSize]="page.pageSize"
+                    [pageSizeOptions]="[5, 10, 20]" (page)="onOrdersPageChange($event)">
+                </mat-paginator>
+            </div>
+            }
+            }
+        </mat-card-content>
+    </mat-card>
+    }
 </section>

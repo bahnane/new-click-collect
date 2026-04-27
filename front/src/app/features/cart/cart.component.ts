@@ -65,6 +65,7 @@ export class CartComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.checkoutForm.controls.pickupSlotId.disable({ emitEvent: false });
     this.loadCart();
   }
 
@@ -196,16 +197,19 @@ export class CartComponent implements OnInit {
     this.checkoutErrorMessageKey.set(null);
     this.checkoutSuccessMessageKey.set(null);
     this.checkoutLoading.set(true);
+    this.syncPickupSlotControlState();
 
     this.cartService
       .checkoutOrder(pickupSlotId, this.checkoutForm.controls.note.value)
       .subscribe({
         next: (order) => {
           this.checkoutLoading.set(false);
+          this.syncPickupSlotControlState();
           this.router.navigate(['/order-confirmation', order.id]);
         },
         error: (error: unknown) => {
           this.checkoutLoading.set(false);
+          this.syncPickupSlotControlState();
           this.checkoutErrorMessageKey.set(
             this.resolveCheckoutErrorMessageKey(error),
           );
@@ -238,6 +242,7 @@ export class CartComponent implements OnInit {
       this.pickupSlots.set([]);
       this.slotsErrorMessageKey.set(null);
       this.checkoutForm.controls.pickupSlotId.setValue('');
+      this.syncPickupSlotControlState();
       return;
     }
 
@@ -247,6 +252,7 @@ export class CartComponent implements OnInit {
   private loadPickupSlots(merchantId: string): void {
     this.loadingSlots.set(true);
     this.slotsErrorMessageKey.set(null);
+    this.syncPickupSlotControlState();
 
     this.cartService.listPublicPickupSlots(merchantId).subscribe({
       next: (slots) => {
@@ -257,14 +263,31 @@ export class CartComponent implements OnInit {
           exists ? selected : (slots[0]?.id ?? ''),
         );
         this.loadingSlots.set(false);
+        this.syncPickupSlotControlState();
       },
       error: () => {
         this.pickupSlots.set([]);
         this.checkoutForm.controls.pickupSlotId.setValue('');
         this.slotsErrorMessageKey.set('cart.checkout.errors.loadSlotsFailed');
         this.loadingSlots.set(false);
+        this.syncPickupSlotControlState();
       },
     });
+  }
+
+  private syncPickupSlotControlState(): void {
+    const pickupSlotControl = this.checkoutForm.controls.pickupSlotId;
+    const shouldDisable =
+      this.loadingSlots() ||
+      this.checkoutLoading() ||
+      this.pickupSlots().length === 0;
+
+    if (shouldDisable) {
+      pickupSlotControl.disable({ emitEvent: false });
+      return;
+    }
+
+    pickupSlotControl.enable({ emitEvent: false });
   }
 
   private resolveCheckoutErrorMessageKey(error: unknown): string {

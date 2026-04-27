@@ -14,8 +14,7 @@ import { generatePickupSlotsForWindow } from '../src/pickup-slots/pickup-slot-ge
 
 const FIXTURE = {
   merchantEmail:
-    process.env.SEED_FIXTURE_MERCHANT_EMAIL ??
-    'fixture-merchant@click-collect.local',
+    process.env.SEED_FIXTURE_MERCHANT_EMAIL ?? 'merchant@mailinator.com',
   merchantPassword: process.env.SEED_FIXTURE_MERCHANT_PASSWORD ?? 'fixture123',
   merchantSlug: process.env.SEED_FIXTURE_MERCHANT_SLUG ?? 'boutique-fixture',
   merchantStoreName:

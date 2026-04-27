@@ -35,6 +35,12 @@
     },
     "orderConfirmation": {
       "title": "Confirmation de commande"
+    },
+    "orderDetail": {
+      "title": "Détail de commande"
+    },
+    "merchantShop": {
+      "title": "Boutique"
     }
   },
   "common": {
@@ -203,7 +209,17 @@
       "title": "Bienvenue",
       "subtitle": "Votre shell applicatif est prêt. Les prochaines fonctionnalités seront ajoutées ici.",
       "emailLabel": "Email",
-      "roleLabel": "Rôle"
+      "roleLabel": "Rôle",
+      "orders": {
+        "title": "Mes commandes",
+        "subtitle": "Suivez vos commandes et consultez leur détail.",
+        "loading": "Chargement des commandes...",
+        "empty": "Vous n'avez pas encore de commande.",
+        "viewDetail": "Afficher détail",
+        "errors": {
+          "loadFailed": "Impossible de charger vos commandes."
+        }
+      }
     },
     "merchantSpace": {
       "title": "Espace marchand",
@@ -300,6 +316,16 @@
     }
   },
   "order": {
+    "detail": {
+      "title": "Détail de la commande",
+      "subtitle": "Retrouvez ici le récapitulatif complet de votre commande.",
+      "loading": "Chargement des détails de la commande...",
+      "backToOrders": "Retour à mes commandes",
+      "errors": {
+        "notFound": "La commande n'a pas été trouvée.",
+        "loadFailed": "Impossible de charger les détails de la commande."
+      }
+    },
     "confirmation": {
       "title": "Commande confirmée",
       "subtitle": "Votre commande a été reçue. Vous pouvez la récupérer au créneau prévu.",

@@ -131,8 +131,7 @@
                         <p class="checkout-loading">{{ 'cart.checkout.loadingSlots' | transloco }}</p>
                         } @else {
                         <select id="pickup-slot-select" class="checkout-select"
-                            [formControl]="checkoutForm.controls.pickupSlotId"
-                            [disabled]="pickupSlots().length === 0 || checkoutLoading()">
+                            [formControl]="checkoutForm.controls.pickupSlotId">
                             @for (slot of pickupSlots(); track slot.id) {
                             <option [value]="slot.id">{{ getPickupSlotLabel(slot) }}</option>
                             }

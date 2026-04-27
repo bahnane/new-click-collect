@@ -43,3 +43,22 @@ export interface Order {
   merchant: OrderMerchant;
   items: OrderItem[];
 }
+
+export interface OrderListItem {
+  id: string;
+  status: OrderStatus;
+  estimatedTotalInCents: number;
+  finalTotalInCents: number | null;
+  pickupStartsAt: string;
+  pickupEndsAt: string;
+  createdAt: string;
+  itemCount: number;
+  merchant: OrderMerchant;
+}
+
+export interface PaginatedOrders {
+  data: OrderListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}

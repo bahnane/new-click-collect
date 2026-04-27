@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Order } from '../models/order.model';
+import { Order, PaginatedOrders } from '../models/order.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrdersService {
@@ -17,21 +17,8 @@ export class OrdersService {
     );
   }
 
-  getMyOrders(
-    page = 1,
-    pageSize = 10,
-  ): Observable<{
-    data: Order[];
-    total: number;
-    page: number;
-    pageSize: number;
-  }> {
-    return this.http.get<{
-      data: Order[];
-      total: number;
-      page: number;
-      pageSize: number;
-    }>(`${environment.apiUrl}/orders/me`, {
+  getMyOrders(page = 1, pageSize = 10): Observable<PaginatedOrders> {
+    return this.http.get<PaginatedOrders>(`${environment.apiUrl}/orders/me`, {
       params: { page: String(page), pageSize: String(pageSize) },
       withCredentials: true,
     });

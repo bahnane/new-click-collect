@@ -1,0 +1,103 @@
+<section [dir]="currentDirection()" class="order-detail-page">
+    <header class="detail-header">
+        <mat-icon aria-hidden="true">receipt_long</mat-icon>
+        <div>
+            <h1>{{ 'order.detail.title' | transloco }}</h1>
+            <p>{{ 'order.detail.subtitle' | transloco }}</p>
+        </div>
+    </header>
+
+    @if (errorMessageKey()) {
+    <div class="error-banner" role="alert" aria-live="polite">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <span>{{ errorMessageKey()! | transloco }}</span>
+        <button mat-stroked-button type="button" (click)="retry()">
+            {{ 'common.retry' | transloco }}
+        </button>
+    </div>
+    }
+
+    @if (loading()) {
+    <div class="state-block">
+        <mat-progress-spinner mode="indeterminate" diameter="42" />
+        <p>{{ 'order.detail.loading' | transloco }}</p>
+    </div>
+    } @else if (order(); as currentOrder) {
+    <mat-card class="detail-card">
+        <mat-card-content>
+            <div class="order-number-section">
+                <p class="label">{{ 'order.confirmation.orderNumber' | transloco }}</p>
+                <p class="value order-id">{{ currentOrder.id }}</p>
+            </div>
+
+            @if (currentOrder.merchant.storeName) {
+            <div class="merchant-section">
+                <p class="label">{{ 'order.confirmation.merchant' | transloco }}</p>
+                <p class="value">{{ currentOrder.merchant.storeName }}</p>
+            </div>
+            }
+
+            <div class="status-section" [class]="'status-' + orderStatus()?.toLowerCase()">
+                <p class="label">{{ 'order.confirmation.status' | transloco }}</p>
+                <p class="value status-badge">
+                    {{ getOrderStatusKey(orderStatus()!) | transloco }}
+                </p>
+            </div>
+
+            <div class="pickup-section">
+                <p class="label">{{ 'order.confirmation.pickupTime' | transloco }}</p>
+                <p class="value">{{ getPickupSlotLabel(currentOrder) }}</p>
+            </div>
+
+            <div class="items-section">
+                <h2>{{ 'order.confirmation.items' | transloco }}</h2>
+                <div class="items-list" role="list" [attr.aria-label]="'order.confirmation.items' | transloco">
+                    @for (item of currentOrder.items; track item.id) {
+                    <div class="item-row" role="listitem">
+                        <div class="item-details">
+                            <p class="item-name">{{ item.productName }}</p>
+                            <p class="item-meta">
+                                {{ item.quantity }} {{ getSaleUnit(item.saleUnit) | transloco }} ×
+                                {{ getPriceInDa(item.unitPriceInCents) }} {{ 'shop.currency' | transloco }}
+                            </p>
+                        </div>
+                        <p class="item-total">
+                            {{ getPriceInDa(item.lineTotalInCents) }} {{ 'shop.currency' | transloco }}
+                        </p>
+                    </div>
+                    }
+                </div>
+            </div>
+
+            @if (currentOrder.note) {
+            <div class="note-section">
+                <p class="label">{{ 'order.confirmation.note' | transloco }}</p>
+                <p class="value note-text">{{ currentOrder.note }}</p>
+            </div>
+            }
+
+            <div class="summary-section">
+                <dl class="summary-values">
+                    <div>
+                        <dt>{{ 'order.confirmation.itemsCount' | transloco }}</dt>
+                        <dd>{{ currentOrder.items.length }}</dd>
+                    </div>
+                    <div>
+                        <dt>{{ 'order.confirmation.total' | transloco }}</dt>
+                        <dd class="total-value">
+                            {{ getPriceInDa(currentOrder.finalTotalInCents ?? currentOrder.estimatedTotalInCents) }}
+                            {{ 'shop.currency' | transloco }}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="detail-actions">
+                <button mat-flat-button color="primary" type="button" (click)="goToMyOrders()">
+                    {{ 'order.detail.backToOrders' | transloco }}
+                </button>
+            </div>
+        </mat-card-content>
+    </mat-card>
+    }
+</section>

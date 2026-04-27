@@ -1,5 +1,6 @@
 .dashboard {
   display: grid;
+  gap: var(--space-lg);
 }
 
 .dashboard-card {
@@ -49,4 +50,116 @@
   margin: 0;
   color: var(--color-text-primary);
   font: var(--font-body-medium);
+}
+
+.orders-card {
+  max-width: var(--size-card-content);
+}
+
+.orders-header h2 {
+  margin: 0;
+  font: var(--font-title-large);
+  color: var(--color-text-primary);
+  text-align: var(--text-align-start);
+}
+
+.orders-header p {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-text-secondary);
+  font: var(--font-body-medium);
+  text-align: var(--text-align-start);
+}
+
+.orders-feedback {
+  margin-block-start: var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+}
+
+.orders-feedback.error {
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+}
+
+.orders-state {
+  margin-block-start: var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  color: var(--color-text-secondary);
+}
+
+.orders-empty {
+  margin-block-start: var(--space-lg);
+  color: var(--color-text-secondary);
+  font: var(--font-body-medium);
+}
+
+.orders-list {
+  margin-block-start: var(--space-lg);
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.order-row-main {
+  min-width: 0;
+}
+
+.order-id {
+  margin: 0;
+  font: var(--font-label-large);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.order-meta {
+  margin: var(--space-2xs) 0 0;
+  color: var(--color-text-secondary);
+  font: var(--font-body-small);
+}
+
+.dot {
+  margin-inline: var(--space-2xs);
+}
+
+.order-row-side {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.order-total {
+  margin: 0;
+  color: var(--color-text-primary);
+  font: var(--font-title-medium);
+  white-space: nowrap;
+}
+
+.orders-paginator {
+  margin-block-start: var(--space-sm);
+}
+
+@media (max-width: 48rem) {
+  .order-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .order-row-side {
+    justify-content: space-between;
+  }
 }
