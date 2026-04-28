@@ -1,3 +1,38 @@
+export type Weekday =
+  | 'SUNDAY'
+  | 'MONDAY'
+  | 'TUESDAY'
+  | 'WEDNESDAY'
+  | 'THURSDAY'
+  | 'FRIDAY'
+  | 'SATURDAY';
+
+export interface MerchantProfile {
+  id: string;
+  slug: string;
+  storeName: string;
+  businessType: 'HANOUTE' | 'PATISSERIE';
+  description: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  zipCode: string | null;
+  isActive: boolean;
+  openingHours: MerchantHours[];
+  pickupHours: MerchantHours[];
+}
+
+export interface UpdateMerchantProfilePayload {
+  storeName?: string;
+  description?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  zipCode?: string;
+  openingHours?: MerchantHours[];
+  pickupHours?: MerchantHours[];
+}
+
 export interface MerchantShopInfo {
   id: string;
   storeName: string;

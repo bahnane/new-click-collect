@@ -12,6 +12,9 @@
     "merchantOverview": {
       "title": "Vue d'ensemble marchand"
     },
+    "merchantProfile": {
+      "title": "Mon profil marchand"
+    },
     "merchantSpace": {
       "title": "Espace marchand"
     },
@@ -239,7 +242,8 @@
       "subtitle": "Gérez vos commandes entrantes et traitez les actions prioritaires depuis un espace unique.",
       "navigationLabel": "Navigation du back-office marchand",
       "sections": {
-        "overview": "Vue d'ensemble"
+        "overview": "Vue d'ensemble",
+        "profile": "Mon profil"
       },
       "overview": {
         "summary": {
@@ -281,6 +285,38 @@
         "errors": {
           "loadFailed": "Impossible de charger les commandes marchand.",
           "updateFailed": "Impossible de mettre à jour le statut de la commande."
+        }
+      },
+      "profile": {
+        "title": "Profil de la boutique",
+        "subtitle": "Mettez à jour les informations visibles de votre boutique.",
+        "slug": "Identifiant public (slug)",
+        "slugHint": "Cet identifiant est fixe et sert d'URL unique pour votre boutique.",
+        "sections": {
+          "general": "Informations générales",
+          "address": "Adresse",
+          "openingHours": "Horaires d'ouverture",
+          "pickupHours": "Horaires de collecte"
+        },
+        "fields": {
+          "storeName": "Nom de la boutique",
+          "description": "Description",
+          "phone": "Téléphone",
+          "address": "Adresse",
+          "city": "Ville",
+          "zipCode": "Code postal",
+          "startHour": "Ouverture",
+          "endHour": "Fermeture"
+        },
+        "loading": "Chargement du profil...",
+        "saving": "Enregistrement...",
+        "save": "Enregistrer",
+        "saveSuccess": "Profil mis à jour avec succès.",
+        "pickupHoursHint": "Les crénaux de collecte doivent être par tranches de 2h.",
+        "pickupHoursRequired": "Au moins un jour de collecte est requis.",
+        "errors": {
+          "loadFailed": "Impossible de charger le profil.",
+          "saveFailed": "Impossible d'enregistrer le profil. Vérifiez vos informations."
         }
       }
     },

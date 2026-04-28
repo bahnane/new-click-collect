@@ -1,0 +1,163 @@
+.merchant-profile {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.profile-state {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.profile-state p {
+  margin: 0;
+}
+
+/* Slug read-only banner */
+.slug-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--mat-sys-secondary) 10%, transparent);
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.slug-banner mat-icon {
+  margin-block-start: 0.1rem;
+  color: var(--mat-sys-secondary);
+  flex-shrink: 0;
+}
+
+.slug-content {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.slug-label {
+  margin: 0;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.slug-value {
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface);
+  letter-spacing: 0.04em;
+}
+
+.slug-hint {
+  margin: 0;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+/* Form */
+.profile-form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.profile-card {
+  border-radius: 1.5rem;
+}
+
+.profile-card mat-card-content {
+  display: grid;
+  gap: 1rem;
+  padding-block-start: 1rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.half-width {
+  width: 100%;
+  max-width: 24rem;
+}
+
+.address-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.address-row mat-form-field:last-child {
+  max-width: 8rem;
+}
+
+/* Hours grid */
+.hours-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.day-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-block-end: 1px solid var(--mat-sys-outline-variant);
+}
+
+.day-row:last-child {
+  border-block-end: none;
+}
+
+.day-row mat-checkbox {
+  min-width: 7rem;
+  flex-shrink: 0;
+}
+
+.hour-selects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.hour-selects mat-form-field {
+  width: 6.5rem;
+}
+
+/* Feedback banners */
+.error-banner {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+  color: var(--mat-sys-on-error-container);
+  font: var(--mat-sys-body-medium);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-error) 30%, transparent);
+}
+
+.success-banner {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);
+}
+
+/* Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.form-actions button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* RTL support via logical properties — layout already uses flex/grid */

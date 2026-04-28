@@ -35,12 +35,9 @@ export class MerchantsController {
     );
   }
 
-  @Get('merchants/:slug')
-  getPublicMerchantBySlug(@Param('slug') slug: string) {
-    return this.merchantsService.getPublicActiveMerchantBySlug(slug);
-  }
-
   // ── Routes commerçant ────────────────────────────────────────────────────
+  // IMPORTANT: ces routes doivent être déclarées avant merchants/:slug
+  // pour qu'Express ne traite pas "me" comme une valeur de paramètre slug.
 
   @UseGuards(JwtAuthGuard)
   @Get('merchants/me')
@@ -57,6 +54,14 @@ export class MerchantsController {
   ) {
     this.assertRole(user, Role.MERCHANT);
     return this.merchantsService.updateMyProfile(user.sub, dto);
+  }
+
+  // ── Routes publiques par slug ────────────────────────────────────────────
+  // Déclarées après /me pour éviter le conflit de paramètre :slug vs "me".
+
+  @Get('merchants/:slug')
+  getPublicMerchantBySlug(@Param('slug') slug: string) {
+    return this.merchantsService.getPublicActiveMerchantBySlug(slug);
   }
 
   // ── Routes admin ─────────────────────────────────────────────────────────

@@ -1,0 +1,219 @@
+<section class="merchant-profile">
+    @if (loading()) {
+    <div class="profile-state">
+        <mat-spinner diameter="32" />
+        <p>{{ 'shell.merchant.profile.loading' | transloco }}</p>
+    </div>
+    } @else if (loadErrorKey()) {
+    <p class="error-banner" role="alert">{{ loadErrorKey()! | transloco }}</p>
+    } @else {
+    <div class="slug-banner">
+        <mat-icon aria-hidden="true">tag</mat-icon>
+        <div class="slug-content">
+            <p class="slug-label">{{ 'shell.merchant.profile.slug' | transloco }}</p>
+            <code class="slug-value">{{ profile()?.slug }}</code>
+            <p class="slug-hint">{{ 'shell.merchant.profile.slugHint' | transloco }}</p>
+        </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="profile-form">
+        <!-- General info -->
+        <mat-card class="profile-card">
+            <mat-card-header>
+                <mat-card-title>
+                    {{ 'shell.merchant.profile.sections.general' | transloco }}
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>
+                        {{ 'shell.merchant.profile.fields.storeName' | transloco }}
+                    </mat-label>
+                    <input matInput formControlName="storeName" maxlength="120" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>
+                        {{ 'shell.merchant.profile.fields.description' | transloco }}
+                    </mat-label>
+                    <textarea matInput formControlName="description" rows="4" maxlength="2000"></textarea>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>
+                        {{ 'shell.merchant.profile.fields.phone' | transloco }}
+                    </mat-label>
+                    <input matInput formControlName="phone" type="tel" maxlength="30" />
+                    <mat-icon matSuffix aria-hidden="true">phone</mat-icon>
+                </mat-form-field>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Address -->
+        <mat-card class="profile-card">
+            <mat-card-header>
+                <mat-card-title>
+                    {{ 'shell.merchant.profile.sections.address' | transloco }}
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>
+                        {{ 'shell.merchant.profile.fields.address' | transloco }}
+                    </mat-label>
+                    <input matInput formControlName="address" maxlength="255" />
+                    <mat-icon matSuffix aria-hidden="true">location_on</mat-icon>
+                </mat-form-field>
+
+                <div class="address-row">
+                    <mat-form-field appearance="outline">
+                        <mat-label>
+                            {{ 'shell.merchant.profile.fields.city' | transloco }}
+                        </mat-label>
+                        <input matInput formControlName="city" maxlength="100" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>
+                            {{ 'shell.merchant.profile.fields.zipCode' | transloco }}
+                        </mat-label>
+                        <input matInput formControlName="zipCode" maxlength="10" />
+                    </mat-form-field>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Opening hours -->
+        <mat-card class="profile-card">
+            <mat-card-header>
+                <mat-card-title>
+                    {{ 'shell.merchant.profile.sections.openingHours' | transloco }}
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="hours-grid" role="group" [attr.aria-label]="
+              'shell.merchant.profile.sections.openingHours' | transloco
+            ">
+                    @for (group of openingDayGroups; track DAYS[$index]; let i = $index) {
+                    <div class="day-row">
+                        <mat-checkbox [formControl]="group.controls['enabled']">
+                            {{ 'shop.day.' + DAYS[i] | transloco }}
+                        </mat-checkbox>
+                        @if (group.controls['enabled'].value) {
+                        <div class="hour-selects">
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                <mat-label>
+                                    {{
+                                    'shell.merchant.profile.fields.startHour' | transloco
+                                    }}
+                                </mat-label>
+                                <mat-select [formControl]="group.controls['startHour']">
+                                    @for (h of openingStartHours; track h) {
+                                    <mat-option [value]="h">{{ h }}h</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                <mat-label>
+                                    {{
+                                    'shell.merchant.profile.fields.endHour' | transloco
+                                    }}
+                                </mat-label>
+                                <mat-select [formControl]="group.controls['endHour']">
+                                    @for (h of openingEndHours; track h) {
+                                    <mat-option [value]="h">{{ h }}h</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Pickup hours -->
+        <mat-card class="profile-card">
+            <mat-card-header>
+                <mat-card-title>
+                    {{ 'shell.merchant.profile.sections.pickupHours' | transloco }}
+                </mat-card-title>
+                <mat-card-subtitle>
+                    {{ 'shell.merchant.profile.pickupHoursHint' | transloco }}
+                </mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="hours-grid" role="group" [attr.aria-label]="
+              'shell.merchant.profile.sections.pickupHours' | transloco
+            ">
+                    @for (group of pickupDayGroups; track DAYS[$index]; let i = $index) {
+                    <div class="day-row">
+                        <mat-checkbox [formControl]="group.controls['enabled']">
+                            {{ 'shop.day.' + DAYS[i] | transloco }}
+                        </mat-checkbox>
+                        @if (group.controls['enabled'].value) {
+                        <div class="hour-selects">
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                <mat-label>
+                                    {{
+                                    'shell.merchant.profile.fields.startHour' | transloco
+                                    }}
+                                </mat-label>
+                                <mat-select [formControl]="group.controls['startHour']">
+                                    @for (h of pickupStartHours; track h) {
+                                    <mat-option [value]="h">{{ h }}h</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                <mat-label>
+                                    {{
+                                    'shell.merchant.profile.fields.endHour' | transloco
+                                    }}
+                                </mat-label>
+                                <mat-select [formControl]="group.controls['endHour']">
+                                    @for (h of pickupEndHours; track h) {
+                                    <mat-option [value]="h">{{ h }}h</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Feedback banners -->
+        @if (saveErrorKey()) {
+        <p class="error-banner" role="alert">
+            {{ saveErrorKey()! | transloco }}
+        </p>
+        }
+        @if (saveSuccess()) {
+        <p class="success-banner" role="status">
+            {{ 'shell.merchant.profile.saveSuccess' | transloco }}
+        </p>
+        }
+
+        <!-- Submit -->
+        <div class="form-actions">
+            <button mat-flat-button type="submit" [disabled]="saving() || form.invalid">
+                @if (saving()) {
+                <mat-spinner diameter="18" />
+                }
+                {{
+                (saving()
+                ? 'shell.merchant.profile.saving'
+                : 'shell.merchant.profile.save'
+                ) | transloco
+                }}
+            </button>
+        </div>
+    </form>
+    }
+</section>

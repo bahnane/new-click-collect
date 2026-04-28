@@ -12,6 +12,9 @@
     "merchantOverview": {
       "title": "نظرة عامة للتاجر"
     },
+    "merchantProfile": {
+      "title": "ملفي الشخصي"
+    },
     "merchantSpace": {
       "title": "مساحة التاجر"
     },
@@ -239,7 +242,8 @@
       "subtitle": "تابع الطلبات الواردة ونفّذ الإجراءات الأساسية من مساحة واحدة.",
       "navigationLabel": "تنقل لوحة التاجر",
       "sections": {
-        "overview": "نظرة عامة"
+        "overview": "نظرة عامة",
+        "profile": "ملفي الشخصي"
       },
       "overview": {
         "summary": {
@@ -281,6 +285,38 @@
         "errors": {
           "loadFailed": "تعذر تحميل طلبات التاجر.",
           "updateFailed": "تعذر تحديث حالة الطلب."
+        }
+      },
+      "profile": {
+        "title": "ملف المتجر",
+        "subtitle": "حدّث معلومات متجرك الظاهرة.",
+        "slug": "المعرّف العام (slug)",
+        "slugHint": "هذا المعرّف ثابت ويُستخدم كرابط فريد لمتجرك.",
+        "sections": {
+          "general": "معلومات عامة",
+          "address": "العنوان",
+          "openingHours": "ساعات العمل",
+          "pickupHours": "أوقات الاستلام"
+        },
+        "fields": {
+          "storeName": "اسم المتجر",
+          "description": "الوصف",
+          "phone": "الهاتف",
+          "address": "العنوان",
+          "city": "المدينة",
+          "zipCode": "الرمز البريدي",
+          "startHour": "الفتح",
+          "endHour": "الإغلاق"
+        },
+        "loading": "جاري تحميل الملف الشخصي...",
+        "saving": "جاري الحفظ...",
+        "save": "حفظ",
+        "saveSuccess": "تم تحديث الملف الشخصي بنجاح.",
+        "pickupHoursHint": "يجب أن تكون أوقات الاستلام بشريحتين اثنتين من الساعات.",
+        "pickupHoursRequired": "يجب تحديد يوم استلام واحد على الأقل.",
+        "errors": {
+          "loadFailed": "تعذّر تحميل الملف الشخصي.",
+          "saveFailed": "تعذّر حفظ الملف الشخصي. تحقّق من المعلومات."
         }
       }
     },
