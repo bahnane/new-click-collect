@@ -6,9 +6,17 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { Observable } from 'rxjs';
 import { LanguageService } from '../../core/i18n/language.service';
-import { Order } from '../../core/models/order.model';
+import {
+  MerchantOrder,
+  Order,
+  OrderStatus,
+} from '../../core/models/order.model';
 import { OrdersService } from '../../core/services/orders.service';
+
+type OrderDetailViewMode = 'customer' | 'merchant';
+type OrderDetailData = Order | MerchantOrder;
 
 @Component({
   selector: 'app-order-detail',
@@ -30,14 +38,38 @@ export class OrderDetailComponent implements OnInit {
   private readonly router = inject(Router);
   protected readonly languageService = inject(LanguageService);
 
+  readonly viewMode = signal<OrderDetailViewMode>('customer');
   readonly loading = signal(true);
   readonly errorMessageKey = signal<string | null>(null);
-  readonly order = signal<Order | null>(null);
+  readonly actionErrorKey = signal<string | null>(null);
+  readonly actionInProgress = signal(false);
+  readonly order = signal<OrderDetailData | null>(null);
   readonly currentDirection = this.languageService.currentDirection;
 
   readonly orderStatus = computed(() => this.order()?.status);
+  readonly counterpartLabelKey = computed(() =>
+    this.viewMode() === 'merchant'
+      ? 'order.detail.customer'
+      : 'order.confirmation.merchant',
+  );
+  readonly backButtonLabelKey = computed(() =>
+    this.viewMode() === 'merchant'
+      ? 'order.detail.backToMerchantOrders'
+      : 'order.detail.backToOrders',
+  );
+  readonly customerCanCancel = computed(
+    () => this.viewMode() === 'customer' && this.order()?.status === 'PENDING',
+  );
+  readonly merchantAvailableTransitions = computed(() => {
+    if (this.viewMode() !== 'merchant') {
+      return [] as OrderStatus[];
+    }
+
+    return this.availableMerchantTransitions(this.order()?.status);
+  });
 
   ngOnInit(): void {
+    this.viewMode.set(this.resolveViewMode());
     this.loadOrderFromRoute();
   }
 
@@ -51,8 +83,9 @@ export class OrderDetailComponent implements OnInit {
 
     this.loading.set(true);
     this.errorMessageKey.set(null);
+    this.actionErrorKey.set(null);
 
-    this.ordersService.getMyOrderById(orderId).subscribe({
+    this.getOrderRequest(orderId).subscribe({
       next: (order) => {
         this.order.set(order);
         this.loading.set(false);
@@ -64,7 +97,7 @@ export class OrderDetailComponent implements OnInit {
     });
   }
 
-  getPickupSlotLabel(order: Order): string {
+  getPickupSlotLabel(order: OrderDetailData): string {
     const locale =
       this.languageService.currentLanguage() === 'ar' ? 'ar-DZ' : 'fr-FR';
     const formatter = new Intl.DateTimeFormat(locale, {
@@ -81,6 +114,14 @@ export class OrderDetailComponent implements OnInit {
     return `${formatter.format(startsAt)} - ${formatter.format(endsAt)}`;
   }
 
+  getCounterpartValue(order: OrderDetailData): string | null {
+    if (this.isMerchantOrder(order)) {
+      return order.customer.email || null;
+    }
+
+    return order.merchant.storeName || null;
+  }
+
   getSaleUnit(unit: string): string {
     return `shop.saleUnit.${unit.toLowerCase()}`;
   }
@@ -93,11 +134,110 @@ export class OrderDetailComponent implements OnInit {
     return `order.status.${status.toLowerCase()}`;
   }
 
+  actionLabelKey(status: OrderStatus): string {
+    switch (status) {
+      case 'CONFIRMED':
+        return 'shell.merchant.overview.actions.confirm';
+      case 'READY':
+        return 'shell.merchant.overview.actions.ready';
+      case 'COLLECTED':
+        return 'shell.merchant.overview.actions.collected';
+      case 'CANCELLED':
+        return 'shell.merchant.overview.actions.cancel';
+      default:
+        return 'shell.merchant.overview.actions.update';
+    }
+  }
+
   goToMyOrders(): void {
+    if (this.viewMode() === 'merchant') {
+      this.router.navigate(['/merchant/overview']);
+      return;
+    }
+
     this.router.navigate(['/dashboard'], { fragment: 'my-orders' });
   }
 
   retry(): void {
     this.loadOrderFromRoute();
+  }
+
+  updateMerchantOrderStatus(nextStatus: OrderStatus): void {
+    const currentOrder = this.order();
+    if (!currentOrder || this.viewMode() !== 'merchant') {
+      return;
+    }
+
+    this.actionInProgress.set(true);
+    this.actionErrorKey.set(null);
+
+    this.ordersService
+      .updateMerchantOrderStatus(currentOrder.id, nextStatus)
+      .subscribe({
+        next: (updatedOrder) => {
+          this.order.set(updatedOrder);
+          this.actionInProgress.set(false);
+        },
+        error: () => {
+          this.actionErrorKey.set('order.detail.errors.updateFailed');
+          this.actionInProgress.set(false);
+        },
+      });
+  }
+
+  cancelCustomerOrder(): void {
+    const currentOrder = this.order();
+    if (
+      !currentOrder ||
+      this.viewMode() !== 'customer' ||
+      currentOrder.status !== 'PENDING'
+    ) {
+      return;
+    }
+
+    this.actionInProgress.set(true);
+    this.actionErrorKey.set(null);
+
+    this.ordersService.cancelMyOrder(currentOrder.id).subscribe({
+      next: (updatedOrder) => {
+        this.order.set(updatedOrder);
+        this.actionInProgress.set(false);
+      },
+      error: () => {
+        this.actionErrorKey.set('order.detail.errors.cancelFailed');
+        this.actionInProgress.set(false);
+      },
+    });
+  }
+
+  private getOrderRequest(orderId: string): Observable<OrderDetailData> {
+    return this.viewMode() === 'merchant'
+      ? this.ordersService.getMerchantOrderById(orderId)
+      : this.ordersService.getMyOrderById(orderId);
+  }
+
+  private resolveViewMode(): OrderDetailViewMode {
+    return this.route.snapshot.data['orderView'] === 'merchant'
+      ? 'merchant'
+      : 'customer';
+  }
+
+  private availableMerchantTransitions(
+    status: OrderStatus | undefined,
+  ): OrderStatus[] {
+    switch (status) {
+      case 'PENDING':
+        return ['CONFIRMED', 'CANCELLED'];
+      case 'CONFIRMED':
+        return ['READY', 'CANCELLED'];
+      case 'READY':
+        return ['COLLECTED'];
+      default:
+        return [];
+    }
+  }
+
+  private isMerchantOrder(order: OrderDetailData): order is MerchantOrder {
+    return 'customer' in order;
   }
 }

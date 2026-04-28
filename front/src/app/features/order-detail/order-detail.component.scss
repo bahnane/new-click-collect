@@ -71,7 +71,7 @@
 }
 
 .order-number-section,
-.merchant-section,
+.counterpart-section,
 .status-section,
 .pickup-section,
 .note-section {
@@ -255,7 +255,14 @@
 
 .detail-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
+  gap: var(--space-sm);
+}
+
+.danger-action {
+  color: var(--color-error);
+  border-color: color-mix(in srgb, var(--color-error) 35%, transparent);
 }
 
 @media (max-width: 48rem) {

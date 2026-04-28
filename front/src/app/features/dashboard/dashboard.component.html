@@ -28,6 +28,13 @@
                 <p>{{ 'shell.dashboard.orders.subtitle' | transloco }}</p>
             </div>
 
+            @if (orderActionErrorKey()) {
+            <div class="orders-feedback error" role="alert" aria-live="polite">
+                <mat-icon aria-hidden="true">error_outline</mat-icon>
+                <span>{{ orderActionErrorKey()! | transloco }}</span>
+            </div>
+            }
+
             @if (ordersErrorKey()) {
             <div class="orders-feedback error" role="alert" aria-live="polite">
                 <mat-icon aria-hidden="true">error_outline</mat-icon>
@@ -63,9 +70,18 @@
                             {{ (order.finalTotalInCents ?? order.estimatedTotalInCents) / 100 | number:'1.2-2' }}
                             {{ 'shop.currency' | transloco }}
                         </p>
-                        <button mat-stroked-button type="button" (click)="goToOrderDetail(order.id)">
-                            {{ 'shell.dashboard.orders.viewDetail' | transloco }}
-                        </button>
+                        <div class="order-actions">
+                            <button mat-stroked-button type="button" (click)="goToOrderDetail(order.id)">
+                                {{ 'shell.dashboard.orders.viewDetail' | transloco }}
+                            </button>
+
+                            @if (canCancelOrder(order)) {
+                            <button mat-stroked-button type="button" class="danger-action"
+                                [disabled]="currentActionOrderId() === order.id" (click)="cancelOrder(order.id)">
+                                {{ 'shell.dashboard.orders.cancel' | transloco }}
+                            </button>
+                            }
+                        </div>
                     </div>
                 </article>
                 }

@@ -1,5 +1,6 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -32,6 +33,7 @@ const STATUS_FILTERS: MerchantStatusFilterOption[] = [
 @Component({
   selector: 'app-merchant-overview',
   imports: [
+    RouterLink,
     MatButtonModule,
     MatCardModule,
     MatIconModule,

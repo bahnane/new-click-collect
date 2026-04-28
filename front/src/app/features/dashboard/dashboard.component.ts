@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { PaginatedOrders } from '../../core/models/order.model';
+import { OrderListItem, PaginatedOrders } from '../../core/models/order.model';
 import { AuthService } from '../../core/services/auth.service';
 import { OrdersService } from '../../core/services/orders.service';
 
@@ -34,6 +34,8 @@ export class DashboardComponent {
 
   readonly loadingOrders = signal(false);
   readonly ordersErrorKey = signal<string | null>(null);
+  readonly orderActionErrorKey = signal<string | null>(null);
+  readonly currentActionOrderId = signal<string | null>(null);
   readonly ordersPage = signal<PaginatedOrders | null>(null);
   readonly currentPage = signal(1);
   readonly pageSize = signal(5);
@@ -53,6 +55,7 @@ export class DashboardComponent {
 
     this.loadingOrders.set(true);
     this.ordersErrorKey.set(null);
+    this.orderActionErrorKey.set(null);
 
     this.ordersService.getMyOrders(page, pageSize).subscribe({
       next: (response) => {
@@ -74,5 +77,27 @@ export class DashboardComponent {
 
   goToOrderDetail(orderId: string): void {
     this.router.navigate(['/detail-commande', orderId]);
+  }
+
+  canCancelOrder(order: OrderListItem): boolean {
+    return order.status === 'PENDING';
+  }
+
+  cancelOrder(orderId: string): void {
+    this.currentActionOrderId.set(orderId);
+    this.orderActionErrorKey.set(null);
+
+    this.ordersService.cancelMyOrder(orderId).subscribe({
+      next: () => {
+        this.currentActionOrderId.set(null);
+        this.loadMyOrders();
+      },
+      error: () => {
+        this.currentActionOrderId.set(null);
+        this.orderActionErrorKey.set(
+          'shell.dashboard.orders.errors.cancelFailed',
+        );
+      },
+    });
   }
 }

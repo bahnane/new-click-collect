@@ -30,8 +30,8 @@ export class OrdersService {
     });
   }
 
-  cancelMyOrder(orderId: string): Observable<{ message: string }> {
-    return this.http.patch<{ message: string }>(
+  cancelMyOrder(orderId: string): Observable<Order> {
+    return this.http.patch<Order>(
       `${environment.apiUrl}/orders/me/${encodeURIComponent(orderId)}/cancel`,
       {},
       {
@@ -58,6 +58,15 @@ export class OrdersService {
       `${environment.apiUrl}/merchants/me/orders`,
       {
         params,
+        withCredentials: true,
+      },
+    );
+  }
+
+  getMerchantOrderById(orderId: string): Observable<MerchantOrder> {
+    return this.http.get<MerchantOrder>(
+      `${environment.apiUrl}/merchants/me/orders/${encodeURIComponent(orderId)}`,
+      {
         withCredentials: true,
       },
     );

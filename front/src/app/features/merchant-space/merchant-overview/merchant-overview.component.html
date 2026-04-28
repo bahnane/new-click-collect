@@ -114,6 +114,10 @@
                     </div>
 
                     <div class="order-actions">
+                        <a mat-stroked-button type="button" [routerLink]="['/merchant/orders', order.id]">
+                            {{ 'shell.merchant.overview.actions.viewDetail' | transloco }}
+                        </a>
+
                         @if (availableTransitions(order.status).length > 0) {
                         @for (nextStatus of availableTransitions(order.status); track nextStatus) {
                         <button mat-stroked-button type="button" [disabled]="currentActionOrderId() === order.id"

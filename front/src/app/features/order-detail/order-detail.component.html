@@ -17,6 +17,13 @@
     </div>
     }
 
+    @if (actionErrorKey()) {
+    <div class="error-banner" role="alert" aria-live="polite">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <span>{{ actionErrorKey()! | transloco }}</span>
+    </div>
+    }
+
     @if (loading()) {
     <div class="state-block">
         <mat-progress-spinner mode="indeterminate" diameter="42" />
@@ -30,10 +37,10 @@
                 <p class="value order-id">{{ currentOrder.id }}</p>
             </div>
 
-            @if (currentOrder.merchant.storeName) {
-            <div class="merchant-section">
-                <p class="label">{{ 'order.confirmation.merchant' | transloco }}</p>
-                <p class="value">{{ currentOrder.merchant.storeName }}</p>
+            @if (getCounterpartValue(currentOrder); as counterpartValue) {
+            <div class="counterpart-section">
+                <p class="label">{{ counterpartLabelKey() | transloco }}</p>
+                <p class="value">{{ counterpartValue }}</p>
             </div>
             }
 
@@ -93,8 +100,24 @@
             </div>
 
             <div class="detail-actions">
+                @if (viewMode() === 'merchant') {
+                @for (nextStatus of merchantAvailableTransitions(); track nextStatus) {
+                <button mat-stroked-button type="button" [disabled]="actionInProgress()"
+                    [class.danger-action]="nextStatus === 'CANCELLED'" (click)="updateMerchantOrderStatus(nextStatus)">
+                    {{ actionLabelKey(nextStatus) | transloco }}
+                </button>
+                }
+                }
+
+                @if (customerCanCancel()) {
+                <button mat-stroked-button type="button" class="danger-action" [disabled]="actionInProgress()"
+                    (click)="cancelCustomerOrder()">
+                    {{ 'order.detail.actions.cancelOrder' | transloco }}
+                </button>
+                }
+
                 <button mat-flat-button color="primary" type="button" (click)="goToMyOrders()">
-                    {{ 'order.detail.backToOrders' | transloco }}
+                    {{ backButtonLabelKey() | transloco }}
                 </button>
             </div>
         </mat-card-content>

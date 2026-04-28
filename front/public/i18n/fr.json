@@ -222,8 +222,10 @@
         "loading": "Chargement des commandes...",
         "empty": "Vous n'avez pas encore de commande.",
         "viewDetail": "Afficher détail",
+        "cancel": "Annuler",
         "errors": {
-          "loadFailed": "Impossible de charger vos commandes."
+          "loadFailed": "Impossible de charger vos commandes.",
+          "cancelFailed": "Impossible d'annuler cette commande."
         }
       }
     },
@@ -268,6 +270,7 @@
           "all": "Toutes"
         },
         "actions": {
+          "viewDetail": "Voir détail",
           "confirm": "Confirmer",
           "ready": "Marquer prête",
           "collected": "Marquer retirée",
@@ -377,9 +380,16 @@
       "subtitle": "Retrouvez ici le récapitulatif complet de votre commande.",
       "loading": "Chargement des détails de la commande...",
       "backToOrders": "Retour à mes commandes",
+      "backToMerchantOrders": "Retour aux commandes marchand",
+      "customer": "Client",
+      "actions": {
+        "cancelOrder": "Annuler la commande"
+      },
       "errors": {
         "notFound": "La commande n'a pas été trouvée.",
-        "loadFailed": "Impossible de charger les détails de la commande."
+        "loadFailed": "Impossible de charger les détails de la commande.",
+        "cancelFailed": "Impossible d'annuler cette commande.",
+        "updateFailed": "Impossible de mettre à jour le statut de la commande."
       }
     },
     "confirmation": {

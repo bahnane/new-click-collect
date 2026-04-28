@@ -222,8 +222,10 @@
         "loading": "جار تحميل الطلبات...",
         "empty": "لا توجد لديك طلبات حتى الآن.",
         "viewDetail": "عرض التفاصيل",
+        "cancel": "إلغاء",
         "errors": {
-          "loadFailed": "تعذر تحميل طلباتك."
+          "loadFailed": "تعذر تحميل طلباتك.",
+          "cancelFailed": "تعذر إلغاء هذا الطلب."
         }
       }
     },
@@ -268,6 +270,7 @@
           "all": "الكل"
         },
         "actions": {
+          "viewDetail": "عرض التفاصيل",
           "confirm": "تأكيد",
           "ready": "وضعها جاهزة",
           "collected": "تحديدها كمستلمة",
@@ -377,9 +380,16 @@
       "subtitle": "ستجد هنا الملخص الكامل لطلبك.",
       "loading": "جار تحميل تفاصيل الطلب...",
       "backToOrders": "العودة إلى طلباتي",
+      "backToMerchantOrders": "العودة إلى طلبات التاجر",
+      "customer": "العميل",
+      "actions": {
+        "cancelOrder": "إلغاء الطلب"
+      },
       "errors": {
         "notFound": "لم يتم العثور على الطلب.",
-        "loadFailed": "تعذر تحميل تفاصيل الطلب."
+        "loadFailed": "تعذر تحميل تفاصيل الطلب.",
+        "cancelFailed": "تعذر إلغاء هذا الطلب.",
+        "updateFailed": "تعذر تحديث حالة الطلب."
       }
     },
     "confirmation": {

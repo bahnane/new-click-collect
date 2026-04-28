@@ -72,6 +72,15 @@ export const routes: Routes = [
               ),
             title: 'routes.merchantOverview.title',
           },
+          {
+            path: 'orders/:id',
+            loadComponent: () =>
+              import('./features/order-detail/order-detail.component').then(
+                (m) => m.OrderDetailComponent,
+              ),
+            title: 'routes.orderDetail.title',
+            data: { orderView: 'merchant' },
+          },
         ],
       },
       {
