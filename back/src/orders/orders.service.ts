@@ -237,7 +237,7 @@ export class OrdersService {
         where: {
           id: orderId,
           customerId: userId,
-          status: { in: [OrderStatus.PENDING, OrderStatus.CONFIRMED] },
+          status: OrderStatus.PENDING,
         },
         data: {
           status: OrderStatus.CANCELLED,
@@ -413,10 +413,7 @@ export class OrdersService {
     currentStatus: OrderStatus,
     pickupStartsAt: Date,
   ) {
-    if (
-      currentStatus !== OrderStatus.PENDING &&
-      currentStatus !== OrderStatus.CONFIRMED
-    ) {
+    if (currentStatus !== OrderStatus.PENDING) {
       throw new BadRequestException(
         `Order cannot be cancelled from status ${currentStatus}`,
       );
