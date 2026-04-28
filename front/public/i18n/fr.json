@@ -6,6 +6,12 @@
     "dashboard": {
       "title": "Tableau de bord"
     },
+    "merchant": {
+      "title": "Back-office marchand"
+    },
+    "merchantOverview": {
+      "title": "Vue d'ensemble marchand"
+    },
     "merchantSpace": {
       "title": "Espace marchand"
     },
@@ -224,6 +230,56 @@
     "merchantSpace": {
       "title": "Espace marchand",
       "subtitle": "Cette zone est réservée aux comptes marchands."
+    },
+    "merchant": {
+      "eyebrow": "Back-office",
+      "title": "Pilotage marchand",
+      "subtitle": "Gérez vos commandes entrantes et traitez les actions prioritaires depuis un espace unique.",
+      "navigationLabel": "Navigation du back-office marchand",
+      "sections": {
+        "overview": "Vue d'ensemble"
+      },
+      "overview": {
+        "summary": {
+          "totalOrders": "Commandes",
+          "filter": "Filtre actif",
+          "requiresAction": "A traiter"
+        },
+        "filterLabels": {
+          "all": "Toutes",
+          "pending": "En attente",
+          "confirmed": "Confirmées",
+          "ready": "Prêtes",
+          "collected": "Retirées",
+          "cancelled": "Annulées"
+        },
+        "orders": {
+          "title": "Liste des commandes",
+          "subtitle": "Confirmez, préparez ou annulez les commandes selon leur état courant.",
+          "loading": "Chargement des commandes marchand...",
+          "empty": "Aucune commande pour ce filtre.",
+          "pickupTime": "Retrait",
+          "createdAt": "Créée le",
+          "itemsCount": "Articles",
+          "total": "Montant"
+        },
+        "filters": {
+          "label": "Filtrer les commandes",
+          "all": "Toutes"
+        },
+        "actions": {
+          "confirm": "Confirmer",
+          "ready": "Marquer prête",
+          "collected": "Marquer retirée",
+          "cancel": "Annuler",
+          "update": "Mettre à jour",
+          "none": "Aucune action disponible"
+        },
+        "errors": {
+          "loadFailed": "Impossible de charger les commandes marchand.",
+          "updateFailed": "Impossible de mettre à jour le statut de la commande."
+        }
+      }
     },
     "adminSpace": {
       "title": "Espace admin",

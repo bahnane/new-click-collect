@@ -13,6 +13,7 @@ import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { getDefaultAuthenticatedRoute } from '../../../core/utils/default-auth-route.util';
 import { resolvePostAuthMerchantSlug } from '../../../core/utils/post-auth-redirect.util';
 
 @Component({
@@ -62,7 +63,7 @@ export class LoginComponent {
     this.isLoading.set(true);
 
     this.authService.login(this.form.getRawValue()).subscribe({
-      next: () => {
+      next: (response) => {
         this.isLoading.set(false);
         const merchantSlug = resolvePostAuthMerchantSlug(
           this.route.snapshot.queryParamMap.get('merchantSlug'),
@@ -73,7 +74,7 @@ export class LoginComponent {
           return;
         }
 
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(getDefaultAuthenticatedRoute(response.user));
       },
       error: (err) => {
         this.isLoading.set(false);

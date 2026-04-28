@@ -7,9 +7,11 @@
 
         <div class="shop-header-actions">
             @if (isAuthenticated()) {
+            @if (!isMerchant()) {
             <a routerLink="/dashboard" mat-stroked-button type="button">
                 {{ 'shell.nav.dashboard' | transloco }}
             </a>
+            }
 
             @if (isCustomer()) {
             <a routerLink="/cart" mat-stroked-button type="button">
@@ -18,7 +20,7 @@
             }
 
             @if (isMerchant()) {
-            <a routerLink="/merchant-space" mat-stroked-button type="button">
+            <a routerLink="/merchant" mat-stroked-button type="button">
                 {{ 'shell.nav.merchant' | transloco }}
             </a>
             }

@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { map } from 'rxjs';
 import { UserRole } from '../models/user.model';
 import { AuthService } from '../services/auth.service';
+import { getDefaultAuthenticatedRoute } from '../utils/default-auth-route.util';
 
 export function roleGuard(allowedRoles: UserRole[]): CanActivateFn {
   return () => {
@@ -13,7 +14,7 @@ export function roleGuard(allowedRoles: UserRole[]): CanActivateFn {
     if (user) {
       return allowedRoles.includes(user.role)
         ? true
-        : router.createUrlTree(['/dashboard']);
+        : router.createUrlTree(getDefaultAuthenticatedRoute(user));
     }
 
     return authService.refreshAccessToken().pipe(
@@ -25,7 +26,7 @@ export function roleGuard(allowedRoles: UserRole[]): CanActivateFn {
 
         return allowedRoles.includes(refreshedUser.role)
           ? true
-          : router.createUrlTree(['/dashboard']);
+          : router.createUrlTree(getDefaultAuthenticatedRoute(refreshedUser));
       }),
     );
   };

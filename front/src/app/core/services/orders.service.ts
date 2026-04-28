@@ -2,7 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Order, PaginatedOrders } from '../models/order.model';
+import {
+  MerchantOrder,
+  Order,
+  OrderStatus,
+  PaginatedMerchantOrders,
+  PaginatedOrders,
+} from '../models/order.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrdersService {
@@ -28,6 +34,42 @@ export class OrdersService {
     return this.http.patch<{ message: string }>(
       `${environment.apiUrl}/orders/me/${encodeURIComponent(orderId)}/cancel`,
       {},
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
+  getMerchantOrders(
+    status?: OrderStatus,
+    page = 1,
+    pageSize = 10,
+  ): Observable<PaginatedMerchantOrders> {
+    const params: Record<string, string> = {
+      page: String(page),
+      pageSize: String(pageSize),
+    };
+
+    if (status) {
+      params['status'] = status;
+    }
+
+    return this.http.get<PaginatedMerchantOrders>(
+      `${environment.apiUrl}/merchants/me/orders`,
+      {
+        params,
+        withCredentials: true,
+      },
+    );
+  }
+
+  updateMerchantOrderStatus(
+    orderId: string,
+    status: OrderStatus,
+  ): Observable<MerchantOrder> {
+    return this.http.patch<MerchantOrder>(
+      `${environment.apiUrl}/merchants/me/orders/${encodeURIComponent(orderId)}/status`,
+      { status },
       {
         withCredentials: true,
       },

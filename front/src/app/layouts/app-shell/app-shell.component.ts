@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
 import { AuthService } from '../../core/services/auth.service';
+import { getDefaultAuthenticatedRoute } from '../../core/utils/default-auth-route.util';
 import { resolvePostAuthMerchantSlug } from '../../core/utils/post-auth-redirect.util';
 
 @Component({
@@ -31,6 +32,12 @@ export class AppShellComponent {
   readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
   readonly isMerchant = computed(() => this.currentUser()?.role === 'MERCHANT');
   readonly isCustomer = computed(() => this.currentUser()?.role === 'CUSTOMER');
+  readonly homeRoute = computed(() =>
+    getDefaultAuthenticatedRoute(this.currentUser()),
+  );
+  readonly showDashboardLink = computed(
+    () => this.currentUser()?.role !== 'MERCHANT',
+  );
   readonly merchantShopSlug = resolvePostAuthMerchantSlug();
 
   toggleMenu(): void {

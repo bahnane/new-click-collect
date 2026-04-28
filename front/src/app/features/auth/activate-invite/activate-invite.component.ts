@@ -20,6 +20,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { AuthService } from '../../../core/services/auth.service';
+import { getDefaultAuthenticatedRoute } from '../../../core/utils/default-auth-route.util';
 import { resolvePostAuthMerchantSlug } from '../../../core/utils/post-auth-redirect.util';
 
 const passwordMatchValidator: ValidatorFn = (
@@ -110,7 +111,7 @@ export class ActivateInviteComponent {
         password: this.form.controls.password.value,
       })
       .subscribe({
-        next: () => {
+        next: (response) => {
           this.isLoading.set(false);
           this.successMessageKey.set('auth.activateInvite.successMessage');
           const merchantSlug = resolvePostAuthMerchantSlug(
@@ -122,7 +123,7 @@ export class ActivateInviteComponent {
             return;
           }
 
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(getDefaultAuthenticatedRoute(response.user));
         },
         error: (error) => {
           this.isLoading.set(false);

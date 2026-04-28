@@ -10,6 +10,11 @@ export interface OrderMerchant {
   storeName: string;
 }
 
+export interface OrderCustomer {
+  id: string;
+  email: string;
+}
+
 export interface OrderItemProduct {
   id: string;
   name: string;
@@ -61,4 +66,27 @@ export interface PaginatedOrders {
   total: number;
   page: number;
   pageSize: number;
+}
+
+export interface MerchantOrderListItem {
+  id: string;
+  status: OrderStatus;
+  estimatedTotalInCents: number;
+  finalTotalInCents: number | null;
+  pickupStartsAt: string;
+  pickupEndsAt: string;
+  createdAt: string;
+  itemCount: number;
+  customer: OrderCustomer;
+}
+
+export interface PaginatedMerchantOrders {
+  data: MerchantOrderListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface MerchantOrder extends Omit<Order, 'merchant'> {
+  customer: OrderCustomer;
 }

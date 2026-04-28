@@ -1,0 +1,208 @@
+.merchant-overview {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.merchant-summary-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.summary-card {
+  border-radius: 1.25rem;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.summary-card mat-card-content {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.summary-label {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-large);
+}
+
+.summary-card strong {
+  font: var(--mat-sys-headline-small);
+}
+
+.orders-card {
+  border-radius: 1.5rem;
+}
+
+.orders-header {
+  display: grid;
+  gap: 1rem;
+  margin-block-end: 1rem;
+}
+
+.orders-header h2,
+.orders-header p,
+.orders-empty p,
+.orders-state p,
+.no-action,
+.order-id,
+.order-customer {
+  margin: 0;
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.filter-group .is-active {
+  border-color: var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+}
+
+.feedback {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: 1rem;
+  margin-block-end: 1rem;
+}
+
+.feedback.error {
+  color: var(--mat-sys-error);
+  background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
+}
+
+.orders-state,
+.orders-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  min-block-size: 12rem;
+  align-content: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.orders-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.order-row {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 1.25rem;
+  background: var(--mat-sys-surface-container-lowest);
+}
+
+.order-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+}
+
+.order-id {
+  font: var(--mat-sys-title-medium);
+}
+
+.order-customer {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  font: var(--mat-sys-label-medium);
+  white-space: nowrap;
+  background: var(--mat-sys-surface-container-high);
+}
+
+.status-pill[data-status="PENDING"] {
+  color: #8a5600;
+  background: #fff1cf;
+}
+
+.status-pill[data-status="CONFIRMED"] {
+  color: #005c4f;
+  background: #c8fff3;
+}
+
+.status-pill[data-status="READY"] {
+  color: #004e7a;
+  background: #d7efff;
+}
+
+.status-pill[data-status="COLLECTED"] {
+  color: #275c00;
+  background: #daf6c8;
+}
+
+.status-pill[data-status="CANCELLED"] {
+  color: var(--mat-sys-error);
+  background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+}
+
+.order-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+}
+
+.order-facts dt {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+}
+
+.order-facts dd {
+  margin: 0.25rem 0 0;
+  font: var(--mat-sys-body-medium);
+}
+
+.order-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.is-destructive {
+  color: var(--mat-sys-error);
+  border-color: color-mix(in srgb, var(--mat-sys-error) 35%, transparent);
+}
+
+.no-action {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.orders-paginator {
+  margin-block-start: 1rem;
+}
+
+@media (min-width: 48rem) {
+  .merchant-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .orders-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .order-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .order-actions {
+    justify-content: end;
+    max-inline-size: 18rem;
+  }
+}

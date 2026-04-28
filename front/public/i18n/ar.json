@@ -6,6 +6,12 @@
     "dashboard": {
       "title": "لوحة التحكم"
     },
+    "merchant": {
+      "title": "لوحة التاجر"
+    },
+    "merchantOverview": {
+      "title": "نظرة عامة للتاجر"
+    },
     "merchantSpace": {
       "title": "مساحة التاجر"
     },
@@ -224,6 +230,56 @@
     "merchantSpace": {
       "title": "مساحة التاجر",
       "subtitle": "هذه المنطقة مخصصة لحسابات التجار."
+    },
+    "merchant": {
+      "eyebrow": "لوحة التسيير",
+      "title": "إدارة التاجر",
+      "subtitle": "تابع الطلبات الواردة ونفّذ الإجراءات الأساسية من مساحة واحدة.",
+      "navigationLabel": "تنقل لوحة التاجر",
+      "sections": {
+        "overview": "نظرة عامة"
+      },
+      "overview": {
+        "summary": {
+          "totalOrders": "الطلبات",
+          "filter": "الفلتر النشط",
+          "requiresAction": "تتطلب إجراء"
+        },
+        "filterLabels": {
+          "all": "الكل",
+          "pending": "قيد الانتظار",
+          "confirmed": "مؤكدة",
+          "ready": "جاهزة",
+          "collected": "تم استلامها",
+          "cancelled": "ملغاة"
+        },
+        "orders": {
+          "title": "قائمة الطلبات",
+          "subtitle": "أكد الطلبات أو جهزها أو ألغها حسب حالتها الحالية.",
+          "loading": "جار تحميل طلبات التاجر...",
+          "empty": "لا توجد طلبات لهذا الفلتر.",
+          "pickupTime": "موعد الاستلام",
+          "createdAt": "تاريخ الإنشاء",
+          "itemsCount": "العناصر",
+          "total": "المبلغ"
+        },
+        "filters": {
+          "label": "تصفية الطلبات",
+          "all": "الكل"
+        },
+        "actions": {
+          "confirm": "تأكيد",
+          "ready": "وضعها جاهزة",
+          "collected": "تحديدها كمستلمة",
+          "cancel": "إلغاء",
+          "update": "تحديث",
+          "none": "لا توجد إجراءات متاحة"
+        },
+        "errors": {
+          "loadFailed": "تعذر تحميل طلبات التاجر.",
+          "updateFailed": "تعذر تحديث حالة الطلب."
+        }
+      }
     },
     "adminSpace": {
       "title": "مساحة الإدارة",

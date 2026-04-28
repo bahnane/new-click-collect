@@ -51,13 +51,33 @@ export const routes: Routes = [
         title: 'routes.orderDetail.title',
       },
       {
-        path: 'merchant-space',
+        path: 'merchant',
         canActivate: [roleGuard(['MERCHANT'])],
         loadComponent: () =>
           import('./features/merchant-space/merchant-space.component').then(
             (m) => m.MerchantSpaceComponent,
           ),
-        title: 'routes.merchantSpace.title',
+        title: 'routes.merchant.title',
+        children: [
+          {
+            path: '',
+            redirectTo: 'overview',
+            pathMatch: 'full',
+          },
+          {
+            path: 'overview',
+            loadComponent: () =>
+              import('./features/merchant-space/merchant-overview/merchant-overview.component').then(
+                (m) => m.MerchantOverviewComponent,
+              ),
+            title: 'routes.merchantOverview.title',
+          },
+        ],
+      },
+      {
+        path: 'merchant-space',
+        redirectTo: 'merchant',
+        pathMatch: 'full',
       },
       {
         path: 'admin-space',
