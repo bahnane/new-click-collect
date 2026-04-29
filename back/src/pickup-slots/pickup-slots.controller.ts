@@ -12,6 +12,7 @@ import { Role } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
+import { ErrorCodes } from '../common/errors/api-error-codes';
 import { CreatePickupSlotDto } from './dto/create-pickup-slot.dto';
 import { UpdatePickupSlotDto } from './dto/update-pickup-slot.dto';
 import { PickupSlotsService } from './pickup-slots.service';
@@ -62,7 +63,10 @@ export class PickupSlotsController {
 
   private assertMerchant(user: JwtPayload): void {
     if (!user || user.role !== Role.MERCHANT) {
-      throw new ForbiddenException('Requires role: MERCHANT');
+      throw new ForbiddenException({
+        code: ErrorCodes.AUTH_FORBIDDEN,
+        message: 'Requires role: MERCHANT',
+      });
     }
   }
 }

@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OrderStatus, Prisma } from '@prisma/client';
+import { ErrorCodes } from '../common/errors/api-error-codes';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CheckoutOrderDto } from './dto/checkout-order.dto';
@@ -40,7 +41,10 @@ export class OrdersService {
     });
 
     if (!cart || cart.items.length === 0 || !cart.merchantId) {
-      throw new BadRequestException('Cart is empty');
+      throw new BadRequestException({
+        code: ErrorCodes.CART_EMPTY,
+        message: 'Cart is empty',
+      });
     }
 
     const pickupSlot = await this.prisma.pickupSlot.findUnique({
@@ -48,22 +52,32 @@ export class OrdersService {
     });
 
     if (!pickupSlot || !pickupSlot.isActive) {
-      throw new NotFoundException('Pickup slot not found');
+      throw new NotFoundException({
+        code: ErrorCodes.ORDER_PICKUP_SLOT_NOT_FOUND,
+        message: 'Pickup slot not found',
+      });
     }
 
     if (pickupSlot.merchantId !== cart.merchantId) {
-      throw new BadRequestException(
-        'Pickup slot does not belong to cart merchant',
-      );
+      throw new BadRequestException({
+        code: ErrorCodes.ORDER_PICKUP_SLOT_MERCHANT_MISMATCH,
+        message: 'Pickup slot does not belong to cart merchant',
+      });
     }
 
     const now = new Date();
     if (pickupSlot.startsAt <= now) {
-      throw new BadRequestException('Pickup slot has already started');
+      throw new BadRequestException({
+        code: ErrorCodes.ORDER_PICKUP_SLOT_ALREADY_STARTED,
+        message: 'Pickup slot has already started',
+      });
     }
 
     if (pickupSlot.endsAt <= now) {
-      throw new BadRequestException('Pickup slot is expired');
+      throw new BadRequestException({
+        code: ErrorCodes.ORDER_PICKUP_SLOT_EXPIRED,
+        message: 'Pickup slot is expired',
+      });
     }
 
     const mappedItems = cart.items.map((item) => {
@@ -72,9 +86,10 @@ export class OrdersService {
       const effectivePriceInCents = overridePriceInCents ?? defaultPriceInCents;
 
       if (effectivePriceInCents == null) {
-        throw new BadRequestException(
-          `No effective price found for product ${item.storeOffer.product.name}`,
-        );
+        throw new BadRequestException({
+          code: ErrorCodes.ORDER_ITEM_PRICE_MISSING,
+          message: `No effective price found for product ${item.storeOffer.product.name}`,
+        });
       }
 
       const quantity = Number(item.quantity);
@@ -112,7 +127,10 @@ export class OrdersService {
       });
 
       if (reserved.count === 0) {
-        throw new ConflictException('Pickup slot is no longer available');
+        throw new ConflictException({
+          code: ErrorCodes.ORDER_PICKUP_SLOT_UNAVAILABLE,
+          message: 'Pickup slot is no longer available',
+        });
       }
 
       const createdOrder = await tx.order.create({
@@ -203,7 +221,10 @@ export class OrdersService {
     });
 
     if (!order || order.customerId !== userId) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException({
+        code: ErrorCodes.ORDER_NOT_FOUND,
+        message: 'Order not found',
+      });
     }
 
     return order;
@@ -225,7 +246,10 @@ export class OrdersService {
       });
 
       if (!order || order.customerId !== userId) {
-        throw new NotFoundException('Order not found');
+        throw new NotFoundException({
+          code: ErrorCodes.ORDER_NOT_FOUND,
+          message: 'Order not found',
+        });
       }
 
       this.assertCustomerCancellationAllowed(
@@ -247,9 +271,10 @@ export class OrdersService {
       });
 
       if (updateResult.count === 0) {
-        throw new ConflictException(
-          'Order status changed. Please refresh and retry.',
-        );
+        throw new ConflictException({
+          code: ErrorCodes.ORDER_STATUS_CONFLICT,
+          message: 'Order status changed. Please refresh and retry.',
+        });
       }
 
       await this.decrementPickupSlotCurrentOrders(tx, order.pickupSlotId);
@@ -264,7 +289,10 @@ export class OrdersService {
     });
 
     if (!updatedOrder) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException({
+        code: ErrorCodes.ORDER_NOT_FOUND,
+        message: 'Order not found',
+      });
     }
 
     await this.notifyOrderStatusChange(updatedOrder.id, updatedOrder.status);
@@ -338,7 +366,10 @@ export class OrdersService {
     });
 
     if (!order || order.merchantId !== profile.id) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException({
+        code: ErrorCodes.ORDER_NOT_FOUND,
+        message: 'Order not found',
+      });
     }
 
     return order;
@@ -355,7 +386,10 @@ export class OrdersService {
     });
 
     if (!order || order.merchantId !== profile.id) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException({
+        code: ErrorCodes.ORDER_NOT_FOUND,
+        message: 'Order not found',
+      });
     }
 
     this.assertStatusTransitionAllowed(order.status, dto.status);
@@ -403,9 +437,10 @@ export class OrdersService {
     };
 
     if (!allowed[current].includes(next)) {
-      throw new BadRequestException(
-        `Invalid status transition from ${current} to ${next}`,
-      );
+      throw new BadRequestException({
+        code: ErrorCodes.ORDER_INVALID_STATUS_TRANSITION,
+        message: `Invalid status transition from ${current} to ${next}`,
+      });
     }
   }
 
@@ -414,16 +449,18 @@ export class OrdersService {
     pickupStartsAt: Date,
   ) {
     if (currentStatus !== OrderStatus.PENDING) {
-      throw new BadRequestException(
-        `Order cannot be cancelled from status ${currentStatus}`,
-      );
+      throw new BadRequestException({
+        code: ErrorCodes.ORDER_CANCELLATION_NOT_ALLOWED_STATUS,
+        message: `Order cannot be cancelled from status ${currentStatus}`,
+      });
     }
 
     const now = new Date();
     if (pickupStartsAt <= now) {
-      throw new BadRequestException(
-        'Order can no longer be cancelled because pickup has started',
-      );
+      throw new BadRequestException({
+        code: ErrorCodes.ORDER_CANCELLATION_PICKUP_STARTED,
+        message: 'Order can no longer be cancelled because pickup has started',
+      });
     }
 
     const cutoffMinutes = this.getCustomerCancellationCutoffMinutes();
@@ -432,9 +469,10 @@ export class OrdersService {
     );
 
     if (now > cancellationDeadline) {
-      throw new BadRequestException(
-        `Order can only be cancelled at least ${cutoffMinutes} minute(s) before pickup`,
-      );
+      throw new BadRequestException({
+        code: ErrorCodes.ORDER_CANCELLATION_DEADLINE_PASSED,
+        message: `Order can only be cancelled at least ${cutoffMinutes} minute(s) before pickup`,
+      });
     }
   }
 
@@ -470,9 +508,16 @@ export class OrdersService {
       where: { userId },
     });
 
-    if (!profile) throw new NotFoundException('Merchant profile not found');
+    if (!profile)
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_PROFILE_NOT_FOUND,
+        message: 'Merchant profile not found',
+      });
     if (!profile.isActive)
-      throw new ForbiddenException('Merchant account is inactive');
+      throw new ForbiddenException({
+        code: ErrorCodes.MERCHANT_ACCOUNT_INACTIVE,
+        message: 'Merchant account is inactive',
+      });
 
     return profile;
   }
@@ -498,9 +543,10 @@ export class OrdersService {
       return normalized as OrderStatus;
     }
 
-    throw new BadRequestException(
-      `Invalid status filter. Allowed values: ${Object.values(OrderStatus).join(', ')}`,
-    );
+    throw new BadRequestException({
+      code: ErrorCodes.ORDER_INVALID_STATUS_FILTER,
+      message: `Invalid status filter. Allowed values: ${Object.values(OrderStatus).join(', ')}`,
+    });
   }
 
   private async notifyOrderStatusChange(

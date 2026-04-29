@@ -13,6 +13,7 @@ import { Role } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
+import { ErrorCodes } from '../common/errors/api-error-codes';
 import { CheckoutOrderDto } from './dto/checkout-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrdersService } from './orders.service';
@@ -91,13 +92,19 @@ export class OrdersController {
 
   private assertCustomer(user: JwtPayload): void {
     if (!user || user.role !== Role.CUSTOMER) {
-      throw new ForbiddenException('Requires role: CUSTOMER');
+      throw new ForbiddenException({
+        code: ErrorCodes.AUTH_FORBIDDEN,
+        message: 'Requires role: CUSTOMER',
+      });
     }
   }
 
   private assertMerchant(user: JwtPayload): void {
     if (!user || user.role !== Role.MERCHANT) {
-      throw new ForbiddenException('Requires role: MERCHANT');
+      throw new ForbiddenException({
+        code: ErrorCodes.AUTH_FORBIDDEN,
+        message: 'Requires role: MERCHANT',
+      });
     }
   }
 

@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, ProductSubmissionStatus } from '@prisma/client';
+import { ErrorCodes } from '../common/errors/api-error-codes';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductCategoryDto } from './dto/create-product-category.dto';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -34,7 +35,10 @@ export class ProductsService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        throw new ConflictException('Category name or slug already exists');
+        throw new ConflictException({
+          code: ErrorCodes.PRODUCT_CATEGORY_DUPLICATE,
+          message: 'Category name or slug already exists',
+        });
       }
       throw error;
     }
@@ -74,7 +78,10 @@ export class ProductsService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        throw new ConflictException('Category name or slug already exists');
+        throw new ConflictException({
+          code: ErrorCodes.PRODUCT_CATEGORY_DUPLICATE,
+          message: 'Category name or slug already exists',
+        });
       }
       throw error;
     }
@@ -118,9 +125,10 @@ export class ProductsService {
     });
 
     if (existingPending) {
-      throw new ConflictException(
-        'A similar product submission is already pending review',
-      );
+      throw new ConflictException({
+        code: ErrorCodes.PRODUCT_SUBMISSION_ALREADY_PENDING,
+        message: 'A similar product submission is already pending review',
+      });
     }
 
     return this.prisma.productSubmission.create({
@@ -267,22 +275,29 @@ export class ProductsService {
       status !== ProductSubmissionStatus.APPROVED &&
       status !== ProductSubmissionStatus.REJECTED
     ) {
-      throw new BadRequestException('Status must be APPROVED or REJECTED');
+      throw new BadRequestException({
+        code: ErrorCodes.PRODUCT_SUBMISSION_INVALID_STATUS,
+        message: 'Status must be APPROVED or REJECTED',
+      });
     }
 
     const submission = await this.findSubmissionOrFail(submissionId);
 
     if (submission.status !== ProductSubmissionStatus.PENDING) {
-      throw new BadRequestException('Only pending submissions can be reviewed');
+      throw new BadRequestException({
+        code: ErrorCodes.PRODUCT_SUBMISSION_ALREADY_REVIEWED,
+        message: 'Only pending submissions can be reviewed',
+      });
     }
 
     if (
       status === ProductSubmissionStatus.REJECTED &&
       !rejectionReason?.trim()
     ) {
-      throw new BadRequestException(
-        'A rejection reason is required when status is REJECTED',
-      );
+      throw new BadRequestException({
+        code: ErrorCodes.PRODUCT_SUBMISSION_REJECTION_REASON_REQUIRED,
+        message: 'A rejection reason is required when status is REJECTED',
+      });
     }
 
     if (status === ProductSubmissionStatus.APPROVED) {
@@ -473,13 +488,18 @@ export class ProductsService {
       },
     });
     if (existing) {
-      throw new ConflictException('You already have an offer for this product');
+      throw new ConflictException({
+        code: ErrorCodes.OFFER_ALREADY_EXISTS_FOR_PRODUCT,
+        message: 'You already have an offer for this product',
+      });
     }
 
     if (dto.priceInCents == null && product.priceInCents == null) {
-      throw new BadRequestException(
-        'A product default price or an offer override price is required',
-      );
+      throw new BadRequestException({
+        code: ErrorCodes.OFFER_PRICE_REQUIRED,
+        message:
+          'A product default price or an offer override price is required',
+      });
     }
 
     return this.prisma.storeOffer
@@ -578,9 +598,11 @@ export class ProductsService {
     if (dto.priceInCents === null) {
       const product = await this.findProductOrFail(existingOffer.productId);
       if (product.priceInCents == null) {
-        throw new BadRequestException(
-          'Cannot clear offer override when product has no default price',
-        );
+        throw new BadRequestException({
+          code: ErrorCodes.OFFER_PRICE_CLEAR_NOT_ALLOWED,
+          message:
+            'Cannot clear offer override when product has no default price',
+        });
       }
     }
 
@@ -658,7 +680,10 @@ export class ProductsService {
     });
 
     if (!profile || !profile.isActive) {
-      throw new NotFoundException('Merchant not found');
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_NOT_FOUND,
+        message: 'Merchant not found',
+      });
     }
 
     const {
@@ -726,9 +751,16 @@ export class ProductsService {
       where: { userId },
     });
 
-    if (!profile) throw new NotFoundException('Merchant profile not found');
+    if (!profile)
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_PROFILE_NOT_FOUND,
+        message: 'Merchant profile not found',
+      });
     if (!profile.isActive)
-      throw new ForbiddenException('Merchant account is inactive');
+      throw new ForbiddenException({
+        code: ErrorCodes.MERCHANT_ACCOUNT_INACTIVE,
+        message: 'Merchant account is inactive',
+      });
 
     return profile;
   }
@@ -738,7 +770,10 @@ export class ProductsService {
       where: { id: productId },
     });
     if (!product || !product.isActive)
-      throw new NotFoundException('Product not found');
+      throw new NotFoundException({
+        code: ErrorCodes.PRODUCT_NOT_FOUND,
+        message: 'Product not found',
+      });
     return product;
   }
 
@@ -746,7 +781,11 @@ export class ProductsService {
     const product = await this.prisma.product.findUnique({
       where: { id: productId },
     });
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product)
+      throw new NotFoundException({
+        code: ErrorCodes.PRODUCT_NOT_FOUND,
+        message: 'Product not found',
+      });
     return product;
   }
 
@@ -755,7 +794,10 @@ export class ProductsService {
       where: { id: categoryId },
     });
     if (!category) {
-      throw new NotFoundException('Product category not found');
+      throw new NotFoundException({
+        code: ErrorCodes.PRODUCT_CATEGORY_NOT_FOUND,
+        message: 'Product category not found',
+      });
     }
     return category;
   }
@@ -765,7 +807,10 @@ export class ProductsService {
       where: { id: submissionId },
     });
     if (!submission) {
-      throw new NotFoundException('Product submission not found');
+      throw new NotFoundException({
+        code: ErrorCodes.PRODUCT_SUBMISSION_NOT_FOUND,
+        message: 'Product submission not found',
+      });
     }
     return submission;
   }
@@ -775,7 +820,10 @@ export class ProductsService {
       where: { id: offerId },
     });
     if (!offer || offer.merchantId !== merchantId) {
-      throw new NotFoundException('Offer not found');
+      throw new NotFoundException({
+        code: ErrorCodes.OFFER_NOT_FOUND,
+        message: 'Offer not found',
+      });
     }
     return offer;
   }

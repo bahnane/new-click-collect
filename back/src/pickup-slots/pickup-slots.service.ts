@@ -6,6 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ErrorCodes } from '../common/errors/api-error-codes';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePickupSlotDto } from './dto/create-pickup-slot.dto';
 import {
@@ -88,7 +89,10 @@ export class PickupSlotsService {
     });
 
     if (!merchant || !merchant.isActive) {
-      throw new NotFoundException('Merchant not found');
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_NOT_FOUND,
+        message: 'Merchant not found',
+      });
     }
 
     const slots = await this.prisma.pickupSlot.findMany({
@@ -133,7 +137,10 @@ export class PickupSlotsService {
       endsAt,
     );
     if (hasOverlap) {
-      throw new ConflictException('Pickup slot overlaps with an existing slot');
+      throw new ConflictException({
+        code: ErrorCodes.PICKUP_SLOT_OVERLAP,
+        message: 'Pickup slot overlaps with an existing slot',
+      });
     }
 
     return this.prisma.pickupSlot.create({
@@ -153,7 +160,10 @@ export class PickupSlotsService {
       where: { id: slotId },
     });
     if (!slot || slot.merchantId !== profile.id) {
-      throw new NotFoundException('Pickup slot not found');
+      throw new NotFoundException({
+        code: ErrorCodes.PICKUP_SLOT_NOT_FOUND,
+        message: 'Pickup slot not found',
+      });
     }
 
     const startsAt = dto.startsAt ? new Date(dto.startsAt) : slot.startsAt;
@@ -168,13 +178,17 @@ export class PickupSlotsService {
       slotId,
     );
     if (hasOverlap) {
-      throw new ConflictException('Pickup slot overlaps with an existing slot');
+      throw new ConflictException({
+        code: ErrorCodes.PICKUP_SLOT_OVERLAP,
+        message: 'Pickup slot overlaps with an existing slot',
+      });
     }
 
     if (dto.maxOrders != null && dto.maxOrders < slot.currentOrders) {
-      throw new BadRequestException(
-        'maxOrders cannot be lower than currentOrders',
-      );
+      throw new BadRequestException({
+        code: ErrorCodes.PICKUP_SLOT_MAX_ORDERS_TOO_LOW,
+        message: 'maxOrders cannot be lower than currentOrders',
+      });
     }
 
     return this.prisma.pickupSlot.update({
@@ -194,7 +208,10 @@ export class PickupSlotsService {
       where: { id: slotId },
     });
     if (!slot || slot.merchantId !== profile.id) {
-      throw new NotFoundException('Pickup slot not found');
+      throw new NotFoundException({
+        code: ErrorCodes.PICKUP_SLOT_NOT_FOUND,
+        message: 'Pickup slot not found',
+      });
     }
 
     return this.prisma.pickupSlot.update({
@@ -205,11 +222,17 @@ export class PickupSlotsService {
 
   private assertSlotDates(startsAt: Date, endsAt: Date) {
     if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
-      throw new BadRequestException('Invalid pickup slot dates');
+      throw new BadRequestException({
+        code: ErrorCodes.PICKUP_SLOT_INVALID_DATES,
+        message: 'Invalid pickup slot dates',
+      });
     }
 
     if (endsAt <= startsAt) {
-      throw new BadRequestException('endsAt must be after startsAt');
+      throw new BadRequestException({
+        code: ErrorCodes.PICKUP_SLOT_END_BEFORE_START,
+        message: 'endsAt must be after startsAt',
+      });
     }
   }
 
@@ -240,7 +263,10 @@ export class PickupSlotsService {
     });
 
     if (!profile) {
-      throw new NotFoundException('Merchant profile not found');
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_PROFILE_NOT_FOUND,
+        message: 'Merchant profile not found',
+      });
     }
 
     const now = new Date();
@@ -309,9 +335,16 @@ export class PickupSlotsService {
       where: { userId },
     });
 
-    if (!profile) throw new NotFoundException('Merchant profile not found');
+    if (!profile)
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_PROFILE_NOT_FOUND,
+        message: 'Merchant profile not found',
+      });
     if (!profile.isActive)
-      throw new ForbiddenException('Merchant account is inactive');
+      throw new ForbiddenException({
+        code: ErrorCodes.MERCHANT_ACCOUNT_INACTIVE,
+        message: 'Merchant account is inactive',
+      });
 
     return profile;
   }

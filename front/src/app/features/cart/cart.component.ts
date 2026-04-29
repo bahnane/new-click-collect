@@ -20,6 +20,13 @@ const CHECKOUT_ERROR_KEY_BY_CODE: Record<string, string> = {
   BAD_REQUEST: 'cart.checkout.errors.invalidRequest',
   RESOURCE_NOT_FOUND: 'cart.checkout.errors.slotNotFound',
   CONFLICT: 'cart.checkout.errors.slotUnavailable',
+  CART_EMPTY: 'cart.checkout.errors.invalidRequest',
+  ORDER_PICKUP_SLOT_NOT_FOUND: 'cart.checkout.errors.slotNotFound',
+  ORDER_PICKUP_SLOT_MERCHANT_MISMATCH: 'cart.checkout.errors.invalidRequest',
+  ORDER_PICKUP_SLOT_ALREADY_STARTED: 'cart.checkout.errors.invalidRequest',
+  ORDER_PICKUP_SLOT_EXPIRED: 'cart.checkout.errors.invalidRequest',
+  ORDER_PICKUP_SLOT_UNAVAILABLE: 'cart.checkout.errors.slotUnavailable',
+  ORDER_ITEM_PRICE_MISSING: 'cart.checkout.errors.invalidRequest',
   AUTH_UNAUTHORIZED: 'auth.apiErrors.AUTH_UNAUTHORIZED',
   AUTH_FORBIDDEN: 'auth.apiErrors.AUTH_FORBIDDEN',
 };

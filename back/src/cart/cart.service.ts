@@ -5,6 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ErrorCodes } from '../common/errors/api-error-codes';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpsertCartItemDto } from './dto/upsert-cart-item.dto';
 
@@ -47,17 +48,26 @@ export class CartService {
     });
 
     if (!offer || !offer.isActive || !offer.product.isActive) {
-      throw new NotFoundException('Store offer not found');
+      throw new NotFoundException({
+        code: ErrorCodes.CART_OFFER_NOT_FOUND,
+        message: 'Store offer not found',
+      });
     }
 
     if (!offer.merchant.isActive) {
-      throw new ForbiddenException('Merchant account is inactive');
+      throw new ForbiddenException({
+        code: ErrorCodes.MERCHANT_ACCOUNT_INACTIVE,
+        message: 'Merchant account is inactive',
+      });
     }
 
     const effectivePriceInCents =
       offer.priceInCents ?? offer.product.priceInCents;
     if (effectivePriceInCents == null) {
-      throw new BadRequestException('Offer has no effective price');
+      throw new BadRequestException({
+        code: ErrorCodes.CART_OFFER_NO_EFFECTIVE_PRICE,
+        message: 'Offer has no effective price',
+      });
     }
 
     const minOrderQty = Number(offer.minOrderQty);
@@ -76,9 +86,11 @@ export class CartService {
         },
       });
     } else if (cart.merchantId && cart.merchantId !== offer.merchantId) {
-      throw new ConflictException(
-        'Cart supports only one merchant. Clear your cart before changing merchant.',
-      );
+      throw new ConflictException({
+        code: ErrorCodes.CART_MERCHANT_MISMATCH,
+        message:
+          'Cart supports only one merchant. Clear your cart before changing merchant.',
+      });
     } else if (!cart.merchantId) {
       cart = await this.prisma.cart.update({
         where: { id: cart.id },
@@ -118,12 +130,18 @@ export class CartService {
     });
 
     if (!cart) {
-      throw new NotFoundException('Cart not found');
+      throw new NotFoundException({
+        code: ErrorCodes.CART_NOT_FOUND,
+        message: 'Cart not found',
+      });
     }
 
     const item = cart.items.find((it) => it.id === itemId);
     if (!item) {
-      throw new NotFoundException('Cart item not found');
+      throw new NotFoundException({
+        code: ErrorCodes.CART_ITEM_NOT_FOUND,
+        message: 'Cart item not found',
+      });
     }
 
     await this.prisma.cartItem.delete({ where: { id: itemId } });
@@ -153,17 +171,19 @@ export class CartService {
     stepQty: number,
   ) {
     if (quantity < minOrderQty) {
-      throw new BadRequestException(
-        `Quantity must be >= ${minOrderQty.toString()}`,
-      );
+      throw new BadRequestException({
+        code: ErrorCodes.CART_QUANTITY_BELOW_MIN,
+        message: `Quantity must be >= ${minOrderQty.toString()}`,
+      });
     }
 
     const tolerance = 1e-9;
     const steps = (quantity - minOrderQty) / stepQty;
     if (Math.abs(steps - Math.round(steps)) > tolerance) {
-      throw new BadRequestException(
-        `Quantity must follow step ${stepQty.toString()} starting from ${minOrderQty.toString()}`,
-      );
+      throw new BadRequestException({
+        code: ErrorCodes.CART_QUANTITY_INVALID_STEP,
+        message: `Quantity must follow step ${stepQty.toString()} starting from ${minOrderQty.toString()}`,
+      });
     }
   }
 

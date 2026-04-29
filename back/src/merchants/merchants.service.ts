@@ -11,6 +11,7 @@ import { generateOpaqueToken, hashToken } from '../common/utils/token.util';
 import { MailService } from '../mail/mail.service';
 import { PickupSlotsService } from '../pickup-slots/pickup-slots.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { ErrorCodes } from '../common/errors/api-error-codes';
 import { CreateMerchantDto } from './dto/create-merchant.dto';
 import {
   UpdateMerchantProfileDto,
@@ -34,7 +35,10 @@ export class MerchantsService {
     });
 
     if (existingUser) {
-      throw new ConflictException('A user already exists with this email');
+      throw new ConflictException({
+        code: ErrorCodes.MERCHANT_EMAIL_ALREADY_USED,
+        message: 'A user already exists with this email',
+      });
     }
 
     const temporaryPasswordHash = await argon2.hash(generateOpaqueToken(24));
@@ -135,7 +139,10 @@ export class MerchantsService {
     });
 
     if (!profile) {
-      throw new NotFoundException('Merchant profile not found');
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_PROFILE_NOT_FOUND,
+        message: 'Merchant profile not found',
+      });
     }
 
     return profile;
@@ -213,7 +220,10 @@ export class MerchantsService {
     });
 
     if (!profile || !profile.isActive) {
-      throw new NotFoundException('Merchant not found');
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_NOT_FOUND,
+        message: 'Merchant not found',
+      });
     }
 
     return profile;
@@ -225,7 +235,10 @@ export class MerchantsService {
     });
 
     if (!profile) {
-      throw new NotFoundException('Merchant profile not found');
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_PROFILE_NOT_FOUND,
+        message: 'Merchant profile not found',
+      });
     }
 
     const updatedProfile = await this.prisma.merchantProfile.update({
@@ -289,7 +302,10 @@ export class MerchantsService {
     });
 
     if (!profile) {
-      throw new NotFoundException('Merchant not found');
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_NOT_FOUND,
+        message: 'Merchant not found',
+      });
     }
 
     return profile;
@@ -304,7 +320,10 @@ export class MerchantsService {
     });
 
     if (!profile) {
-      throw new NotFoundException('Merchant not found');
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_NOT_FOUND,
+        message: 'Merchant not found',
+      });
     }
 
     return this.prisma.merchantProfile.update({
