@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, ProductSubmissionStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductCategoryDto } from './dto/create-product-category.dto';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -99,6 +99,265 @@ export class ProductsService {
         saleUnit: dto.saleUnit,
         priceInCents: dto.priceInCents,
         categoryId: dto.categoryId,
+      },
+    });
+  }
+
+  async createProductSubmission(userId: string, dto: CreateProductDto) {
+    const profile = await this.resolveMerchantProfile(userId);
+    await this.findCategoryOrFail(dto.categoryId);
+
+    const existingPending = await this.prisma.productSubmission.findFirst({
+      where: {
+        merchantId: profile.id,
+        categoryId: dto.categoryId,
+        name: dto.name,
+        status: ProductSubmissionStatus.PENDING,
+      },
+      select: { id: true },
+    });
+
+    if (existingPending) {
+      throw new ConflictException(
+        'A similar product submission is already pending review',
+      );
+    }
+
+    return this.prisma.productSubmission.create({
+      data: {
+        merchantId: profile.id,
+        name: dto.name,
+        description: dto.description,
+        saleUnit: dto.saleUnit,
+        priceInCents: dto.priceInCents,
+        categoryId: dto.categoryId,
+      },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    });
+  }
+
+  async listMyProductSubmissions(
+    userId: string,
+    page = 1,
+    pageSize = 10,
+    status?: ProductSubmissionStatus,
+  ) {
+    const profile = await this.resolveMerchantProfile(userId);
+    const {
+      skip,
+      take,
+      page: safePage,
+      pageSize: safePageSize,
+    } = this.normalizePagination(page, pageSize);
+
+    const where: Prisma.ProductSubmissionWhereInput = {
+      merchantId: profile.id,
+      ...(status ? { status } : {}),
+    };
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.productSubmission.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          approvedProduct: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      }),
+      this.prisma.productSubmission.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page: safePage,
+      pageSize: safePageSize,
+    };
+  }
+
+  async listAdminProductSubmissions(
+    page = 1,
+    pageSize = 10,
+    status?: ProductSubmissionStatus,
+  ) {
+    const {
+      skip,
+      take,
+      page: safePage,
+      pageSize: safePageSize,
+    } = this.normalizePagination(page, pageSize);
+
+    const where: Prisma.ProductSubmissionWhereInput = status ? { status } : {};
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.productSubmission.findMany({
+        where,
+        orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+        skip,
+        take,
+        include: {
+          merchant: {
+            select: {
+              id: true,
+              storeName: true,
+              slug: true,
+            },
+          },
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          reviewedByUser: {
+            select: {
+              id: true,
+              email: true,
+            },
+          },
+          approvedProduct: {
+            select: {
+              id: true,
+              name: true,
+              isActive: true,
+            },
+          },
+        },
+      }),
+      this.prisma.productSubmission.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page: safePage,
+      pageSize: safePageSize,
+    };
+  }
+
+  async reviewProductSubmission(
+    adminUserId: string,
+    submissionId: string,
+    status: ProductSubmissionStatus,
+    rejectionReason?: string,
+  ) {
+    if (
+      status !== ProductSubmissionStatus.APPROVED &&
+      status !== ProductSubmissionStatus.REJECTED
+    ) {
+      throw new BadRequestException('Status must be APPROVED or REJECTED');
+    }
+
+    const submission = await this.findSubmissionOrFail(submissionId);
+
+    if (submission.status !== ProductSubmissionStatus.PENDING) {
+      throw new BadRequestException('Only pending submissions can be reviewed');
+    }
+
+    if (
+      status === ProductSubmissionStatus.REJECTED &&
+      !rejectionReason?.trim()
+    ) {
+      throw new BadRequestException(
+        'A rejection reason is required when status is REJECTED',
+      );
+    }
+
+    if (status === ProductSubmissionStatus.APPROVED) {
+      return this.prisma.$transaction(async (tx) => {
+        const product = await tx.product.create({
+          data: {
+            name: submission.name,
+            description: submission.description,
+            saleUnit: submission.saleUnit,
+            priceInCents: submission.priceInCents,
+            categoryId: submission.categoryId,
+            isActive: true,
+          },
+        });
+
+        return tx.productSubmission.update({
+          where: { id: submission.id },
+          data: {
+            status: ProductSubmissionStatus.APPROVED,
+            reviewedAt: new Date(),
+            reviewedByUserId: adminUserId,
+            approvedProductId: product.id,
+            rejectionReason: null,
+          },
+          include: {
+            merchant: {
+              select: {
+                id: true,
+                storeName: true,
+                slug: true,
+              },
+            },
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            approvedProduct: {
+              select: {
+                id: true,
+                name: true,
+                isActive: true,
+              },
+            },
+          },
+        });
+      });
+    }
+
+    return this.prisma.productSubmission.update({
+      where: { id: submission.id },
+      data: {
+        status: ProductSubmissionStatus.REJECTED,
+        rejectionReason: rejectionReason?.trim(),
+        reviewedAt: new Date(),
+        reviewedByUserId: adminUserId,
+        approvedProductId: null,
+      },
+      include: {
+        merchant: {
+          select: {
+            id: true,
+            storeName: true,
+            slug: true,
+          },
+        },
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
       },
     });
   }
@@ -499,6 +758,16 @@ export class ProductsService {
       throw new NotFoundException('Product category not found');
     }
     return category;
+  }
+
+  private async findSubmissionOrFail(submissionId: string) {
+    const submission = await this.prisma.productSubmission.findUnique({
+      where: { id: submissionId },
+    });
+    if (!submission) {
+      throw new NotFoundException('Product submission not found');
+    }
+    return submission;
   }
 
   private async assertOfferOwnership(offerId: string, merchantId: string) {

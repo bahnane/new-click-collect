@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   ForbiddenException,
@@ -9,7 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { ProductSubmissionStatus, Role } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
@@ -19,6 +20,7 @@ import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateStoreOfferDto } from './dto/create-store-offer.dto';
 import { UpdateStoreOfferDto } from './dto/update-store-offer.dto';
+import { ReviewProductSubmissionDto } from './dto/review-product-submission.dto';
 import { ProductsService } from './products.service';
 
 @Controller()
@@ -94,6 +96,15 @@ export class ProductsController {
     @Body() dto: CreateProductDto,
   ) {
     this.assertMerchantOrAdmin(user);
+
+    if (user.role === Role.ADMIN) {
+      return this.productsService.createCatalogProduct(dto);
+    }
+
+    if (user.role === Role.MERCHANT) {
+      return this.productsService.createProductSubmission(user.sub, dto);
+    }
+
     return this.productsService.createCatalogProduct(dto);
   }
 
@@ -132,6 +143,55 @@ export class ProductsController {
   ) {
     this.assertAdmin(user);
     return this.productsService.toggleCatalogProduct(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('merchants/me/product-submissions')
+  listMyProductSubmissions(
+    @CurrentUser() user: JwtPayload,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+    @Query('status') status?: string,
+  ) {
+    this.assertMerchant(user);
+    return this.productsService.listMyProductSubmissions(
+      user.sub,
+      this.toPositiveInt(page, 1),
+      this.toPositiveInt(pageSize, 10),
+      this.parseSubmissionStatus(status),
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/product-submissions')
+  listAdminProductSubmissions(
+    @CurrentUser() user: JwtPayload,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+    @Query('status') status?: string,
+  ) {
+    this.assertAdmin(user);
+    return this.productsService.listAdminProductSubmissions(
+      this.toPositiveInt(page, 1),
+      this.toPositiveInt(pageSize, 10),
+      this.parseSubmissionStatus(status),
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('admin/product-submissions/:id')
+  reviewProductSubmission(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: ReviewProductSubmissionDto,
+  ) {
+    this.assertAdmin(user);
+    return this.productsService.reviewProductSubmission(
+      user.sub,
+      id,
+      dto.status,
+      dto.rejectionReason,
+    );
   }
 
   // ── Store offers — MERCHANT ─────────────────────────────────────────────
@@ -218,5 +278,20 @@ export class ProductsController {
     if (!raw) return fallback;
     const parsed = Number.parseInt(raw, 10);
     return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+  }
+
+  private parseSubmissionStatus(
+    rawStatus: string | undefined,
+  ): ProductSubmissionStatus | undefined {
+    if (!rawStatus) return undefined;
+    const normalized = rawStatus.toUpperCase();
+    if (!(normalized in ProductSubmissionStatus)) {
+      throw new BadRequestException(
+        'Invalid submission status filter. Use PENDING, APPROVED or REJECTED',
+      );
+    }
+    return ProductSubmissionStatus[
+      normalized as keyof typeof ProductSubmissionStatus
+    ];
   }
 }

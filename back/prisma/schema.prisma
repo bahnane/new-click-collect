@@ -62,6 +62,7 @@ model User {
   refreshTokens      RefreshToken[]
   resetTokens        PasswordResetToken[]
   inviteTokens       InviteToken[]
+  reviewedSubmissions ProductSubmission[] @relation("SubmissionReviewer")
   cart               Cart?
   customerOrders     Order[]
 
@@ -87,6 +88,7 @@ model MerchantProfile {
   openingHours MerchantOpeningHour[]
   pickupHours  MerchantPickupHour[]
   storeOffers StoreOffer[]
+  productSubmissions ProductSubmission[]
   carts       Cart[]
   orders      Order[]
   pickupSlots PickupSlot[]
@@ -135,6 +137,12 @@ enum SaleUnit {
   PORTION
 }
 
+enum ProductSubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model ProductCategory {
   id          String   @id @default(cuid())
   name        String   @unique @db.VarChar(80)
@@ -145,6 +153,7 @@ model ProductCategory {
   updatedAt   DateTime @updatedAt
 
   products    Product[]
+  submissions ProductSubmission[]
 
   @@index([isActive])
   @@map("product_categories")
@@ -164,11 +173,42 @@ model Product {
 
   category   ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   storeOffers StoreOffer[]
+  submissions ProductSubmission[]
   orderItems  OrderItem[]
 
   @@index([name])
   @@index([categoryId])
   @@map("products")
+}
+
+// Proposition de produit soumise par un marchand pour validation admin
+model ProductSubmission {
+  id                String                  @id @default(cuid())
+  merchantId        String
+  name              String                  @db.VarChar(191)
+  description       String?                 @db.Text
+  saleUnit          SaleUnit                @default(UNIT)
+  priceInCents      Int?
+  categoryId        String
+  status            ProductSubmissionStatus @default(PENDING)
+  rejectionReason   String?                 @db.VarChar(500)
+  reviewedAt        DateTime?
+  reviewedByUserId  String?
+  approvedProductId String?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  merchant        MerchantProfile @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  category        ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  reviewedByUser  User?           @relation("SubmissionReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  approvedProduct Product?        @relation(fields: [approvedProductId], references: [id], onDelete: SetNull)
+
+  @@index([merchantId, status])
+  @@index([status, createdAt])
+  @@index([categoryId])
+  @@index([reviewedByUserId])
+  @@index([approvedProductId])
+  @@map("product_submissions")
 }
 
 // Offre d'un marchand pour un produit du catalogue
