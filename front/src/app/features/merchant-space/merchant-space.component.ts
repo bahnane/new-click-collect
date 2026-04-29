@@ -39,6 +39,14 @@ import { TranslocoPipe } from '@jsverse/transloco';
           >
             {{ 'shell.merchant.sections.profile' | transloco }}
           </a>
+          <a
+            routerLink="store-offers"
+            routerLinkActive="is-active"
+            mat-stroked-button
+            type="button"
+          >
+            {{ 'shell.merchant.sections.storeOffers' | transloco }}
+          </a>
         </nav>
       </header>
 

@@ -15,6 +15,9 @@
     "merchantProfile": {
       "title": "ملفي الشخصي"
     },
+    "merchantStoreOffers": {
+      "title": "عروضي على المنتجات"
+    },
     "merchantSpace": {
       "title": "مساحة التاجر"
     },
@@ -54,6 +57,11 @@
   },
   "common": {
     "retry": "إعادة المحاولة",
+    "actions": "الإجراءات",
+    "cancel": "إلغاء",
+    "close": "إغلاق",
+    "delete": "حذف",
+    "pagination": "التصفح",
     "languages": {
       "label": "اللغة",
       "fr": "الفرنسية",
@@ -285,7 +293,8 @@
       "navigationLabel": "تنقل لوحة التاجر",
       "sections": {
         "overview": "نظرة عامة",
-        "profile": "ملفي الشخصي"
+        "profile": "ملفي الشخصي",
+        "storeOffers": "عروضي"
       },
       "overview": {
         "summary": {
@@ -359,6 +368,38 @@
         "errors": {
           "loadFailed": "تعذّر تحميل الملف الشخصي.",
           "saveFailed": "تعذّر حفظ الملف الشخصي. تحقّق من المعلومات."
+        }
+      },
+      "storeOffers": {
+        "title": "عروضي على المنتجات",
+        "subtitle": "إدارة مخزونك وأسعار منتجاتك.",
+        "loading": "جاري تحميل العروض...",
+        "empty": {
+          "title": "لا توجد عروض حالياً",
+          "message": "ابدأ بإضافة أول منتجاتك وإنشاء عروض."
+        },
+        "columns": {
+          "product": "المنتج",
+          "category": "الفئة",
+          "price": "السعر",
+          "minQty": "الحد الأدنى للكمية",
+          "stepQty": "الخطوة",
+          "status": "الحالة"
+        },
+        "status": {
+          "active": "نشط",
+          "inactive": "غير نشط"
+        },
+        "priceOverridden": "سعر مخصص",
+        "edit": "تعديل",
+        "delete": "حذف",
+        "deleteConfirm": {
+          "title": "تأكيد الحذف",
+          "message": "هل أنت متأكد من رغبتك في حذف العرض لـ <strong>{itemName}</strong> ؟"
+        },
+        "errors": {
+          "loadFailed": "تعذّر تحميل عروضك.",
+          "deleteFailed": "تعذّر حذف هذا العرض."
         }
       }
     },

@@ -77,10 +77,17 @@ export interface Product {
 
 export interface StoreOffer {
   id: string;
+  merchantId: string;
+  productId: string;
   priceInCents: number | null;
   minOrderQty: number;
   stepQty: number;
+  isActive: boolean;
   product: Product;
+  defaultPriceInCents: number | null;
+  overridePriceInCents: number | null;
+  effectivePriceInCents: number | null;
+  isOverridden: boolean;
 }
 
 export interface StoreOffersPaginatedResponse {

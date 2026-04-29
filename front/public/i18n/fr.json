@@ -15,6 +15,9 @@
     "merchantProfile": {
       "title": "Mon profil marchand"
     },
+    "merchantStoreOffers": {
+      "title": "Mes offres produits"
+    },
     "merchantSpace": {
       "title": "Espace marchand"
     },
@@ -54,6 +57,11 @@
   },
   "common": {
     "retry": "Réessayer",
+    "actions": "Actions",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "delete": "Supprimer",
+    "pagination": "Pagination",
     "languages": {
       "label": "Langue",
       "fr": "Français",
@@ -285,7 +293,8 @@
       "navigationLabel": "Navigation du back-office marchand",
       "sections": {
         "overview": "Vue d'ensemble",
-        "profile": "Mon profil"
+        "profile": "Mon profil",
+        "storeOffers": "Mes offres"
       },
       "overview": {
         "summary": {
@@ -359,6 +368,38 @@
         "errors": {
           "loadFailed": "Impossible de charger le profil.",
           "saveFailed": "Impossible d'enregistrer le profil. Vérifiez vos informations."
+        }
+      },
+      "storeOffers": {
+        "title": "Mes offres produits",
+        "subtitle": "Gérez l'inventaire et les prix de vos produits.",
+        "loading": "Chargement des offres...",
+        "empty": {
+          "title": "Aucune offre pour le moment",
+          "message": "Commencez par ajouter vos premiers produits et créer des offres."
+        },
+        "columns": {
+          "product": "Produit",
+          "category": "Catégorie",
+          "price": "Prix",
+          "minQty": "Quantité minimale",
+          "stepQty": "Pas",
+          "status": "Statut"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "priceOverridden": "Prix personnalisé",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "deleteConfirm": {
+          "title": "Confirmer la suppression",
+          "message": "Êtes-vous sûr de vouloir supprimer l'offre pour <strong>{itemName}</strong> ?"
+        },
+        "errors": {
+          "loadFailed": "Impossible de charger vos offres.",
+          "deleteFailed": "Impossible de supprimer cette offre."
         }
       }
     },

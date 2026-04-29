@@ -1,0 +1,217 @@
+<section class="store-offers" aria-labelledby="merchant-store-offers-title">
+    <header class="store-offers-header">
+        <h2 id="merchant-store-offers-title">
+            {{ 'shell.merchant.storeOffers.title' | transloco }}
+        </h2>
+        <p>{{ 'shell.merchant.storeOffers.subtitle' | transloco }}</p>
+    </header>
+
+    @if (errorKey(); as currentErrorKey) {
+    <div class="error-banner" role="alert" aria-live="polite">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <span>{{ currentErrorKey | transloco }}</span>
+        <button mat-icon-button type="button" (click)="clearErrorKey()" [attr.aria-label]="'common.close' | transloco">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+    }
+
+    @if (actionErrorKey(); as currentActionErrorKey) {
+    <div class="error-banner" role="alert" aria-live="polite">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <span>{{ currentActionErrorKey | transloco }}</span>
+        <button mat-icon-button type="button" (click)="clearActionErrorKey()"
+            [attr.aria-label]="'common.close' | transloco">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+    }
+
+    @if (loading() && !offersPage()) {
+    <div class="loading-container" aria-live="polite">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>{{ 'shell.merchant.storeOffers.loading' | transloco }}</p>
+    </div>
+    }
+
+    @if (isEmpty()) {
+    <div class="empty-state" role="status" aria-live="polite">
+        <mat-icon aria-hidden="true">shopping_bag</mat-icon>
+        <h3>{{ 'shell.merchant.storeOffers.empty.title' | transloco }}</h3>
+        <p>{{ 'shell.merchant.storeOffers.empty.message' | transloco }}</p>
+    </div>
+    }
+
+    @if (offersPage() && !isEmpty()) {
+    <div class="offers-container">
+        <div class="offers-mobile-list">
+            @for (offer of offersPage()!.data; track offer.id) {
+            <mat-card class="offer-card">
+                <mat-card-header>
+                    <mat-card-title>{{ offer.product.name }}</mat-card-title>
+                    <mat-card-subtitle>{{ offer.product.category.name }}</mat-card-subtitle>
+                </mat-card-header>
+
+                <mat-card-content>
+                    <dl class="offer-meta">
+                        <div class="offer-meta-item">
+                            <dt>{{ 'shell.merchant.storeOffers.columns.price' | transloco }}</dt>
+                            <dd>
+                                <span class="current-price">{{ formatPrice(offer.effectivePriceInCents) }}</span>
+                                @if (offer.isOverridden) {
+                                <span class="price-override-indicator"
+                                    [attr.aria-label]="'shell.merchant.storeOffers.priceOverridden' | transloco">
+                                    ({{ formatPrice(offer.defaultPriceInCents) }})
+                                </span>
+                                }
+                            </dd>
+                        </div>
+
+                        <div class="offer-meta-item">
+                            <dt>{{ 'shell.merchant.storeOffers.columns.minQty' | transloco }}</dt>
+                            <dd>{{ offer.minOrderQty }}</dd>
+                        </div>
+
+                        <div class="offer-meta-item">
+                            <dt>{{ 'shell.merchant.storeOffers.columns.stepQty' | transloco }}</dt>
+                            <dd>{{ offer.stepQty }}</dd>
+                        </div>
+
+                        <div class="offer-meta-item">
+                            <dt>{{ 'shell.merchant.storeOffers.columns.status' | transloco }}</dt>
+                            <dd>
+                                <span class="status-badge" [class.active]="offer.isActive"
+                                    [class.inactive]="!offer.isActive">
+                                    {{ getStatusLabel(offer.isActive) | transloco }}
+                                </span>
+                            </dd>
+                        </div>
+                    </dl>
+                </mat-card-content>
+
+                <mat-card-actions>
+                    <button mat-stroked-button type="button" class="edit-action" (click)="onEdit(offer)">
+                        <mat-icon aria-hidden="true">edit</mat-icon>
+                        {{ 'shell.merchant.storeOffers.edit' | transloco }}
+                    </button>
+                    <button mat-stroked-button type="button" class="delete-action" (click)="onDelete(offer)"
+                        [disabled]="deleting() === offer.id">
+                        @if (deleting() === offer.id) {
+                        <mat-spinner diameter="18"></mat-spinner>
+                        } @else {
+                        <mat-icon aria-hidden="true">delete</mat-icon>
+                        }
+                        {{ 'shell.merchant.storeOffers.delete' | transloco }}
+                    </button>
+                </mat-card-actions>
+            </mat-card>
+            }
+        </div>
+
+        <mat-card class="offers-desktop-table" aria-label="store offers table">
+            <div class="table-responsive">
+                <table mat-table [dataSource]="offersPage()!.data" class="offers-table">
+                    <ng-container matColumnDef="product">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.merchant.storeOffers.columns.product' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            <div class="product-cell">
+                                <span class="product-name">{{ element.product.name }}</span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="category">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.merchant.storeOffers.columns.category' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            {{ element.product.category.name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="effectivePrice">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.merchant.storeOffers.columns.price' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            <div class="price-cell">
+                                <span class="current-price">{{ formatPrice(element.effectivePriceInCents) }}</span>
+                                @if (element.isOverridden) {
+                                <span class="price-override-indicator"
+                                    [attr.aria-label]="'shell.merchant.storeOffers.priceOverridden' | transloco">
+                                    ({{ formatPrice(element.defaultPriceInCents) }})
+                                </span>
+                                }
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="minOrderQty">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.merchant.storeOffers.columns.minQty' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            {{ element.minOrderQty }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="stepQty">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.merchant.storeOffers.columns.stepQty' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            {{ element.stepQty }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.merchant.storeOffers.columns.status' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            <span class="status-badge" [class.active]="element.isActive"
+                                [class.inactive]="!element.isActive">
+                                {{ getStatusLabel(element.isActive) | transloco }}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'common.actions' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            <div class="actions-cell">
+                                <button mat-icon-button type="button" (click)="onEdit(element)"
+                                    [attr.aria-label]="'shell.merchant.storeOffers.edit' | transloco"
+                                    class="action-btn edit-btn">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" (click)="onDelete(element)"
+                                    [disabled]="deleting() === element.id"
+                                    [attr.aria-label]="'shell.merchant.storeOffers.delete' | transloco"
+                                    class="action-btn delete-btn">
+                                    @if (deleting() === element.id) {
+                                    <mat-spinner diameter="18"></mat-spinner>
+                                    } @else {
+                                    <mat-icon>delete</mat-icon>
+                                    }
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                </table>
+            </div>
+        </mat-card>
+
+        <mat-paginator [length]="offersPage()!.total" [pageSize]="pageSize()" [pageSizeOptions]="[5, 10, 25]"
+            (page)="onPageChange($event)" showFirstLastButtons
+            [attr.aria-label]="'common.pagination' | transloco"></mat-paginator>
+    </div>
+    }
+</section>
