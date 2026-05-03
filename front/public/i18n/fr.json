@@ -392,14 +392,22 @@
         },
         "priceOverridden": "Prix personnalisé",
         "edit": "Modifier",
-        "delete": "Supprimer",
-        "deleteConfirm": {
-          "title": "Confirmer la suppression",
-          "message": "Êtes-vous sûr de vouloir supprimer l'offre pour <strong>{itemName}</strong> ?"
+        "activate": "Réactiver",
+        "deactivate": "Désactiver",
+        "statusToggleAria": "Modifier le statut de {itemName}",
+        "statusConfirm": {
+          "activate": {
+            "title": "Confirmer la réactivation",
+            "message": "Voulez-vous réactiver l'offre pour {itemName} ?"
+          },
+          "deactivate": {
+            "title": "Confirmer la désactivation",
+            "message": "Voulez-vous désactiver l'offre pour {itemName} ?"
+          }
         },
         "errors": {
           "loadFailed": "Impossible de charger vos offres.",
-          "deleteFailed": "Impossible de supprimer cette offre."
+          "deleteFailed": "Impossible de modifier le statut de cette offre."
         }
       }
     },

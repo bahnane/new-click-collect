@@ -1,0 +1,32 @@
+mat-dialog-content {
+  overflow-y: hidden !important;
+  overflow-x: hidden !important;
+  max-height: none !important;
+  padding: 0.5rem 1.25rem 0.25rem;
+}
+
+.dialog-content {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.warning-icon {
+  color: #f57c00;
+  flex-shrink: 0;
+  margin-block-start: 0.25rem;
+}
+
+.message {
+  flex: 1;
+}
+
+.message p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+mat-dialog-actions {
+  gap: 0.5rem;
+  padding: 1rem 1.25rem 1.25rem;
+}

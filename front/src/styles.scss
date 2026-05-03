@@ -65,4 +65,16 @@ body {
 a {
   color: inherit;
 }
+
+.status-confirmation-dialog-panel {
+  .mat-mdc-dialog-surface {
+    overflow-y: hidden !important;
+  }
+
+  .mat-mdc-dialog-content,
+  .mdc-dialog__content {
+    overflow-y: hidden !important;
+    max-height: none !important;
+  }
+}
 /* You can add global styles to this file, and also import other style files */

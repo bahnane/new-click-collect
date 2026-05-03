@@ -94,15 +94,16 @@
                         <mat-icon aria-hidden="true">edit</mat-icon>
                         {{ 'shell.merchant.storeOffers.edit' | transloco }}
                     </button>
-                    <button mat-stroked-button type="button" class="delete-action" (click)="onDelete(offer)"
-                        [disabled]="deleting() === offer.id">
+                    <div class="status-toggle-action">
+                        <mat-slide-toggle [checked]="offer.isActive" [disabled]="deleting() === offer.id"
+                            (change)="onStatusToggleChange($event, offer)"
+                            [attr.aria-label]="'shell.merchant.storeOffers.statusToggleAria' | transloco : { itemName: offer.product.name }">
+                            {{ getStatusActionLabelKey(offer.isActive) | transloco }}
+                        </mat-slide-toggle>
                         @if (deleting() === offer.id) {
                         <mat-spinner diameter="18"></mat-spinner>
-                        } @else {
-                        <mat-icon aria-hidden="true">delete</mat-icon>
                         }
-                        {{ 'shell.merchant.storeOffers.delete' | transloco }}
-                    </button>
+                    </div>
                 </mat-card-actions>
             </mat-card>
             }
@@ -189,16 +190,15 @@
                                     class="action-btn edit-btn">
                                     <mat-icon>edit</mat-icon>
                                 </button>
-                                <button mat-icon-button type="button" (click)="onDelete(element)"
+                                <mat-slide-toggle class="status-toggle-inline" [checked]="element.isActive"
                                     [disabled]="deleting() === element.id"
-                                    [attr.aria-label]="'shell.merchant.storeOffers.delete' | transloco"
-                                    class="action-btn delete-btn">
-                                    @if (deleting() === element.id) {
-                                    <mat-spinner diameter="18"></mat-spinner>
-                                    } @else {
-                                    <mat-icon>delete</mat-icon>
-                                    }
-                                </button>
+                                    (change)="onStatusToggleChange($event, element)"
+                                    [attr.aria-label]="'shell.merchant.storeOffers.statusToggleAria' | transloco : { itemName: element.product.name }">
+                                    {{ getStatusActionLabelKey(element.isActive) | transloco }}
+                                </mat-slide-toggle>
+                                @if (deleting() === element.id) {
+                                <mat-spinner diameter="18"></mat-spinner>
+                                }
                             </div>
                         </td>
                     </ng-container>

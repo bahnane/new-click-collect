@@ -5,6 +5,10 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import {
+  MatSlideToggleChange,
+  MatSlideToggleModule,
+} from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -27,6 +31,7 @@ import { DeleteConfirmationDialogComponent } from '../../../shared/dialogs/delet
     MatIconModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
+    MatSlideToggleModule,
     MatDialogModule,
     TranslocoPipe,
   ],
@@ -96,28 +101,39 @@ export class MerchantStoreOffersComponent {
     console.log('Edit offer:', offer);
   }
 
-  onDelete(offer: StoreOffer): void {
+  onStatusToggleChange(event: MatSlideToggleChange, offer: StoreOffer): void {
+    // Keep the current UI state; update only after backend success + reload.
+    event.source.checked = offer.isActive;
+
+    if (this.deleting() === offer.id) {
+      return;
+    }
+
+    const statusAction = offer.isActive ? 'deactivate' : 'activate';
     const dialogRef = this.dialog.open(DeleteConfirmationDialogComponent, {
       width: '400px',
+      panelClass: 'status-confirmation-dialog-panel',
       data: {
-        title: 'shell.merchant.storeOffers.deleteConfirm.title',
-        message: 'shell.merchant.storeOffers.deleteConfirm.message',
+        title: `shell.merchant.storeOffers.statusConfirm.${statusAction}.title`,
+        message: `shell.merchant.storeOffers.statusConfirm.${statusAction}.message`,
+        confirmLabel: `shell.merchant.storeOffers.${statusAction}`,
+        confirmColor: offer.isActive ? 'warn' : 'primary',
         itemName: offer.product.name,
       },
     });
 
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (confirmed) {
-        this.deleteOffer(offer.id);
+        this.toggleOfferStatus(offer.id);
       }
     });
   }
 
-  private deleteOffer(offerId: string): void {
+  private toggleOfferStatus(offerId: string): void {
     this.deleting.set(offerId);
     this.actionErrorKey.set(null);
 
-    // Toggle off (deactivate) the offer
+    // Toggle status: deactivate active offers and reactivate inactive ones.
     this.merchantsService.toggleOffer(offerId).subscribe({
       next: () => {
         this.deleting.set(null);
@@ -156,5 +172,11 @@ export class MerchantStoreOffersComponent {
     return isActive
       ? 'shell.merchant.storeOffers.status.active'
       : 'shell.merchant.storeOffers.status.inactive';
+  }
+
+  getStatusActionLabelKey(isActive: boolean): string {
+    return isActive
+      ? 'shell.merchant.storeOffers.deactivate'
+      : 'shell.merchant.storeOffers.activate';
   }
 }

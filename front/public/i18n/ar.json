@@ -392,14 +392,22 @@
         },
         "priceOverridden": "سعر مخصص",
         "edit": "تعديل",
-        "delete": "حذف",
-        "deleteConfirm": {
-          "title": "تأكيد الحذف",
-          "message": "هل أنت متأكد من رغبتك في حذف العرض لـ <strong>{itemName}</strong> ؟"
+        "activate": "إعادة التفعيل",
+        "deactivate": "تعطيل",
+        "statusToggleAria": "تغيير حالة {itemName}",
+        "statusConfirm": {
+          "activate": {
+            "title": "تأكيد إعادة التفعيل",
+            "message": "هل تريد إعادة تفعيل العرض الخاص بـ {itemName}؟"
+          },
+          "deactivate": {
+            "title": "تأكيد التعطيل",
+            "message": "هل تريد تعطيل العرض الخاص بـ {itemName}؟"
+          }
         },
         "errors": {
           "loadFailed": "تعذّر تحميل عروضك.",
-          "deleteFailed": "تعذّر حذف هذا العرض."
+          "deleteFailed": "تعذّر تغيير حالة هذا العرض."
         }
       }
     },
