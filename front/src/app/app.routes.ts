@@ -81,6 +81,14 @@ export const routes: Routes = [
             title: 'routes.merchantProfile.title',
           },
           {
+            path: 'store-offers/add',
+            loadComponent: () =>
+              import('./features/merchant-space/merchant-store-offers-create/merchant-store-offers-create.component').then(
+                (m) => m.MerchantStoreOffersCreateComponent,
+              ),
+            title: 'routes.merchantStoreOffersCreate.title',
+          },
+          {
             path: 'store-offers',
             loadComponent: () =>
               import('./features/merchant-space/merchant-store-offers/merchant-store-offers.component').then(

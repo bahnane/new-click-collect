@@ -18,6 +18,9 @@
     "merchantStoreOffers": {
       "title": "Mes offres produits"
     },
+    "merchantStoreOffersCreate": {
+      "title": "Ajouter des offres produits"
+    },
     "merchantSpace": {
       "title": "Espace marchand"
     },
@@ -294,7 +297,8 @@
       "sections": {
         "overview": "Vue d'ensemble",
         "profile": "Mon profil",
-        "storeOffers": "Mes offres"
+        "storeOffers": "Mes offres",
+        "storeOffersAdd": "Ajouter des offres"
       },
       "overview": {
         "summary": {
@@ -394,7 +398,34 @@
         "edit": "Modifier",
         "activate": "Réactiver",
         "deactivate": "Désactiver",
+        "actions": {
+          "addOffer": "Ajouter des offres",
+          "backToOffers": "Retour à mes offres"
+        },
         "statusToggleAria": "Modifier le statut de {itemName}",
+        "create": {
+          "title": "Créer une offre",
+          "subtitle": "Ajoutez plusieurs produits en lot puis ajustez prix et quantités en ligne.",
+          "loadingProducts": "Chargement des produits...",
+          "submit": "Créer l'offre",
+          "submitBatch": "Créer {{count}} offre(s)",
+          "success": "Offre créée avec succès.",
+          "noProductsAvailable": "Tous les produits catalogue actifs sont déjà proposés dans votre boutique.",
+          "validation": {
+            "noSelection": "Sélectionnez au moins un produit à ajouter.",
+            "invalidValues": "Vérifiez les valeurs saisies (prix, quantité minimale, pas)."
+          },
+          "fields": {
+            "select": "Sélection",
+            "product": "Produit catalogue",
+            "price": "Prix personnalisé (optionnel)",
+            "catalogPrice": "Prix catalogue",
+            "pricePlaceholder": "Ex: 120.50",
+            "priceHint": "Laissez vide pour utiliser le prix catalogue.",
+            "minQty": "Quantité minimale",
+            "stepQty": "Pas de quantité"
+          }
+        },
         "statusConfirm": {
           "activate": {
             "title": "Confirmer la réactivation",

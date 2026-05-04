@@ -1,9 +1,15 @@
 <section class="store-offers" aria-labelledby="merchant-store-offers-title">
     <header class="store-offers-header">
-        <h2 id="merchant-store-offers-title">
-            {{ 'shell.merchant.storeOffers.title' | transloco }}
-        </h2>
-        <p>{{ 'shell.merchant.storeOffers.subtitle' | transloco }}</p>
+        <div>
+            <h2 id="merchant-store-offers-title">
+                {{ 'shell.merchant.storeOffers.title' | transloco }}
+            </h2>
+            <p>{{ 'shell.merchant.storeOffers.subtitle' | transloco }}</p>
+        </div>
+        <a mat-flat-button color="primary" routerLink="../store-offers/add" type="button">
+            <mat-icon aria-hidden="true">add</mat-icon>
+            {{ 'shell.merchant.storeOffers.actions.addOffer' | transloco }}
+        </a>
     </header>
 
     @if (errorKey(); as currentErrorKey) {

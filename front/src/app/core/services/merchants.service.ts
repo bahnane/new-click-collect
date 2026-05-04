@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   MerchantProfile,
+  Product,
   UpdateMerchantProfilePayload,
   StoreOffersPaginatedResponse,
   StoreOffer,
@@ -13,6 +14,20 @@ export interface UpdateStoreOfferPayload {
   priceInCents?: number | null;
   minOrderQty?: number;
   stepQty?: number;
+}
+
+export interface CreateStoreOfferPayload {
+  productId: string;
+  priceInCents?: number;
+  minOrderQty?: number;
+  stepQty?: number;
+}
+
+export interface CatalogProductsPaginatedResponse {
+  data: Product[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -39,6 +54,27 @@ export class MerchantsService {
   }
 
   // Store offers
+  getCatalogProducts(
+    page: number = 1,
+    pageSize: number = 50,
+  ): Observable<CatalogProductsPaginatedResponse> {
+    return this.http.get<CatalogProductsPaginatedResponse>(
+      `${environment.apiUrl}/products`,
+      {
+        withCredentials: true,
+        params: { page: page.toString(), pageSize: pageSize.toString() },
+      },
+    );
+  }
+
+  createOffer(payload: CreateStoreOfferPayload): Observable<StoreOffer> {
+    return this.http.post<StoreOffer>(
+      `${environment.apiUrl}/merchants/me/offers`,
+      payload,
+      { withCredentials: true },
+    );
+  }
+
   getMyOffers(
     page: number = 1,
     pageSize: number = 10,

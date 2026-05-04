@@ -1,0 +1,240 @@
+import { CommonModule } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatIconModule } from '@angular/material/icon';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableModule } from '@angular/material/table';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { forkJoin } from 'rxjs';
+import { extractApiErrorCode } from '../../../core/errors/api-error.util';
+import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
+import {
+  CatalogProductsPaginatedResponse,
+  CreateStoreOfferPayload,
+  MerchantsService,
+} from '../../../core/services/merchants.service';
+
+interface OfferDraftRow {
+  productId: string;
+  productName: string;
+  categoryName: string;
+  saleUnit: string;
+  defaultPriceInCents: number | null;
+  selected: boolean;
+  price: string;
+  minOrderQty: string;
+  stepQty: string;
+}
+
+@Component({
+  selector: 'app-merchant-store-offers-create',
+  imports: [
+    CommonModule,
+    RouterLink,
+    MatCardModule,
+    MatCheckboxModule,
+    MatTableModule,
+    MatButtonModule,
+    MatIconModule,
+    MatPaginatorModule,
+    MatProgressSpinnerModule,
+    TranslocoPipe,
+  ],
+  templateUrl: './merchant-store-offers-create.component.html',
+  styleUrl: './merchant-store-offers-create.component.scss',
+})
+export class MerchantStoreOffersCreateComponent {
+  private readonly merchantsService = inject(MerchantsService);
+
+  readonly loading = signal(false);
+  readonly creatingOffer = signal(false);
+  readonly errorKey = signal<string | null>(null);
+  readonly createSuccess = signal(false);
+  readonly catalogPage = signal<CatalogProductsPaginatedResponse | null>(null);
+  readonly draftRows = signal<OfferDraftRow[]>([]);
+  readonly currentPage = signal(1);
+  readonly pageSize = signal(10);
+
+  readonly displayedColumns = [
+    'select',
+    'product',
+    'price',
+    'minOrderQty',
+    'stepQty',
+  ];
+
+  readonly isEmpty = computed(() => {
+    const page = this.catalogPage();
+    return !this.loading() && page && page.data.length === 0;
+  });
+
+  readonly selectedDraftCount = computed(
+    () => this.draftRows().filter((row) => row.selected).length,
+  );
+
+  constructor() {
+    this.loadCatalogProducts();
+  }
+
+  loadCatalogProducts(
+    page = this.currentPage(),
+    pageSize = this.pageSize(),
+  ): void {
+    this.loading.set(true);
+    this.errorKey.set(null);
+
+    this.merchantsService.getCatalogProducts(page, pageSize).subscribe({
+      next: (response) => {
+        this.catalogPage.set(response);
+        this.currentPage.set(response.page);
+        this.pageSize.set(response.pageSize);
+        this.draftRows.set(
+          response.data.map((product) => ({
+            productId: product.id,
+            productName: product.name,
+            categoryName: product.category.name,
+            saleUnit: product.saleUnit,
+            defaultPriceInCents: product.priceInCents,
+            selected: false,
+            price: '',
+            minOrderQty: '1',
+            stepQty: '1',
+          })),
+        );
+        this.loading.set(false);
+      },
+      error: (error) => {
+        const errorCode = extractApiErrorCode(error) || 'INTERNAL_SERVER_ERROR';
+        const translatedKey =
+          AUTH_ERROR_I18N_KEY_BY_CODE[errorCode] ||
+          'auth.apiErrors.INTERNAL_SERVER_ERROR';
+        this.errorKey.set(translatedKey);
+        this.loading.set(false);
+      },
+    });
+  }
+
+  onCatalogPageChange(event: PageEvent): void {
+    this.loadCatalogProducts(event.pageIndex + 1, event.pageSize);
+  }
+
+  onDraftSelectionChange(productId: string, selected: boolean): void {
+    this.draftRows.update((rows) =>
+      rows.map((row) =>
+        row.productId === productId ? { ...row, selected } : row,
+      ),
+    );
+  }
+
+  onDraftInputChange(
+    productId: string,
+    field: 'price' | 'minOrderQty' | 'stepQty',
+    value: string,
+  ): void {
+    this.draftRows.update((rows) =>
+      rows.map((row) =>
+        row.productId === productId ? { ...row, [field]: value } : row,
+      ),
+    );
+  }
+
+  onCreateOffersBatch(): void {
+    if (this.creatingOffer()) {
+      return;
+    }
+
+    const selectedRows = this.draftRows().filter((row) => row.selected);
+    if (selectedRows.length === 0) {
+      this.errorKey.set(
+        'shell.merchant.storeOffers.create.validation.noSelection',
+      );
+      return;
+    }
+
+    const payloads: CreateStoreOfferPayload[] = [];
+    for (const row of selectedRows) {
+      const minOrderQty = this.parsePositiveDecimal(row.minOrderQty);
+      const stepQty = this.parsePositiveDecimal(row.stepQty);
+      const priceInCents = this.parsePriceToCents(row.price);
+
+      if (minOrderQty == null || stepQty == null || priceInCents === null) {
+        this.errorKey.set(
+          'shell.merchant.storeOffers.create.validation.invalidValues',
+        );
+        return;
+      }
+
+      payloads.push({
+        productId: row.productId,
+        minOrderQty,
+        stepQty,
+        ...(priceInCents !== undefined ? { priceInCents } : {}),
+      });
+    }
+
+    this.creatingOffer.set(true);
+    this.createSuccess.set(false);
+    this.errorKey.set(null);
+
+    forkJoin(
+      payloads.map((payload) => this.merchantsService.createOffer(payload)),
+    ).subscribe({
+      next: () => {
+        this.creatingOffer.set(false);
+        this.createSuccess.set(true);
+        this.loadCatalogProducts(this.currentPage(), this.pageSize());
+      },
+      error: (error) => {
+        this.creatingOffer.set(false);
+        const errorCode = extractApiErrorCode(error) || 'INTERNAL_SERVER_ERROR';
+        const translatedKey =
+          AUTH_ERROR_I18N_KEY_BY_CODE[errorCode] ||
+          'auth.apiErrors.INTERNAL_SERVER_ERROR';
+        this.errorKey.set(translatedKey);
+      },
+    });
+  }
+
+  clearErrorKey(): void {
+    this.errorKey.set(null);
+  }
+
+  formatPrice(priceInCents: number | null): string {
+    if (priceInCents === null) {
+      return '—';
+    }
+
+    return (priceInCents / 100).toFixed(2);
+  }
+
+  getSaleUnitLabel(saleUnit: string): string {
+    return `shop.saleUnit.${saleUnit.toLowerCase()}`;
+  }
+
+  private parsePositiveDecimal(value: string): number | null {
+    const parsed = Number.parseFloat(value.trim());
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return null;
+    }
+
+    return parsed;
+  }
+
+  private parsePriceToCents(value: string): number | undefined | null {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      return undefined;
+    }
+
+    const parsed = Number.parseFloat(trimmed);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return null;
+    }
+
+    return Math.round(parsed * 100);
+  }
+}

@@ -21,10 +21,16 @@ const FIXTURE = {
     process.env.SEED_FIXTURE_MERCHANT_STORE_NAME ?? 'Boutique Fixture',
   productsCount: Number(process.env.SEED_FIXTURE_PRODUCTS_COUNT ?? 120),
   offersCount: Number(process.env.SEED_FIXTURE_OFFERS_COUNT ?? 80),
+  unofferedProductsCount: Number(
+    process.env.SEED_FIXTURE_UNOFFERED_PRODUCTS_COUNT ?? 20,
+  ),
   slotDaysAhead: Number(process.env.SEED_FIXTURE_SLOT_DAYS_AHEAD ?? 14),
   slotDurationHours: Number(process.env.SEED_FIXTURE_SLOT_DURATION_HOURS ?? 2),
   slotMaxOrders: Number(process.env.SEED_FIXTURE_SLOT_MAX_ORDERS ?? 10),
   productPrefix: process.env.SEED_FIXTURE_PRODUCT_PREFIX ?? '[FIXTURE] Produit',
+  unofferedProductPrefix:
+    process.env.SEED_FIXTURE_UNOFFERED_PRODUCT_PREFIX ??
+    '[FIXTURE][SANS_OFFRE] Produit',
   categoryPrefix: process.env.SEED_FIXTURE_CATEGORY_PREFIX ?? 'fixture-',
 };
 
@@ -167,8 +173,8 @@ async function main() {
       categories.push(category);
     }
 
-    // 5) Products fixture
-    const createdOrExistingProductIds: string[] = [];
+    // 5) Products fixture (pool avec offres)
+    const offeredCandidateProductIds: string[] = [];
 
     for (let i = 1; i <= FIXTURE.productsCount; i++) {
       const number = pad4(i);
@@ -182,7 +188,7 @@ async function main() {
       });
 
       if (existing) {
-        createdOrExistingProductIds.push(existing.id);
+        offeredCandidateProductIds.push(existing.id);
         continue;
       }
 
@@ -198,17 +204,51 @@ async function main() {
         select: { id: true },
       });
 
-      createdOrExistingProductIds.push(created.id);
+      offeredCandidateProductIds.push(created.id);
     }
 
-    // 6) Store offers fixture (subset des produits)
+    // 5.b) Produits sans offre, facilement identifiables pour tester la creation
+    const unofferedProductIds: string[] = [];
+
+    for (let i = 1; i <= FIXTURE.unofferedProductsCount; i++) {
+      const number = pad4(i);
+      const category = categories[i % categories.length];
+      const name = `${FIXTURE.unofferedProductPrefix} ${number}`;
+
+      const existing = await prisma.product.findFirst({
+        where: { name, categoryId: category.id },
+        select: { id: true },
+      });
+
+      if (existing) {
+        unofferedProductIds.push(existing.id);
+        continue;
+      }
+
+      const created = await prisma.product.create({
+        data: {
+          name,
+          description:
+            "Produit fixture sans offre, dedie aux tests de creation d'offre",
+          saleUnit: saleUnitFor(i),
+          priceInCents: priceInCentsFor(i + FIXTURE.productsCount),
+          categoryId: category.id,
+          isActive: true,
+        },
+        select: { id: true },
+      });
+
+      unofferedProductIds.push(created.id);
+    }
+
+    // 6) Store offers fixture (subset du pool dedie aux offres)
     const offerCount = Math.min(
       FIXTURE.offersCount,
-      createdOrExistingProductIds.length,
+      offeredCandidateProductIds.length,
     );
 
     for (let i = 0; i < offerCount; i++) {
-      const productId = createdOrExistingProductIds[i];
+      const productId = offeredCandidateProductIds[i];
 
       await prisma.storeOffer.upsert({
         where: {
@@ -255,8 +295,13 @@ async function main() {
 
     console.log('✓ Fixture seed completed');
     console.log(`  Merchant slug: ${FIXTURE.merchantSlug}`);
-    console.log(`  Products target: ${FIXTURE.productsCount}`);
+    console.log(`  Products target (offer pool): ${FIXTURE.productsCount}`);
+    console.log(
+      `  Products target (no-offer pool): ${FIXTURE.unofferedProductsCount}`,
+    );
     console.log(`  Offers target: ${offerCount}`);
+    console.log(`  No-offer product prefix: ${FIXTURE.unofferedProductPrefix}`);
+    console.log(`  No-offer products available: ${unofferedProductIds.length}`);
     console.log(`  Pickup hours seeded: ${PICKUP_HOUR_SEEDS.length}`);
     console.log(`  Pickup slots created: ${createdSlots.count}`);
   } finally {

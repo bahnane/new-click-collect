@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,6 +26,7 @@ import { DeleteConfirmationDialogComponent } from '../../../shared/dialogs/delet
   selector: 'app-merchant-store-offers',
   imports: [
     CommonModule,
+    RouterLink,
     MatCardModule,
     MatTableModule,
     MatButtonModule,

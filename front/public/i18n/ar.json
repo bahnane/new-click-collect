@@ -18,6 +18,9 @@
     "merchantStoreOffers": {
       "title": "عروضي على المنتجات"
     },
+    "merchantStoreOffersCreate": {
+      "title": "إضافة عروض المنتجات"
+    },
     "merchantSpace": {
       "title": "مساحة التاجر"
     },
@@ -294,7 +297,8 @@
       "sections": {
         "overview": "نظرة عامة",
         "profile": "ملفي الشخصي",
-        "storeOffers": "عروضي"
+        "storeOffers": "عروضي",
+        "storeOffersAdd": "إضافة عروض"
       },
       "overview": {
         "summary": {
@@ -394,7 +398,34 @@
         "edit": "تعديل",
         "activate": "إعادة التفعيل",
         "deactivate": "تعطيل",
+        "actions": {
+          "addOffer": "إضافة عروض",
+          "backToOffers": "العودة إلى عروضي"
+        },
         "statusToggleAria": "تغيير حالة {itemName}",
+        "create": {
+          "title": "إنشاء عرض",
+          "subtitle": "أضف عدة منتجات دفعة واحدة ثم عدّل السعر والكميات مباشرة.",
+          "loadingProducts": "جاري تحميل المنتجات...",
+          "submit": "إنشاء العرض",
+          "submitBatch": "إنشاء {{count}} عرض",
+          "success": "تم إنشاء العرض بنجاح.",
+          "noProductsAvailable": "كل المنتجات النشطة في الكاتالوج مضافة بالفعل ضمن عروض متجرك.",
+          "validation": {
+            "noSelection": "حدّد منتجاً واحداً على الأقل لإضافته.",
+            "invalidValues": "تحقّق من القيم المدخلة (السعر، الحد الأدنى، خطوة الكمية)."
+          },
+          "fields": {
+            "select": "تحديد",
+            "product": "منتج الكاتالوج",
+            "price": "سعر مخصص (اختياري)",
+            "catalogPrice": "سعر الكاتالوج",
+            "pricePlaceholder": "مثال: 120.50",
+            "priceHint": "اترك الحقل فارغاً لاستخدام سعر الكاتالوج.",
+            "minQty": "الحد الأدنى للكمية",
+            "stepQty": "خطوة الكمية"
+          }
+        },
         "statusConfirm": {
           "activate": {
             "title": "تأكيد إعادة التفعيل",

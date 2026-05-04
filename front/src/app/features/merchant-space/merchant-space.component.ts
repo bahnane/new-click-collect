@@ -26,6 +26,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
           <a
             routerLink="overview"
             routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }"
             mat-stroked-button
             type="button"
           >
@@ -34,6 +35,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
           <a
             routerLink="profile"
             routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }"
             mat-stroked-button
             type="button"
           >
@@ -42,10 +44,20 @@ import { TranslocoPipe } from '@jsverse/transloco';
           <a
             routerLink="store-offers"
             routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }"
             mat-stroked-button
             type="button"
           >
             {{ 'shell.merchant.sections.storeOffers' | transloco }}
+          </a>
+          <a
+            routerLink="store-offers/add"
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            mat-stroked-button
+            type="button"
+          >
+            {{ 'shell.merchant.sections.storeOffersAdd' | transloco }}
           </a>
         </nav>
       </header>
