@@ -19,8 +19,12 @@ import {
   StoreOffer,
   StoreOffersPaginatedResponse,
 } from '../../../core/models/merchant-shop.model';
-import { MerchantsService } from '../../../core/services/merchants.service';
+import {
+  MerchantsService,
+  UpdateStoreOfferPayload,
+} from '../../../core/services/merchants.service';
 import { DeleteConfirmationDialogComponent } from '../../../shared/dialogs/delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { EditStoreOfferDialogComponent } from './edit-store-offer-dialog.component';
 
 @Component({
   selector: 'app-merchant-store-offers',
@@ -99,8 +103,19 @@ export class MerchantStoreOffersComponent {
   }
 
   onEdit(offer: StoreOffer): void {
-    // TODO: Implement edit dialog
-    console.log('Edit offer:', offer);
+    const dialogRef = this.dialog.open(EditStoreOfferDialogComponent, {
+      width: '520px',
+      maxWidth: '95vw',
+      data: { offer },
+    });
+
+    dialogRef.afterClosed().subscribe((payload) => {
+      if (!payload) {
+        return;
+      }
+
+      this.updateOffer(offer.id, payload);
+    });
   }
 
   onStatusToggleChange(event: MatSlideToggleChange, offer: StoreOffer): void {
@@ -144,6 +159,23 @@ export class MerchantStoreOffersComponent {
       },
       error: (error) => {
         this.deleting.set(null);
+        const errorCode = extractApiErrorCode(error) || 'INTERNAL_SERVER_ERROR';
+        const errorKey =
+          AUTH_ERROR_I18N_KEY_BY_CODE[errorCode] ||
+          'auth.apiErrors.INTERNAL_SERVER_ERROR';
+        this.actionErrorKey.set(errorKey);
+      },
+    });
+  }
+
+  private updateOffer(offerId: string, payload: UpdateStoreOfferPayload): void {
+    this.actionErrorKey.set(null);
+
+    this.merchantsService.updateOffer(offerId, payload).subscribe({
+      next: () => {
+        this.loadOffers(this.currentPage(), this.pageSize());
+      },
+      error: (error) => {
         const errorCode = extractApiErrorCode(error) || 'INTERNAL_SERVER_ERROR';
         const errorKey =
           AUTH_ERROR_I18N_KEY_BY_CODE[errorCode] ||
