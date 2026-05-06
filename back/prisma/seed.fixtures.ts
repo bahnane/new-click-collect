@@ -5,6 +5,7 @@ import {
   AppLanguage,
   BusinessType,
   PrismaClient,
+  ProductSubmissionStatus,
   Role,
   SaleUnit,
   Weekday,
@@ -53,6 +54,70 @@ const CATEGORY_SEEDS = [
   { name: 'Fixture Boissons', slug: 'fixture-boissons' },
   { name: 'Fixture Snacks', slug: 'fixture-snacks' },
   { name: 'Fixture Boulangerie', slug: 'fixture-boulangerie' },
+];
+
+const SUBMISSION_SEEDS: Array<{
+  name: string;
+  description?: string;
+  saleUnit: SaleUnit;
+  priceInCents?: number;
+  categoryIndex: number;
+  status: ProductSubmissionStatus;
+  rejectionReason?: string;
+}> = [
+  {
+    name: "[FIXTURE] Proposition huile d'olive bio",
+    description: "Huile d'olive extra vierge, pressée à froid, bouteille 1L.",
+    saleUnit: SaleUnit.UNIT,
+    priceInCents: 850,
+    categoryIndex: 0,
+    status: ProductSubmissionStatus.PENDING,
+  },
+  {
+    name: '[FIXTURE] Proposition jus de mangue tropical',
+    saleUnit: SaleUnit.LITER,
+    priceInCents: 350,
+    categoryIndex: 1,
+    status: ProductSubmissionStatus.PENDING,
+  },
+  {
+    name: '[FIXTURE] Proposition biscuits sésame',
+    description: 'Biscuits artisanaux au sésame grillé, sachet 200g.',
+    saleUnit: SaleUnit.G,
+    priceInCents: 220,
+    categoryIndex: 2,
+    status: ProductSubmissionStatus.APPROVED,
+  },
+  {
+    name: '[FIXTURE] Proposition pain de mie complet',
+    saleUnit: SaleUnit.UNIT,
+    priceInCents: 180,
+    categoryIndex: 3,
+    status: ProductSubmissionStatus.APPROVED,
+  },
+  {
+    name: '[FIXTURE] Proposition sauce harissa maison',
+    description: 'Harissa artisanale, pot 250g.',
+    saleUnit: SaleUnit.UNIT,
+    priceInCents: 430,
+    categoryIndex: 0,
+    status: ProductSubmissionStatus.REJECTED,
+    rejectionReason: 'Produit équivalent déjà disponible dans le catalogue.',
+  },
+  {
+    name: '[FIXTURE] Proposition thé à la menthe',
+    saleUnit: SaleUnit.UNIT,
+    priceInCents: 290,
+    categoryIndex: 1,
+    status: ProductSubmissionStatus.PENDING,
+  },
+  {
+    name: '[FIXTURE] Proposition chips artisanales',
+    description: 'Chips de pomme de terre nature, sachet 150g.',
+    saleUnit: SaleUnit.G,
+    categoryIndex: 2,
+    status: ProductSubmissionStatus.PENDING,
+  },
 ];
 
 function pad4(n: number): string {
@@ -293,6 +358,39 @@ async function main() {
           })
         : { count: 0 };
 
+    // 8) Product submissions fixture
+    let submissionsCreated = 0;
+
+    for (const s of SUBMISSION_SEEDS) {
+      const category = categories[s.categoryIndex % categories.length];
+
+      const existing = await prisma.productSubmission.findFirst({
+        where: { merchantId: merchantProfile.id, name: s.name },
+        select: { id: true },
+      });
+
+      if (existing) {
+        continue;
+      }
+
+      await prisma.productSubmission.create({
+        data: {
+          merchantId: merchantProfile.id,
+          name: s.name,
+          description: s.description ?? null,
+          saleUnit: s.saleUnit,
+          priceInCents: s.priceInCents ?? null,
+          categoryId: category.id,
+          status: s.status,
+          rejectionReason: s.rejectionReason ?? null,
+          reviewedAt:
+            s.status !== ProductSubmissionStatus.PENDING ? new Date() : null,
+        },
+      });
+
+      submissionsCreated++;
+    }
+
     console.log('✓ Fixture seed completed');
     console.log(`  Merchant slug: ${FIXTURE.merchantSlug}`);
     console.log(`  Products target (offer pool): ${FIXTURE.productsCount}`);
@@ -304,6 +402,7 @@ async function main() {
     console.log(`  No-offer products available: ${unofferedProductIds.length}`);
     console.log(`  Pickup hours seeded: ${PICKUP_HOUR_SEEDS.length}`);
     console.log(`  Pickup slots created: ${createdSlots.count}`);
+    console.log(`  Submissions created: ${submissionsCreated}`);
   } finally {
     await prisma.$disconnect();
   }

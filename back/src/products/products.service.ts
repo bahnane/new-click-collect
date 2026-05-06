@@ -14,6 +14,7 @@ import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateStoreOfferDto } from './dto/create-store-offer.dto';
 import { UpdateStoreOfferDto } from './dto/update-store-offer.dto';
+import { UpdateProductSubmissionDto } from './dto/update-product-submission.dto';
 
 @Injectable()
 export class ProductsService {
@@ -415,6 +416,133 @@ export class ProductsService {
       total,
       page: safePage,
       pageSize: safePageSize,
+    };
+  }
+
+  async listSimilarCatalogProducts(query: string, limit = 5) {
+    const normalized = query.trim();
+    if (normalized.length < 2) {
+      return [];
+    }
+
+    return this.prisma.product.findMany({
+      where: {
+        isActive: true,
+        name: {
+          contains: normalized,
+        },
+      },
+      orderBy: { name: 'asc' },
+      take: Math.min(limit, 10),
+      select: {
+        id: true,
+        name: true,
+        saleUnit: true,
+        priceInCents: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateMyProductSubmission(
+    userId: string,
+    submissionId: string,
+    dto: UpdateProductSubmissionDto,
+  ) {
+    const profile = await this.resolveMerchantProfile(userId);
+    const submission = await this.findSubmissionOrFail(submissionId);
+
+    if (submission.merchantId !== profile.id) {
+      throw new NotFoundException({
+        code: ErrorCodes.PRODUCT_SUBMISSION_NOT_FOUND,
+        message: 'Product submission not found',
+      });
+    }
+
+    if (submission.status !== ProductSubmissionStatus.PENDING) {
+      throw new BadRequestException({
+        code: ErrorCodes.PRODUCT_SUBMISSION_ALREADY_REVIEWED,
+        message: 'Only pending submissions can be edited',
+      });
+    }
+
+    const categoryId = dto.categoryId ?? submission.categoryId;
+    const name = dto.name ?? submission.name;
+
+    if (dto.categoryId) {
+      await this.findCategoryOrFail(dto.categoryId);
+    }
+
+    const duplicatePending = await this.prisma.productSubmission.findFirst({
+      where: {
+        merchantId: profile.id,
+        categoryId,
+        name,
+        status: ProductSubmissionStatus.PENDING,
+        id: { not: submissionId },
+      },
+      select: { id: true },
+    });
+
+    if (duplicatePending) {
+      throw new ConflictException({
+        code: ErrorCodes.PRODUCT_SUBMISSION_ALREADY_PENDING,
+        message: 'A similar product submission is already pending review',
+      });
+    }
+
+    return this.prisma.productSubmission.update({
+      where: { id: submissionId },
+      data: dto,
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        approvedProduct: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+  }
+
+  async deleteMyProductSubmission(userId: string, submissionId: string) {
+    const profile = await this.resolveMerchantProfile(userId);
+    const submission = await this.findSubmissionOrFail(submissionId);
+
+    if (submission.merchantId !== profile.id) {
+      throw new NotFoundException({
+        code: ErrorCodes.PRODUCT_SUBMISSION_NOT_FOUND,
+        message: 'Product submission not found',
+      });
+    }
+
+    if (submission.status !== ProductSubmissionStatus.PENDING) {
+      throw new BadRequestException({
+        code: ErrorCodes.PRODUCT_SUBMISSION_ALREADY_REVIEWED,
+        message: 'Only pending submissions can be deleted',
+      });
+    }
+
+    await this.prisma.productSubmission.delete({
+      where: { id: submissionId },
+    });
+
+    return {
+      id: submissionId,
+      deleted: true,
     };
   }
 

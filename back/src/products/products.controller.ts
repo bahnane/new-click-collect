@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   Param,
@@ -23,6 +24,7 @@ import { CreateStoreOfferDto } from './dto/create-store-offer.dto';
 import { CreateStoreOffersBatchDto } from './dto/create-store-offers-batch.dto';
 import { UpdateStoreOfferDto } from './dto/update-store-offer.dto';
 import { ReviewProductSubmissionDto } from './dto/review-product-submission.dto';
+import { UpdateProductSubmissionDto } from './dto/update-product-submission.dto';
 import { ProductsService } from './products.service';
 
 @Controller()
@@ -86,6 +88,22 @@ export class ProductsController {
     return this.productsService.listCatalogProducts(
       this.toPositiveInt(page, 1),
       this.toPositiveInt(pageSize, 10),
+    );
+  }
+
+  @Get('products/similar')
+  listSimilarCatalogProducts(
+    @Query('q') query?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const normalizedQuery = query?.trim() ?? '';
+    if (!normalizedQuery) {
+      return [];
+    }
+
+    return this.productsService.listSimilarCatalogProducts(
+      normalizedQuery,
+      this.toPositiveInt(limit, 5),
     );
   }
 
@@ -162,6 +180,27 @@ export class ProductsController {
       this.toPositiveInt(pageSize, 10),
       this.parseSubmissionStatus(status),
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('merchants/me/product-submissions/:id')
+  updateMyProductSubmission(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: UpdateProductSubmissionDto,
+  ) {
+    this.assertMerchant(user);
+    return this.productsService.updateMyProductSubmission(user.sub, id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('merchants/me/product-submissions/:id')
+  deleteMyProductSubmission(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+  ) {
+    this.assertMerchant(user);
+    return this.productsService.deleteMyProductSubmission(user.sub, id);
   }
 
   @UseGuards(JwtAuthGuard)
