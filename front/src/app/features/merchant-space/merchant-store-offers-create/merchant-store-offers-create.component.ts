@@ -9,7 +9,6 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { forkJoin } from 'rxjs';
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import {
@@ -180,9 +179,7 @@ export class MerchantStoreOffersCreateComponent {
     this.createSuccess.set(false);
     this.errorKey.set(null);
 
-    forkJoin(
-      payloads.map((payload) => this.merchantsService.createOffer(payload)),
-    ).subscribe({
+    this.merchantsService.createOffersBatch(payloads).subscribe({
       next: () => {
         this.creatingOffer.set(false);
         this.createSuccess.set(true);

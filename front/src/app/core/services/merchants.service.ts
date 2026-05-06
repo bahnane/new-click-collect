@@ -23,6 +23,11 @@ export interface CreateStoreOfferPayload {
   stepQty?: number;
 }
 
+export interface CreateStoreOffersBatchResponse {
+  count: number;
+  data: StoreOffer[];
+}
+
 export interface CatalogProductsPaginatedResponse {
   data: Product[];
   total: number;
@@ -71,6 +76,16 @@ export class MerchantsService {
     return this.http.post<StoreOffer>(
       `${environment.apiUrl}/merchants/me/offers`,
       payload,
+      { withCredentials: true },
+    );
+  }
+
+  createOffersBatch(
+    payloads: CreateStoreOfferPayload[],
+  ): Observable<CreateStoreOffersBatchResponse> {
+    return this.http.post<CreateStoreOffersBatchResponse>(
+      `${environment.apiUrl}/merchants/me/offers/batch`,
+      { offers: payloads },
       { withCredentials: true },
     );
   }
