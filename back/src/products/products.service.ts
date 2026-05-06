@@ -539,6 +539,132 @@ export class ProductsService {
       }));
   }
 
+  async createOffersBatch(userId: string, offers: CreateStoreOfferDto[]) {
+    const profile = await this.resolveMerchantProfile(userId);
+
+    const productIds = offers.map((offer) => offer.productId);
+    const duplicateProductIds = productIds.filter(
+      (productId, index) => productIds.indexOf(productId) !== index,
+    );
+
+    if (duplicateProductIds.length > 0) {
+      throw new BadRequestException({
+        code: ErrorCodes.BAD_REQUEST,
+        message:
+          'Batch payload contains duplicate productId values. Each product can appear only once',
+      });
+    }
+
+    const [products, existingOffers] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where: { id: { in: productIds }, isActive: true },
+        select: {
+          id: true,
+          priceInCents: true,
+          name: true,
+          description: true,
+          saleUnit: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+        },
+      }),
+      this.prisma.storeOffer.findMany({
+        where: {
+          merchantId: profile.id,
+          productId: { in: productIds },
+        },
+        select: {
+          productId: true,
+        },
+      }),
+    ]);
+
+    const productsById = new Map(
+      products.map((product) => [product.id, product]),
+    );
+    const missingProductIds = productIds.filter(
+      (productId) => !productsById.has(productId),
+    );
+    if (missingProductIds.length > 0) {
+      throw new NotFoundException({
+        code: ErrorCodes.PRODUCT_NOT_FOUND,
+        message: `Product not found: ${missingProductIds.join(', ')}`,
+      });
+    }
+
+    const existingProductIds = new Set(
+      existingOffers.map((offer) => offer.productId),
+    );
+    if (existingProductIds.size > 0) {
+      throw new ConflictException({
+        code: ErrorCodes.OFFER_ALREADY_EXISTS_FOR_PRODUCT,
+        message: 'One or more products already have an offer for this merchant',
+      });
+    }
+
+    for (const offer of offers) {
+      const product = productsById.get(offer.productId);
+      if (!product) {
+        continue;
+      }
+
+      if (offer.priceInCents == null && product.priceInCents == null) {
+        throw new BadRequestException({
+          code: ErrorCodes.OFFER_PRICE_REQUIRED,
+          message: `Price required for product ${offer.productId}`,
+        });
+      }
+    }
+
+    const createdOffers = await this.prisma.$transaction(
+      offers.map((offer) =>
+        this.prisma.storeOffer.create({
+          data: {
+            merchantId: profile.id,
+            productId: offer.productId,
+            priceInCents: offer.priceInCents,
+            minOrderQty: offer.minOrderQty ?? 1,
+            stepQty: offer.stepQty ?? 1,
+          },
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                saleUnit: true,
+                priceInCents: true,
+                category: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+      ),
+    );
+
+    return {
+      count: createdOffers.length,
+      data: createdOffers.map((offer) => ({
+        ...offer,
+        defaultPriceInCents: offer.product.priceInCents,
+        overridePriceInCents: offer.priceInCents,
+        effectivePriceInCents: offer.priceInCents ?? offer.product.priceInCents,
+        isOverridden: offer.priceInCents != null,
+      })),
+    };
+  }
+
   async getMyOffers(userId: string, page = 1, pageSize = 10) {
     const profile = await this.resolveMerchantProfile(userId);
     const {

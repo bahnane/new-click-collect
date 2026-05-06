@@ -20,6 +20,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateStoreOfferDto } from './dto/create-store-offer.dto';
+import { CreateStoreOffersBatchDto } from './dto/create-store-offers-batch.dto';
 import { UpdateStoreOfferDto } from './dto/update-store-offer.dto';
 import { ReviewProductSubmissionDto } from './dto/review-product-submission.dto';
 import { ProductsService } from './products.service';
@@ -205,6 +206,16 @@ export class ProductsController {
   ) {
     this.assertMerchant(user);
     return this.productsService.createOffer(user.sub, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('merchants/me/offers/batch')
+  createOffersBatch(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: CreateStoreOffersBatchDto,
+  ) {
+    this.assertMerchant(user);
+    return this.productsService.createOffersBatch(user.sub, dto.offers);
   }
 
   @UseGuards(JwtAuthGuard)
