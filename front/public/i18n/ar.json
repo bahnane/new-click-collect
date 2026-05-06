@@ -21,6 +21,9 @@
     "merchantStoreOffersCreate": {
       "title": "إضافة عروض المنتجات"
     },
+    "merchantProductSubmissions": {
+      "title": "اقتراحاتي للكاتالوج"
+    },
     "merchantSpace": {
       "title": "مساحة التاجر"
     },
@@ -299,7 +302,8 @@
         "overview": "نظرة عامة",
         "profile": "ملفي الشخصي",
         "storeOffers": "عروضي",
-        "storeOffersAdd": "إضافة عروض"
+        "storeOffersAdd": "إضافة عروض",
+        "productSubmissions": "اقتراحاتي"
       },
       "overview": {
         "summary": {
@@ -440,6 +444,58 @@
         "errors": {
           "loadFailed": "تعذّر تحميل عروضك.",
           "deleteFailed": "تعذّر تغيير حالة هذا العرض."
+        }
+      },
+      "productSubmissions": {
+        "title": "اقتراحاتي للكاتالوج",
+        "subtitle": "اقترح منتجات للكاتالوج العام وتابع حالة المراجعة.",
+        "loading": "جاري تحميل الاقتراحات...",
+        "empty": {
+          "title": "لا توجد اقتراحات حالياً",
+          "message": "ابدأ باقتراح منتج جديد للكاتالوج."
+        },
+        "fields": {
+          "name": "اسم المنتج",
+          "category": "الفئة",
+          "saleUnit": "وحدة البيع",
+          "price": "السعر (اختياري)",
+          "priceHint": "اتركه فارغاً إذا لم يتم تحديد السعر.",
+          "description": "الوصف"
+        },
+        "columns": {
+          "name": "المنتج",
+          "category": "الفئة",
+          "saleUnit": "الوحدة",
+          "price": "السعر",
+          "status": "الحالة",
+          "rejectionReason": "سبب الرفض"
+        },
+        "status": {
+          "pending": "قيد الانتظار",
+          "approved": "مقبولة",
+          "rejected": "مرفوضة"
+        },
+        "actions": {
+          "new": "اقتراح منتج كاتالوج جديد",
+          "submit": "إرسال الاقتراح",
+          "edit": "تعديل",
+          "delete": "حذف"
+        },
+        "editor": {
+          "createTitle": "اقتراح منتج جديد",
+          "editTitle": "تعديل الاقتراح"
+        },
+        "similar": {
+          "title": "منتجات كاتالوج مشابهة"
+        },
+        "messages": {
+          "created": "تم إرسال الاقتراح بنجاح.",
+          "updated": "تم تحديث الاقتراح بنجاح.",
+          "deleted": "تم حذف الاقتراح بنجاح."
+        },
+        "deleteConfirm": {
+          "title": "حذف الاقتراح",
+          "message": "هل تريد حذف اقتراح {itemName}؟"
         }
       }
     },

@@ -21,6 +21,9 @@
     "merchantStoreOffersCreate": {
       "title": "Ajouter des offres produits"
     },
+    "merchantProductSubmissions": {
+      "title": "Mes propositions catalogue"
+    },
     "merchantSpace": {
       "title": "Espace marchand"
     },
@@ -299,7 +302,8 @@
         "overview": "Vue d'ensemble",
         "profile": "Mon profil",
         "storeOffers": "Mes offres",
-        "storeOffersAdd": "Ajouter des offres"
+        "storeOffersAdd": "Ajouter des offres",
+        "productSubmissions": "Mes propositions"
       },
       "overview": {
         "summary": {
@@ -440,6 +444,58 @@
         "errors": {
           "loadFailed": "Impossible de charger vos offres.",
           "deleteFailed": "Impossible de modifier le statut de cette offre."
+        }
+      },
+      "productSubmissions": {
+        "title": "Mes propositions catalogue",
+        "subtitle": "Soumettez des produits au catalogue global et suivez leur validation.",
+        "loading": "Chargement des propositions...",
+        "empty": {
+          "title": "Aucune proposition pour le moment",
+          "message": "Proposez un nouveau produit catalogue pour démarrer."
+        },
+        "fields": {
+          "name": "Libellé du produit",
+          "category": "Catégorie",
+          "saleUnit": "Unité de vente",
+          "price": "Prix (optionnel)",
+          "priceHint": "Laissez vide si le prix n'est pas défini.",
+          "description": "Description"
+        },
+        "columns": {
+          "name": "Produit",
+          "category": "Catégorie",
+          "saleUnit": "Unité",
+          "price": "Prix",
+          "status": "Statut",
+          "rejectionReason": "Motif de rejet"
+        },
+        "status": {
+          "pending": "En attente",
+          "approved": "Approuvée",
+          "rejected": "Rejetée"
+        },
+        "actions": {
+          "new": "Proposer un nouveau produit catalogue",
+          "submit": "Envoyer la proposition",
+          "edit": "Modifier",
+          "delete": "Supprimer"
+        },
+        "editor": {
+          "createTitle": "Nouvelle proposition produit",
+          "editTitle": "Modifier la proposition"
+        },
+        "similar": {
+          "title": "Produits catalogues similaires"
+        },
+        "messages": {
+          "created": "Proposition envoyée avec succès.",
+          "updated": "Proposition mise à jour avec succès.",
+          "deleted": "Proposition supprimée avec succès."
+        },
+        "deleteConfirm": {
+          "title": "Supprimer la proposition",
+          "message": "Voulez-vous supprimer la proposition {itemName} ?"
         }
       }
     },

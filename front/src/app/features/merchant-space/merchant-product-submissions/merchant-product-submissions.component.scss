@@ -1,0 +1,160 @@
+.product-submissions {
+  display: grid;
+  gap: 1rem;
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-header h2,
+.page-header p {
+  margin: 0;
+}
+
+.error-banner,
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+}
+
+.error-banner {
+  background: color-mix(in srgb, var(--mat-sys-error) 14%, transparent);
+  color: var(--mat-sys-on-error-container);
+}
+
+.success-banner {
+  background: color-mix(in srgb, #28a745 15%, transparent);
+}
+
+.editor-card {
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.editor-form {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.editor-form .full-width {
+  grid-column: 1 / -1;
+}
+
+.similar-products {
+  grid-column: 1 / -1;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px dashed var(--mat-sys-outline-variant);
+}
+
+.similar-products p {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+.similar-products ul {
+  margin: 0;
+  padding-inline-start: 1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.similar-products li small {
+  margin-inline-start: 0.5rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.editor-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.loading-container,
+.empty-state {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+}
+
+.mobile-cards {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.submission-card dl {
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.submission-card dt {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+}
+
+.submission-card dd {
+  margin: 0;
+}
+
+.status {
+  font-weight: 600;
+}
+
+.status.pending {
+  color: #8f5e00;
+}
+
+.status.approved {
+  color: #176b2c;
+}
+
+.status.rejected {
+  color: var(--mat-sys-error);
+}
+
+.desktop-table {
+  display: none;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.actions-cell {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.list-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 900px) {
+  .mobile-cards {
+    display: none;
+  }
+
+  .desktop-table {
+    display: block;
+  }
+}
+
+@media (max-width: 699px) {
+  .editor-form {
+    grid-template-columns: 1fr;
+  }
+}

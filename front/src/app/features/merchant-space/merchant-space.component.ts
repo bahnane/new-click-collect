@@ -59,6 +59,15 @@ import { TranslocoPipe } from '@jsverse/transloco';
           >
             {{ 'shell.merchant.sections.storeOffersAdd' | transloco }}
           </a>
+          <a
+            routerLink="product-submissions"
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            mat-stroked-button
+            type="button"
+          >
+            {{ 'shell.merchant.sections.productSubmissions' | transloco }}
+          </a>
         </nav>
       </header>
 

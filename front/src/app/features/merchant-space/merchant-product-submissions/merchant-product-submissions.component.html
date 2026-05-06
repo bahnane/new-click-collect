@@ -1,0 +1,264 @@
+<section class="product-submissions" aria-labelledby="merchant-product-submissions-title">
+    <header class="page-header">
+        <div>
+            <h2 id="merchant-product-submissions-title">
+                {{ 'shell.merchant.productSubmissions.title' | transloco }}
+            </h2>
+            <p>{{ 'shell.merchant.productSubmissions.subtitle' | transloco }}</p>
+        </div>
+        <button mat-flat-button color="primary" type="button" (click)="onOpenCreate()">
+            <mat-icon aria-hidden="true">add</mat-icon>
+            {{ 'shell.merchant.productSubmissions.actions.new' | transloco }}
+        </button>
+    </header>
+
+    @if (errorKey(); as currentErrorKey) {
+    <div class="error-banner" role="alert" aria-live="polite">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <span>{{ currentErrorKey | transloco }}</span>
+        <button mat-icon-button type="button" (click)="clearErrorKey()" [attr.aria-label]="'common.close' | transloco">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+    }
+
+    @if (actionErrorKey(); as currentActionErrorKey) {
+    <div class="error-banner" role="alert" aria-live="polite">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <span>{{ currentActionErrorKey | transloco }}</span>
+        <button mat-icon-button type="button" (click)="clearActionErrorKey()"
+            [attr.aria-label]="'common.close' | transloco">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+    }
+
+    @if (successKey(); as currentSuccessKey) {
+    <div class="success-banner" role="status" aria-live="polite">
+        <mat-icon aria-hidden="true">check_circle</mat-icon>
+        <span>{{ currentSuccessKey | transloco }}</span>
+    </div>
+    }
+
+    @if (editorOpen()) {
+    <mat-card class="editor-card">
+        <mat-card-header>
+            <mat-card-title>
+                {{
+                isEditMode()
+                ? ('shell.merchant.productSubmissions.editor.editTitle' | transloco)
+                : ('shell.merchant.productSubmissions.editor.createTitle' | transloco)
+                }}
+            </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+            <form class="editor-form" [formGroup]="form" (ngSubmit)="onSubmitForm()">
+                <mat-form-field appearance="outline">
+                    <mat-label>{{ 'shell.merchant.productSubmissions.fields.name' | transloco }}</mat-label>
+                    <input matInput type="text" formControlName="name" />
+                </mat-form-field>
+
+                @if (similarProducts().length > 0) {
+                <div class="similar-products" role="status" aria-live="polite">
+                    <p>{{ 'shell.merchant.productSubmissions.similar.title' | transloco }}</p>
+                    <ul>
+                        @for (product of similarProducts(); track product.id) {
+                        <li>
+                            <span>{{ product.name }}</span>
+                            <small>
+                                {{ product.category.name }} / {{ getSaleUnitLabel(product.saleUnit) | transloco }}
+                            </small>
+                        </li>
+                        }
+                    </ul>
+                </div>
+                }
+
+                <mat-form-field appearance="outline">
+                    <mat-label>{{ 'shell.merchant.productSubmissions.fields.category' | transloco }}</mat-label>
+                    <mat-select formControlName="categoryId">
+                        @for (category of categories(); track category.id) {
+                        <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>{{ 'shell.merchant.productSubmissions.fields.saleUnit' | transloco }}</mat-label>
+                    <mat-select formControlName="saleUnit">
+                        <mat-option value="KG">{{ 'shop.saleUnit.kg' | transloco }}</mat-option>
+                        <mat-option value="G">{{ 'shop.saleUnit.g' | transloco }}</mat-option>
+                        <mat-option value="LITER">{{ 'shop.saleUnit.liter' | transloco }}</mat-option>
+                        <mat-option value="UNIT">{{ 'shop.saleUnit.unit' | transloco }}</mat-option>
+                        <mat-option value="PORTION">{{ 'shop.saleUnit.portion' | transloco }}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>{{ 'shell.merchant.productSubmissions.fields.price' | transloco }}</mat-label>
+                    <input matInput type="text" inputmode="decimal" formControlName="price" />
+                    <mat-hint>{{ 'shell.merchant.productSubmissions.fields.priceHint' | transloco }}</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'shell.merchant.productSubmissions.fields.description' | transloco }}</mat-label>
+                    <textarea matInput rows="3" formControlName="description"></textarea>
+                </mat-form-field>
+
+                <div class="editor-actions">
+                    <button mat-stroked-button type="button" (click)="onCancelEditor()">
+                        {{ 'common.cancel' | transloco }}
+                    </button>
+                    <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+                        @if (saving()) {
+                        <mat-spinner diameter="18"></mat-spinner>
+                        }
+                        {{
+                        isEditMode()
+                        ? ('common.save' | transloco)
+                        : ('shell.merchant.productSubmissions.actions.submit' | transloco)
+                        }}
+                    </button>
+                </div>
+            </form>
+        </mat-card-content>
+    </mat-card>
+    }
+
+    @if (loading() && !page()) {
+    <div class="loading-container" aria-live="polite">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>{{ 'shell.merchant.productSubmissions.loading' | transloco }}</p>
+    </div>
+    }
+
+    @if (isEmpty()) {
+    <div class="empty-state" role="status" aria-live="polite">
+        <mat-icon aria-hidden="true">playlist_add_check</mat-icon>
+        <h3>{{ 'shell.merchant.productSubmissions.empty.title' | transloco }}</h3>
+        <p>{{ 'shell.merchant.productSubmissions.empty.message' | transloco }}</p>
+    </div>
+    }
+
+    @if (page() && !isEmpty()) {
+    <div class="list-stack">
+        <div class="mobile-cards">
+            @for (submission of page()!.data; track submission.id) {
+            <mat-card class="submission-card">
+                <mat-card-header>
+                    <mat-card-title>{{ submission.name }}</mat-card-title>
+                    <mat-card-subtitle>{{ submission.category.name }}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                    <dl>
+                        <div>
+                            <dt>{{ 'shell.merchant.productSubmissions.columns.saleUnit' | transloco }}</dt>
+                            <dd>{{ getSaleUnitLabel(submission.saleUnit) | transloco }}</dd>
+                        </div>
+                        <div>
+                            <dt>{{ 'shell.merchant.productSubmissions.columns.price' | transloco }}</dt>
+                            <dd>{{ formatPrice(submission.priceInCents) }}</dd>
+                        </div>
+                        <div>
+                            <dt>{{ 'shell.merchant.productSubmissions.columns.status' | transloco }}</dt>
+                            <dd class="status" [class.pending]="submission.status === 'PENDING'"
+                                [class.approved]="submission.status === 'APPROVED'"
+                                [class.rejected]="submission.status === 'REJECTED'">
+                                {{ getStatusLabel(submission.status) | transloco }}
+                            </dd>
+                        </div>
+                        @if (submission.rejectionReason) {
+                        <div>
+                            <dt>{{ 'shell.merchant.productSubmissions.columns.rejectionReason' | transloco }}</dt>
+                            <dd>{{ submission.rejectionReason }}</dd>
+                        </div>
+                        }
+                    </dl>
+                </mat-card-content>
+                <mat-card-actions>
+                    <button mat-stroked-button type="button" [disabled]="!canMutate(submission)"
+                        (click)="onEdit(submission)">
+                        <mat-icon aria-hidden="true">edit</mat-icon>
+                        {{ 'shell.merchant.productSubmissions.actions.edit' | transloco }}
+                    </button>
+                    <button mat-stroked-button color="warn" type="button"
+                        [disabled]="!canMutate(submission) || deletingSubmissionId() === submission.id"
+                        (click)="onDelete(submission)">
+                        <mat-icon aria-hidden="true">delete</mat-icon>
+                        {{ 'shell.merchant.productSubmissions.actions.delete' | transloco }}
+                    </button>
+                </mat-card-actions>
+            </mat-card>
+            }
+        </div>
+
+        <mat-card class="desktop-table" aria-label="product submissions table">
+            <div class="table-responsive">
+                <table mat-table [dataSource]="page()!.data">
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>{{ 'shell.merchant.productSubmissions.columns.name' |
+                            transloco }}</th>
+                        <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="category">
+                        <th mat-header-cell *matHeaderCellDef>{{ 'shell.merchant.productSubmissions.columns.category' |
+                            transloco }}</th>
+                        <td mat-cell *matCellDef="let row">{{ row.category.name }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="saleUnit">
+                        <th mat-header-cell *matHeaderCellDef>{{ 'shell.merchant.productSubmissions.columns.saleUnit' |
+                            transloco }}</th>
+                        <td mat-cell *matCellDef="let row">{{ getSaleUnitLabel(row.saleUnit) | transloco }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="price">
+                        <th mat-header-cell *matHeaderCellDef>{{ 'shell.merchant.productSubmissions.columns.price' |
+                            transloco }}</th>
+                        <td mat-cell *matCellDef="let row">{{ formatPrice(row.priceInCents) }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef>{{ 'shell.merchant.productSubmissions.columns.status' |
+                            transloco }}</th>
+                        <td mat-cell *matCellDef="let row">
+                            <span class="status" [class.pending]="row.status === 'PENDING'"
+                                [class.approved]="row.status === 'APPROVED'"
+                                [class.rejected]="row.status === 'REJECTED'">
+                                {{ getStatusLabel(row.status) | transloco }}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef>{{ 'common.actions' | transloco }}</th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="actions-cell">
+                                <button mat-icon-button type="button" [disabled]="!canMutate(row)" (click)="onEdit(row)"
+                                    [attr.aria-label]="'shell.merchant.productSubmissions.actions.edit' | transloco">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" color="warn"
+                                    [disabled]="!canMutate(row) || deletingSubmissionId() === row.id"
+                                    (click)="onDelete(row)"
+                                    [attr.aria-label]="'shell.merchant.productSubmissions.actions.delete' | transloco">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                </table>
+            </div>
+        </mat-card>
+
+        <mat-paginator [length]="page()!.total" [pageIndex]="currentPage() - 1" [pageSize]="pageSize()"
+            [pageSizeOptions]="[5, 10, 25]" (page)="onPageChange($event)" showFirstLastButtons
+            [attr.aria-label]="'common.pagination' | transloco"></mat-paginator>
+    </div>
+    }
+</section>

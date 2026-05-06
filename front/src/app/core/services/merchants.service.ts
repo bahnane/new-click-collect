@@ -4,11 +4,60 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   MerchantProfile,
+  ProductCategory,
   Product,
   UpdateMerchantProfilePayload,
   StoreOffersPaginatedResponse,
   StoreOffer,
 } from '../models/merchant-shop.model';
+
+export type ProductSubmissionStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface ProductSubmission {
+  id: string;
+  name: string;
+  description: string | null;
+  saleUnit: Product['saleUnit'];
+  priceInCents: number | null;
+  status: ProductSubmissionStatus;
+  rejectionReason: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  category: ProductCategory;
+  approvedProduct: Pick<Product, 'id' | 'name'> | null;
+}
+
+export interface ProductSubmissionsPaginatedResponse {
+  data: ProductSubmission[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateProductSubmissionPayload {
+  name: string;
+  description?: string;
+  saleUnit: Product['saleUnit'];
+  priceInCents?: number;
+  categoryId: string;
+}
+
+export interface UpdateProductSubmissionPayload {
+  name?: string;
+  description?: string;
+  saleUnit?: Product['saleUnit'];
+  priceInCents?: number | null;
+  categoryId?: string;
+}
+
+export interface SimilarCatalogProduct {
+  id: string;
+  name: string;
+  saleUnit: Product['saleUnit'];
+  priceInCents: number | null;
+  category: ProductCategory;
+}
 
 export interface UpdateStoreOfferPayload {
   priceInCents?: number | null;
@@ -119,6 +168,86 @@ export class MerchantsService {
       `${environment.apiUrl}/merchants/me/offers/${offerId}/toggle`,
       {},
       { withCredentials: true },
+    );
+  }
+
+  getProductCategories(): Observable<ProductCategory[]> {
+    return this.http.get<ProductCategory[]>(
+      `${environment.apiUrl}/product-categories`,
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
+  getMyProductSubmissions(
+    page: number = 1,
+    pageSize: number = 10,
+    status?: ProductSubmissionStatus,
+  ): Observable<ProductSubmissionsPaginatedResponse> {
+    const params: Record<string, string> = {
+      page: page.toString(),
+      pageSize: pageSize.toString(),
+    };
+
+    if (status) {
+      params['status'] = status;
+    }
+
+    return this.http.get<ProductSubmissionsPaginatedResponse>(
+      `${environment.apiUrl}/merchants/me/product-submissions`,
+      {
+        withCredentials: true,
+        params,
+      },
+    );
+  }
+
+  createProductSubmission(
+    payload: CreateProductSubmissionPayload,
+  ): Observable<ProductSubmission> {
+    return this.http.post<ProductSubmission>(
+      `${environment.apiUrl}/products`,
+      payload,
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
+  updateProductSubmission(
+    submissionId: string,
+    payload: UpdateProductSubmissionPayload,
+  ): Observable<ProductSubmission> {
+    return this.http.patch<ProductSubmission>(
+      `${environment.apiUrl}/merchants/me/product-submissions/${submissionId}`,
+      payload,
+      { withCredentials: true },
+    );
+  }
+
+  deleteProductSubmission(
+    submissionId: string,
+  ): Observable<{ id: string; deleted: boolean }> {
+    return this.http.delete<{ id: string; deleted: boolean }>(
+      `${environment.apiUrl}/merchants/me/product-submissions/${submissionId}`,
+      { withCredentials: true },
+    );
+  }
+
+  searchSimilarCatalogProducts(
+    label: string,
+    limit: number = 5,
+  ): Observable<SimilarCatalogProduct[]> {
+    return this.http.get<SimilarCatalogProduct[]>(
+      `${environment.apiUrl}/products/similar`,
+      {
+        withCredentials: true,
+        params: {
+          q: label,
+          limit: limit.toString(),
+        },
+      },
     );
   }
 }

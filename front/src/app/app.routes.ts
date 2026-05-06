@@ -97,6 +97,14 @@ export const routes: Routes = [
             title: 'routes.merchantStoreOffers.title',
           },
           {
+            path: 'product-submissions',
+            loadComponent: () =>
+              import('./features/merchant-space/merchant-product-submissions/merchant-product-submissions.component').then(
+                (m) => m.MerchantProductSubmissionsComponent,
+              ),
+            title: 'routes.merchantProductSubmissions.title',
+          },
+          {
             path: 'orders/:id',
             loadComponent: () =>
               import('./features/order-detail/order-detail.component').then(
