@@ -9,6 +9,9 @@ import {
   UpdateMerchantProfilePayload,
   StoreOffersPaginatedResponse,
   StoreOffer,
+  AdminMerchantsPaginatedResponse,
+  CreateMerchantInvitePayload,
+  MerchantInviteResponse,
 } from '../models/merchant-shop.model';
 
 export type ProductSubmissionStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -248,6 +251,31 @@ export class MerchantsService {
           limit: limit.toString(),
         },
       },
+    );
+  }
+
+  // ── Admin ────────────────────────────────────────────────────────────────
+
+  listAdminMerchants(
+    page = 1,
+    pageSize = 10,
+  ): Observable<AdminMerchantsPaginatedResponse> {
+    return this.http.get<AdminMerchantsPaginatedResponse>(
+      `${environment.apiUrl}/admin/merchants`,
+      {
+        withCredentials: true,
+        params: { page: page.toString(), pageSize: pageSize.toString() },
+      },
+    );
+  }
+
+  createMerchantInvite(
+    payload: CreateMerchantInvitePayload,
+  ): Observable<MerchantInviteResponse> {
+    return this.http.post<MerchantInviteResponse>(
+      `${environment.apiUrl}/admin/merchants`,
+      payload,
+      { withCredentials: true },
     );
   }
 }

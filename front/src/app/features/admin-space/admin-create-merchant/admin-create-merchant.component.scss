@@ -1,0 +1,105 @@
+.admin-create-merchant {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.page-header h2 {
+  margin: 0;
+  font: var(--mat-sys-title-large);
+}
+
+.page-header p {
+  margin: 0.25rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+
+  span {
+    flex: 1;
+  }
+}
+
+.form-stack {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.fields-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+.fields-grid mat-form-field {
+  width: 100%;
+}
+
+.fields-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+/* Pickup hours */
+.pickup-error {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  font: var(--mat-sys-body-small);
+}
+
+.hours-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.day-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.day-row mat-checkbox {
+  min-inline-size: 8rem;
+}
+
+.hour-selects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.hour-selects mat-form-field {
+  inline-size: 7rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 600px) {
+  .fields-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

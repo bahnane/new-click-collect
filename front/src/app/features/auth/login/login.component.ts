@@ -65,6 +65,13 @@ export class LoginComponent {
     this.authService.login(this.form.getRawValue()).subscribe({
       next: (response) => {
         this.isLoading.set(false);
+
+        // Admins always go to their dedicated space — never to a merchant shop.
+        if (response.user.role === 'ADMIN') {
+          this.router.navigate(getDefaultAuthenticatedRoute(response.user));
+          return;
+        }
+
         const merchantSlug = resolvePostAuthMerchantSlug(
           this.route.snapshot.queryParamMap.get('merchantSlug'),
         );

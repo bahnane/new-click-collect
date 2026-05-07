@@ -128,6 +128,29 @@ export const routes: Routes = [
             (m) => m.AdminSpaceComponent,
           ),
         title: 'routes.adminSpace.title',
+        children: [
+          {
+            path: '',
+            redirectTo: 'merchants',
+            pathMatch: 'full',
+          },
+          {
+            path: 'merchants',
+            loadComponent: () =>
+              import('./features/admin-space/admin-merchants/admin-merchants.component').then(
+                (m) => m.AdminMerchantsComponent,
+              ),
+            title: 'routes.adminMerchants.title',
+          },
+          {
+            path: 'merchants/invite',
+            loadComponent: () =>
+              import('./features/admin-space/admin-create-merchant/admin-create-merchant.component').then(
+                (m) => m.AdminCreateMerchantComponent,
+              ),
+            title: 'routes.adminCreateMerchant.title',
+          },
+        ],
       },
     ],
   },

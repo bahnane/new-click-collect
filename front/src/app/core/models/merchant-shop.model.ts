@@ -90,6 +90,53 @@ export interface StoreOffer {
   isOverridden: boolean;
 }
 
+export interface AdminMerchantUser {
+  id: string;
+  email: string;
+  status: 'INVITED' | 'ACTIVE' | 'SUSPENDED';
+  lastLoginAt: string | null;
+}
+
+export interface AdminMerchantEntry {
+  id: string;
+  slug: string;
+  storeName: string;
+  businessType: 'HANOUTE' | 'PATISSERIE';
+  description: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  zipCode: string | null;
+  isActive: boolean;
+  user: AdminMerchantUser;
+  openingHours: MerchantHours[];
+  pickupHours: MerchantHours[];
+}
+
+export interface AdminMerchantsPaginatedResponse {
+  data: AdminMerchantEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateMerchantInvitePayload {
+  email: string;
+  storeName: string;
+  businessType: 'HANOUTE' | 'PATISSERIE';
+  phone?: string;
+  address?: string;
+  openingHours?: MerchantHours[];
+  pickupHours: MerchantHours[];
+}
+
+export interface MerchantInviteResponse {
+  id: string;
+  email: string;
+  status: string;
+  inviteExpiresAt: string;
+}
+
 export interface StoreOffersPaginatedResponse {
   data: StoreOffer[];
   total: number;

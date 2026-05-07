@@ -30,6 +30,12 @@
     "adminSpace": {
       "title": "مساحة الإدارة"
     },
+    "adminMerchants": {
+      "title": "التجار"
+    },
+    "adminCreateMerchant": {
+      "title": "دعوة تاجر"
+    },
     "activateInvite": {
       "title": "تفعيل حساب التاجر"
     },
@@ -508,7 +514,62 @@
     },
     "adminSpace": {
       "title": "مساحة الإدارة",
-      "subtitle": "هذه المنطقة مخصصة لحسابات المدراء."
+      "eyebrow": "إدارة",
+      "navigationLabel": "تصفح الإدارة",
+      "sections": {
+        "merchants": "التجار"
+      },
+      "merchants": {
+        "title": "قائمة التجار",
+        "subtitle": "إدارة التجار المسجلين على المنصة.",
+        "loading": "جاري تحميل التجار...",
+        "empty": {
+          "title": "لا يوجد تجار حالياً",
+          "message": "ادعو أول تاجر للانضمام إلى المنصة."
+        },
+        "columns": {
+          "storeName": "المتجر",
+          "email": "البريد",
+          "businessType": "النوع",
+          "status": "الحالة",
+          "isActive": "نشط"
+        },
+        "actions": {
+          "invite": "دعوة تاجر",
+          "viewShop": "عرض المتجر"
+        },
+        "userStatus": {
+          "active": "نشط",
+          "invited": "مدعو",
+          "suspended": "موقوف"
+        },
+        "businessType": {
+          "hanoute": "بقالة",
+          "patisserie": "حلويات"
+        }
+      },
+      "createMerchant": {
+        "title": "دعوة تاجر",
+        "subtitle": "أرسل دعوة بالبريد الإلكتروني لإنشاء حساب تاجر.",
+        "sections": {
+          "info": "معلومات عامة",
+          "pickupHours": "أوقات الاستلام"
+        },
+        "fields": {
+          "email": "البريد الإلكتروني",
+          "storeName": "اسم المتجر",
+          "businessType": "نوع النشاط التجاري",
+          "phone": "الهاتف (اختياري)",
+          "address": "العنوان (اختياري)",
+          "startHour": "وقت الفتح",
+          "endHour": "وقت الإغلاق"
+        },
+        "pickupAtLeastOne": "مطلوب تحديد وقت استلام واحد على الأقل.",
+        "actions": {
+          "submit": "إرسال الدعوة",
+          "back": "العودة إلى القائمة"
+        }
+      }
     },
     "merchantShop": {
       "title": "المتجر"

@@ -30,6 +30,12 @@
     "adminSpace": {
       "title": "Espace admin"
     },
+    "adminMerchants": {
+      "title": "Marchands"
+    },
+    "adminCreateMerchant": {
+      "title": "Inviter un marchand"
+    },
     "activateInvite": {
       "title": "Activation du compte marchand"
     },
@@ -508,7 +514,62 @@
     },
     "adminSpace": {
       "title": "Espace admin",
-      "subtitle": "Cette zone est réservée aux comptes administrateurs."
+      "eyebrow": "Administration",
+      "navigationLabel": "Navigation admin",
+      "sections": {
+        "merchants": "Marchands"
+      },
+      "merchants": {
+        "title": "Liste des marchands",
+        "subtitle": "Gérez les marchands enregistrés sur la plateforme.",
+        "loading": "Chargement des marchands...",
+        "empty": {
+          "title": "Aucun marchand pour le moment",
+          "message": "Invitez le premier marchand à rejoindre la plateforme."
+        },
+        "columns": {
+          "storeName": "Boutique",
+          "email": "Email",
+          "businessType": "Type",
+          "status": "Statut",
+          "isActive": "Actif"
+        },
+        "actions": {
+          "invite": "Inviter un marchand",
+          "viewShop": "Voir la boutique"
+        },
+        "userStatus": {
+          "active": "Actif",
+          "invited": "Invité",
+          "suspended": "Suspendu"
+        },
+        "businessType": {
+          "hanoute": "Épicerie",
+          "patisserie": "Pâtisserie"
+        }
+      },
+      "createMerchant": {
+        "title": "Inviter un marchand",
+        "subtitle": "Envoyez une invitation par email pour créer un compte marchand.",
+        "sections": {
+          "info": "Informations générales",
+          "pickupHours": "Créneaux de retrait"
+        },
+        "fields": {
+          "email": "Email",
+          "storeName": "Nom de la boutique",
+          "businessType": "Type de commerce",
+          "phone": "Téléphone (optionnel)",
+          "address": "Adresse (optionnel)",
+          "startHour": "Ouverture",
+          "endHour": "Fermeture"
+        },
+        "pickupAtLeastOne": "Au moins un créneau de retrait est requis.",
+        "actions": {
+          "submit": "Envoyer l'invitation",
+          "back": "Retour à la liste"
+        }
+      }
     },
     "merchantShop": {
       "title": "Boutique"
