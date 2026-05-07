@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, ProductSubmissionStatus } from '@prisma/client';
+import { compareTwoStrings } from 'string-similarity';
 import { ErrorCodes } from '../common/errors/api-error-codes';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductCategoryDto } from './dto/create-product-category.dto';
@@ -420,20 +421,21 @@ export class ProductsService {
   }
 
   async listSimilarCatalogProducts(query: string, limit = 5) {
-    const normalized = query.trim();
+    const normalized = query.trim().toLowerCase();
     if (normalized.length < 2) {
       return [];
     }
 
-    return this.prisma.product.findMany({
+    const safeLimit = Math.min(Math.max(limit, 1), 10);
+
+    // Keep strict contains matches first so obvious results are never missed.
+    const strictMatches = await this.prisma.product.findMany({
       where: {
         isActive: true,
         name: {
-          contains: normalized,
+          contains: query.trim(),
         },
       },
-      orderBy: { name: 'asc' },
-      take: Math.min(limit, 10),
       select: {
         id: true,
         name: true,
@@ -447,7 +449,91 @@ export class ProductsService {
           },
         },
       },
+      take: safeLimit,
     });
+
+    // Fetch a broad pool for fuzzy ranking.
+    const allProducts = await this.prisma.product.findMany({
+      where: {
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        saleUnit: true,
+        priceInCents: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+      take: 3000,
+    });
+
+    if (allProducts.length === 0) {
+      return [];
+    }
+
+    const strictIds = new Set(strictMatches.map((product) => product.id));
+
+    // Calculate similarity scores for each product name.
+    const scoredProducts = allProducts.map((product) => {
+      const productNameLower = product.name.toLowerCase();
+      const similarity = this.calculateSimilarity(normalized, productNameLower);
+      return {
+        ...product,
+        isStrictMatch: strictIds.has(product.id),
+        similarityScore: similarity,
+      };
+    });
+
+    const MIN_SIMILARITY_THRESHOLD = 0.12;
+    const filtered = scoredProducts
+      .filter(
+        (p) => p.isStrictMatch || p.similarityScore >= MIN_SIMILARITY_THRESHOLD,
+      )
+      .sort((a, b) => {
+        if (a.isStrictMatch !== b.isStrictMatch) {
+          return a.isStrictMatch ? -1 : 1;
+        }
+
+        if (b.similarityScore !== a.similarityScore) {
+          return b.similarityScore - a.similarityScore;
+        }
+
+        return a.name.localeCompare(b.name);
+      })
+      .slice(0, safeLimit);
+
+    // Remove ranking metadata from API response.
+    return filtered.map((p) => ({
+      id: p.id,
+      name: p.name,
+      saleUnit: p.saleUnit,
+      priceInCents: p.priceInCents,
+      category: p.category,
+    }));
+  }
+
+  private calculateSimilarity(query: string, target: string): number {
+    if (target.includes(query)) {
+      return 1;
+    }
+
+    const queryTokens = query.split(/\s+/).filter(Boolean);
+    const targetTokens = target.split(/\s+/).filter(Boolean);
+    const tokenOverlap = queryTokens.some((queryToken) =>
+      targetTokens.some(
+        (targetToken) =>
+          targetToken.includes(queryToken) || queryToken.includes(targetToken),
+      ),
+    );
+
+    const fuzzy = compareTwoStrings(query, target);
+    return tokenOverlap ? Math.max(fuzzy, 0.55) : fuzzy;
   }
 
   async updateMyProductSubmission(
