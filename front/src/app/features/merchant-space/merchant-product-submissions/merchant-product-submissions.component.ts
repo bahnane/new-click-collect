@@ -40,6 +40,10 @@ import {
   UpdateProductSubmissionPayload,
 } from '../../../core/services/merchants.service';
 import { DeleteConfirmationDialogComponent } from '../../../shared/dialogs/delete-confirmation-dialog/delete-confirmation-dialog.component';
+import {
+  CreateOfferFromSuggestionDialogComponent,
+  CreateOfferFromSuggestionDialogResult,
+} from '../../../shared/dialogs/create-offer-from-suggestion-dialog/create-offer-from-suggestion-dialog.component';
 
 @Component({
   selector: 'app-merchant-product-submissions',
@@ -69,6 +73,7 @@ export class MerchantProductSubmissionsComponent {
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly deletingSubmissionId = signal<string | null>(null);
+  readonly creatingOfferForId = signal<string | null>(null);
   readonly errorKey = signal<string | null>(null);
   readonly actionErrorKey = signal<string | null>(null);
   readonly successKey = signal<string | null>(null);
@@ -330,6 +335,47 @@ export class MerchantProductSubmissionsComponent {
         },
       });
     });
+  }
+
+  onCreateOfferFromSuggestion(product: SimilarCatalogProduct): void {
+    const dialogRef = this.dialog.open(
+      CreateOfferFromSuggestionDialogComponent,
+      {
+        width: '400px',
+        data: { product },
+      },
+    );
+
+    dialogRef
+      .afterClosed()
+      .subscribe(
+        (result: CreateOfferFromSuggestionDialogResult | undefined) => {
+          if (!result) {
+            return;
+          }
+
+          this.creatingOfferForId.set(product.id);
+          this.actionErrorKey.set(null);
+
+          this.merchantsService
+            .createOffer({
+              productId: product.id,
+              ...result,
+            })
+            .subscribe({
+              next: () => {
+                this.creatingOfferForId.set(null);
+                this.successKey.set(
+                  'shell.merchant.productSubmissions.messages.offerCreated',
+                );
+              },
+              error: (error) => {
+                this.creatingOfferForId.set(null);
+                this.actionErrorKey.set(this.mapApiError(error));
+              },
+            });
+        },
+      );
   }
 
   clearErrorKey(): void {

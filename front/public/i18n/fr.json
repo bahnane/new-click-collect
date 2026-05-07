@@ -479,7 +479,8 @@
           "new": "Proposer un nouveau produit catalogue",
           "submit": "Envoyer la proposition",
           "edit": "Modifier",
-          "delete": "Supprimer"
+          "delete": "Supprimer",
+          "createOffer": "Créer une offre"
         },
         "editor": {
           "createTitle": "Nouvelle proposition produit",
@@ -488,10 +489,16 @@
         "similar": {
           "title": "Produits catalogues similaires"
         },
+        "createOfferDialog": {
+          "title": "Créer une offre",
+          "priceHint": "Laissez vide pour reprendre le prix du catalogue.",
+          "confirm": "Créer l'offre"
+        },
         "messages": {
           "created": "Proposition envoyée avec succès.",
           "updated": "Proposition mise à jour avec succès.",
-          "deleted": "Proposition supprimée avec succès."
+          "deleted": "Proposition supprimée avec succès.",
+          "offerCreated": "Offre créée avec succès à partir de la suggestion."
         },
         "deleteConfirm": {
           "title": "Supprimer la proposition",

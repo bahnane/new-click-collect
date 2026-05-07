@@ -63,9 +63,28 @@
 
 .similar-products ul {
   margin: 0;
-  padding-inline-start: 1rem;
+  padding-inline-start: 0;
+  list-style: none;
   display: grid;
-  gap: 0.35rem;
+  gap: 0.5rem;
+}
+
+.similar-products li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.similar-product-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.similar-product-info small {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.8rem;
 }
 
 .similar-products li small {

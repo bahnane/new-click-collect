@@ -1,0 +1,43 @@
+<div class="dialog-container">
+    <h2 mat-dialog-title>
+        {{ 'shell.merchant.productSubmissions.createOfferDialog.title' | transloco }}
+    </h2>
+
+    <mat-dialog-content>
+        <div class="product-header">
+            <p class="product-name">{{ data.product.name }}</p>
+            <p class="product-meta">
+                {{ data.product.category.name }} / {{ getSaleUnitLabel(data.product.saleUnit) | transloco }}
+            </p>
+        </div>
+
+        <form class="offer-form" [formGroup]="form">
+            <mat-form-field appearance="outline">
+                <mat-label>{{ 'shell.merchant.storeOffers.create.fields.price' | transloco }}</mat-label>
+                <input matInput type="text" inputmode="decimal" formControlName="price"
+                    [placeholder]="'shell.merchant.storeOffers.create.fields.pricePlaceholder' | transloco" />
+                <mat-hint>{{ 'shell.merchant.productSubmissions.createOfferDialog.priceHint' | transloco }}</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>{{ 'shell.merchant.storeOffers.create.fields.minQty' | transloco }}</mat-label>
+                <input matInput type="number" min="0.001" step="0.001" formControlName="minOrderQty" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>{{ 'shell.merchant.storeOffers.create.fields.stepQty' | transloco }}</mat-label>
+                <input matInput type="number" min="0.001" step="0.001" formControlName="stepQty" />
+            </mat-form-field>
+        </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions>
+        <button mat-stroked-button type="button" (click)="onCancel()">
+            {{ 'common.cancel' | transloco }}
+        </button>
+        <button mat-flat-button color="primary" type="button" [disabled]="form.invalid" (click)="onConfirm()">
+            <mat-icon aria-hidden="true">add_shopping_cart</mat-icon>
+            {{ 'shell.merchant.productSubmissions.createOfferDialog.confirm' | transloco }}
+        </button>
+    </mat-dialog-actions>
+</div>

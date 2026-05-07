@@ -65,10 +65,23 @@
                     <ul>
                         @for (product of similarProducts(); track product.id) {
                         <li>
-                            <span>{{ product.name }}</span>
-                            <small>
-                                {{ product.category.name }} / {{ getSaleUnitLabel(product.saleUnit) | transloco }}
-                            </small>
+                            <div class="similar-product-info">
+                                <span>{{ product.name }}</span>
+                                <small>
+                                    {{ product.category.name }} / {{ getSaleUnitLabel(product.saleUnit) | transloco }}
+                                </small>
+                            </div>
+                            <button mat-stroked-button color="primary" type="button"
+                                [disabled]="creatingOfferForId() === product.id"
+                                (click)="onCreateOfferFromSuggestion(product)"
+                                [attr.aria-label]="'shell.merchant.productSubmissions.actions.createOffer' | transloco">
+                                @if (creatingOfferForId() === product.id) {
+                                <mat-spinner diameter="14"></mat-spinner>
+                                } @else {
+                                <mat-icon aria-hidden="true">add_shopping_cart</mat-icon>
+                                }
+                                {{ 'shell.merchant.productSubmissions.actions.createOffer' | transloco }}
+                            </button>
                         </li>
                         }
                     </ul>
