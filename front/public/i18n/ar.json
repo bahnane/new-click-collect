@@ -39,6 +39,9 @@
     "adminProducts": {
       "title": "كتالوج المنتجات"
     },
+    "adminProductSubmissions": {
+      "title": "طلبات المنتجات"
+    },
     "activateInvite": {
       "title": "تفعيل حساب التاجر"
     },
@@ -521,7 +524,8 @@
       "navigationLabel": "تصفح الإدارة",
       "sections": {
         "merchants": "التجار",
-        "products": "المنتجات"
+        "products": "المنتجات",
+        "productSubmissions": "الطلبات"
       },
       "merchants": {
         "title": "قائمة التجار",
@@ -618,6 +622,70 @@
           "updated": "تم تحديث المنتج بنجاح.",
           "activated": "تم تفعيل المنتج بنجاح.",
           "deactivated": "تم تعطيل المنتج بنجاح."
+        }
+      },
+      "productSubmissions": {
+        "title": "طلبات المنتجات",
+        "subtitle": "راجع مقترحات التجار، عدّلها قبل القبول، ووافق على عدة طلبات دفعة واحدة.",
+        "loading": "جاري تحميل الطلبات...",
+        "empty": {
+          "title": "لا توجد طلبات",
+          "message": "لا توجد طلبات مطابقة للفلتر الحالي."
+        },
+        "filters": {
+          "status": "تصفية حسب الحالة",
+          "all": "الكل",
+          "pending": "قيد الانتظار",
+          "approved": "مقبولة",
+          "rejected": "مرفوضة"
+        },
+        "columns": {
+          "name": "المنتج",
+          "merchant": "التاجر",
+          "category": "الفئة",
+          "saleUnit": "الوحدة",
+          "price": "السعر",
+          "description": "الوصف",
+          "status": "الحالة",
+          "rejectionReason": "سبب الرفض"
+        },
+        "fields": {
+          "name": "اسم المنتج",
+          "category": "الفئة",
+          "saleUnit": "وحدة البيع",
+          "price": "السعر (دج)",
+          "description": "الوصف",
+          "rejectionReason": "سبب الرفض",
+          "rejectionHint": "3 أحرف على الأقل لرفض الطلب."
+        },
+        "status": {
+          "pending": "قيد الانتظار",
+          "approved": "مقبولة",
+          "rejected": "مرفوضة"
+        },
+        "actions": {
+          "review": "مراجعة",
+          "approve": "قبول",
+          "reject": "رفض",
+          "approveWithEdits": "قبول مع التعديل",
+          "selectAllPending": "تحديد الكل (قيد الانتظار)",
+          "approveSelected": "قبول المحدد",
+          "rejectSelected": "رفض المحدد"
+        },
+        "editor": {
+          "title": "مراجعة الطلب"
+        },
+        "messages": {
+          "approved": "تم قبول الطلب.",
+          "rejected": "تم رفض الطلب.",
+          "batchApprovedOne": "تم قبول طلب واحد.",
+          "batchApprovedMany": "تم قبول الطلبات بنجاح.",
+          "batchRejectedOne": "تم رفض طلب واحد.",
+          "batchRejectedMany": "تم رفض الطلبات بنجاح."
+        },
+        "errors": {
+          "rejectionReasonRequired": "سبب الرفض يجب أن يحتوي على 3 أحرف على الأقل.",
+          "rejectionReasonRequiredForSelected": "يرجى إدخال سبب رفض (3 أحرف على الأقل) لكل طلب محدد."
         }
       }
     },

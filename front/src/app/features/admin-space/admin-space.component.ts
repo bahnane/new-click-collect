@@ -39,6 +39,15 @@ import { TranslocoPipe } from '@jsverse/transloco';
           >
             {{ 'shell.adminSpace.sections.products' | transloco }}
           </a>
+          <a
+            routerLink="product-submissions"
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            mat-stroked-button
+            type="button"
+          >
+            {{ 'shell.adminSpace.sections.productSubmissions' | transloco }}
+          </a>
         </nav>
       </header>
 

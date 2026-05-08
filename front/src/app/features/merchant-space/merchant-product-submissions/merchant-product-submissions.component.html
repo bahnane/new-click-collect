@@ -179,14 +179,15 @@
                                 [class.approved]="submission.status === 'APPROVED'"
                                 [class.rejected]="submission.status === 'REJECTED'">
                                 {{ getStatusLabel(submission.status) | transloco }}
+                                @if (submission.status === 'REJECTED' && submission.rejectionReason) {
+                                <button mat-icon-button type="button" class="status-reason-info"
+                                    [matTooltip]="submission.rejectionReason"
+                                    [attr.aria-label]="'shell.merchant.productSubmissions.columns.rejectionReason' | transloco">
+                                    <mat-icon>info</mat-icon>
+                                </button>
+                                }
                             </dd>
                         </div>
-                        @if (submission.rejectionReason) {
-                        <div>
-                            <dt>{{ 'shell.merchant.productSubmissions.columns.rejectionReason' | transloco }}</dt>
-                            <dd>{{ submission.rejectionReason }}</dd>
-                        </div>
-                        }
                     </dl>
                 </mat-card-content>
                 <mat-card-actions>
@@ -241,6 +242,13 @@
                                 [class.approved]="row.status === 'APPROVED'"
                                 [class.rejected]="row.status === 'REJECTED'">
                                 {{ getStatusLabel(row.status) | transloco }}
+                                @if (row.status === 'REJECTED' && row.rejectionReason) {
+                                <button mat-icon-button type="button" class="status-reason-info"
+                                    [matTooltip]="row.rejectionReason"
+                                    [attr.aria-label]="'shell.merchant.productSubmissions.columns.rejectionReason' | transloco">
+                                    <mat-icon>info</mat-icon>
+                                </button>
+                                }
                             </span>
                         </td>
                     </ng-container>

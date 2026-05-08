@@ -38,6 +38,71 @@ export interface ProductSubmissionsPaginatedResponse {
   pageSize: number;
 }
 
+export interface AdminProductSubmission {
+  id: string;
+  merchantId: string;
+  name: string;
+  description: string | null;
+  saleUnit: Product['saleUnit'];
+  priceInCents: number | null;
+  status: ProductSubmissionStatus;
+  rejectionReason: string | null;
+  reviewedAt: string | null;
+  reviewedByUserId: string | null;
+  approvedProductId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  merchant: {
+    id: string;
+    storeName: string;
+    slug: string;
+  };
+  category: ProductCategory;
+  reviewedByUser: {
+    id: string;
+    email: string;
+  } | null;
+  approvedProduct: {
+    id: string;
+    name: string;
+    isActive: boolean;
+  } | null;
+}
+
+export interface AdminProductSubmissionsPaginatedResponse {
+  data: AdminProductSubmission[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface ReviewAdminProductSubmissionPayload {
+  status: ProductSubmissionStatus;
+  rejectionReason?: string;
+  name?: string;
+  description?: string;
+  saleUnit?: Product['saleUnit'];
+  priceInCents?: number | null;
+  categoryId?: string;
+}
+
+export interface ApproveAdminProductSubmissionBatchItem {
+  id: string;
+  name?: string;
+  description?: string;
+  saleUnit?: Product['saleUnit'];
+  priceInCents?: number | null;
+  categoryId?: string;
+}
+
+export interface ApproveAdminProductSubmissionsBatchResponse {
+  count: number;
+  data: Array<{
+    submissionId: string;
+    productId: string;
+  }>;
+}
+
 export interface CreateProductSubmissionPayload {
   name: string;
   description?: string;
@@ -381,6 +446,49 @@ export class MerchantsService {
     return this.http.patch<AdminCatalogProduct>(
       `${environment.apiUrl}/admin/products/${productId}/toggle`,
       {},
+      { withCredentials: true },
+    );
+  }
+
+  listAdminProductSubmissions(
+    page = 1,
+    pageSize = 10,
+    status?: ProductSubmissionStatus,
+  ): Observable<AdminProductSubmissionsPaginatedResponse> {
+    const params: Record<string, string> = {
+      page: page.toString(),
+      pageSize: pageSize.toString(),
+    };
+    if (status) {
+      params['status'] = status;
+    }
+
+    return this.http.get<AdminProductSubmissionsPaginatedResponse>(
+      `${environment.apiUrl}/admin/product-submissions`,
+      {
+        withCredentials: true,
+        params,
+      },
+    );
+  }
+
+  reviewAdminProductSubmission(
+    submissionId: string,
+    payload: ReviewAdminProductSubmissionPayload,
+  ): Observable<AdminProductSubmission> {
+    return this.http.patch<AdminProductSubmission>(
+      `${environment.apiUrl}/admin/product-submissions/${submissionId}`,
+      payload,
+      { withCredentials: true },
+    );
+  }
+
+  approveAdminProductSubmissionsBatch(
+    items: ApproveAdminProductSubmissionBatchItem[],
+  ): Observable<ApproveAdminProductSubmissionsBatchResponse> {
+    return this.http.post<ApproveAdminProductSubmissionsBatchResponse>(
+      `${environment.apiUrl}/admin/product-submissions/approve-batch`,
+      { items },
       { withCredentials: true },
     );
   }

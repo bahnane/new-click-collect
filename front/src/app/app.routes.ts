@@ -158,6 +158,14 @@ export const routes: Routes = [
               ),
             title: 'routes.adminProducts.title',
           },
+          {
+            path: 'product-submissions',
+            loadComponent: () =>
+              import('./features/admin-space/admin-product-submissions/admin-product-submissions.component').then(
+                (m) => m.AdminProductSubmissionsComponent,
+              ),
+            title: 'routes.adminProductSubmissions.title',
+          },
         ],
       },
     ],

@@ -129,7 +129,30 @@
 }
 
 .status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   font-weight: 600;
+}
+
+.status-reason-info {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  min-inline-size: 1.25rem;
+  min-block-size: 1.25rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  vertical-align: middle;
+}
+
+.status-reason-info .mat-icon {
+  font-size: 1rem;
+  inline-size: 1rem;
+  block-size: 1rem;
+  line-height: 1;
 }
 
 .status.pending {

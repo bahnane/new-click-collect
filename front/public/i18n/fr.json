@@ -39,6 +39,9 @@
     "adminProducts": {
       "title": "Catalogue produits"
     },
+    "adminProductSubmissions": {
+      "title": "Soumissions produits"
+    },
     "activateInvite": {
       "title": "Activation du compte marchand"
     },
@@ -521,7 +524,8 @@
       "navigationLabel": "Navigation admin",
       "sections": {
         "merchants": "Marchands",
-        "products": "Produits"
+        "products": "Produits",
+        "productSubmissions": "Soumissions"
       },
       "merchants": {
         "title": "Liste des marchands",
@@ -618,6 +622,70 @@
           "updated": "Produit mis à jour avec succès.",
           "activated": "Produit activé avec succès.",
           "deactivated": "Produit désactivé avec succès."
+        }
+      },
+      "productSubmissions": {
+        "title": "Soumissions de produits",
+        "subtitle": "Révisez les propositions des marchands, modifiez avant validation et approuvez en lot.",
+        "loading": "Chargement des soumissions...",
+        "empty": {
+          "title": "Aucune soumission",
+          "message": "Aucune soumission ne correspond au filtre courant."
+        },
+        "filters": {
+          "status": "Filtrer par statut",
+          "all": "Toutes",
+          "pending": "En attente",
+          "approved": "Approuvées",
+          "rejected": "Refusées"
+        },
+        "columns": {
+          "name": "Produit",
+          "merchant": "Marchand",
+          "category": "Catégorie",
+          "saleUnit": "Unité",
+          "price": "Prix",
+          "description": "Description",
+          "status": "Statut",
+          "rejectionReason": "Motif de refus"
+        },
+        "fields": {
+          "name": "Nom produit",
+          "category": "Catégorie",
+          "saleUnit": "Unité de vente",
+          "price": "Prix (DZD)",
+          "description": "Description",
+          "rejectionReason": "Motif de refus",
+          "rejectionHint": "Minimum 3 caractères pour refuser une soumission."
+        },
+        "status": {
+          "pending": "En attente",
+          "approved": "Approuvée",
+          "rejected": "Refusée"
+        },
+        "actions": {
+          "review": "Réviser",
+          "approve": "Approuver",
+          "reject": "Refuser",
+          "approveWithEdits": "Approuver avec modifications",
+          "selectAllPending": "Sélectionner tout (en attente)",
+          "approveSelected": "Approuver la sélection",
+          "rejectSelected": "Refuser la sélection"
+        },
+        "editor": {
+          "title": "Révision de la soumission"
+        },
+        "messages": {
+          "approved": "Soumission approuvée.",
+          "rejected": "Soumission refusée.",
+          "batchApprovedOne": "1 soumission approuvée.",
+          "batchApprovedMany": "Soumissions approuvées avec succès.",
+          "batchRejectedOne": "1 soumission refusée.",
+          "batchRejectedMany": "Soumissions refusées avec succès."
+        },
+        "errors": {
+          "rejectionReasonRequired": "Le motif de refus doit contenir au moins 3 caractères.",
+          "rejectionReasonRequiredForSelected": "Renseignez un motif de refus (3 caractères minimum) pour chaque soumission sélectionnée."
         }
       }
     },

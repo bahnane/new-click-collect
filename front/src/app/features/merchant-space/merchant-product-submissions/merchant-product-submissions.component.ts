@@ -16,6 +16,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
   catchError,
@@ -56,6 +57,7 @@ import {
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatTableModule,
+    MatTooltipModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
