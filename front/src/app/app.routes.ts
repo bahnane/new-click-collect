@@ -150,6 +150,14 @@ export const routes: Routes = [
               ),
             title: 'routes.adminCreateMerchant.title',
           },
+          {
+            path: 'products',
+            loadComponent: () =>
+              import('./features/admin-space/admin-products/admin-products.component').then(
+                (m) => m.AdminProductsComponent,
+              ),
+            title: 'routes.adminProducts.title',
+          },
         ],
       },
     ],

@@ -24,10 +24,20 @@ import { TranslocoPipe } from '@jsverse/transloco';
           <a
             routerLink="merchants"
             routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }"
             mat-stroked-button
             type="button"
           >
             {{ 'shell.adminSpace.sections.merchants' | transloco }}
+          </a>
+          <a
+            routerLink="products"
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            mat-stroked-button
+            type="button"
+          >
+            {{ 'shell.adminSpace.sections.products' | transloco }}
           </a>
         </nav>
       </header>

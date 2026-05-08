@@ -1,0 +1,276 @@
+<section class="admin-products" aria-labelledby="admin-products-title">
+    <header class="page-header">
+        <div>
+            <h2 id="admin-products-title">
+                {{ 'shell.adminSpace.products.title' | transloco }}
+            </h2>
+            <p>{{ 'shell.adminSpace.products.subtitle' | transloco }}</p>
+        </div>
+        <button mat-flat-button color="primary" type="button" (click)="onOpenCreate()">
+            <mat-icon aria-hidden="true">add</mat-icon>
+            {{ 'shell.adminSpace.products.actions.new' | transloco }}
+        </button>
+    </header>
+
+    @if (errorKey(); as currentErrorKey) {
+    <div class="error-banner" role="alert" aria-live="polite">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <span>{{ currentErrorKey | transloco }}</span>
+        <button mat-icon-button type="button" (click)="clearErrorKey()" [attr.aria-label]="'common.close' | transloco">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+    }
+
+    @if (actionErrorKey(); as currentActionErrorKey) {
+    <div class="error-banner" role="alert" aria-live="polite">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <span>{{ currentActionErrorKey | transloco }}</span>
+        <button mat-icon-button type="button" (click)="clearActionErrorKey()"
+            [attr.aria-label]="'common.close' | transloco">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+    }
+
+    @if (successKey(); as currentSuccessKey) {
+    <div class="success-banner" role="status" aria-live="polite">
+        <mat-icon aria-hidden="true">check_circle</mat-icon>
+        <span>{{ currentSuccessKey | transloco }}</span>
+    </div>
+    }
+
+    @if (editorOpen()) {
+    <mat-card class="editor-card">
+        <mat-card-header>
+            <mat-card-title>
+                {{
+                isEditMode()
+                ? ('shell.adminSpace.products.editor.editTitle' | transloco)
+                : ('shell.adminSpace.products.editor.createTitle' | transloco)
+                }}
+            </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+            <form class="editor-form" [formGroup]="form" (ngSubmit)="onSubmitForm()">
+                <mat-form-field appearance="outline">
+                    <mat-label>{{ 'shell.adminSpace.products.fields.name' | transloco }}</mat-label>
+                    <input matInput type="text" formControlName="name" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>{{ 'shell.adminSpace.products.fields.category' | transloco }}</mat-label>
+                    <mat-select formControlName="categoryId">
+                        @for (category of categories(); track category.id) {
+                        <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>{{ 'shell.adminSpace.products.fields.saleUnit' | transloco }}</mat-label>
+                    <mat-select formControlName="saleUnit">
+                        <mat-option value="KG">{{ 'shop.saleUnit.kg' | transloco }}</mat-option>
+                        <mat-option value="G">{{ 'shop.saleUnit.g' | transloco }}</mat-option>
+                        <mat-option value="LITER">{{ 'shop.saleUnit.liter' | transloco }}</mat-option>
+                        <mat-option value="UNIT">{{ 'shop.saleUnit.unit' | transloco }}</mat-option>
+                        <mat-option value="PORTION">{{ 'shop.saleUnit.portion' | transloco }}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>{{ 'shell.adminSpace.products.fields.price' | transloco }}</mat-label>
+                    <input matInput type="text" inputmode="decimal" formControlName="price" />
+                    <mat-hint>{{ 'shell.adminSpace.products.fields.priceHint' | transloco }}</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'shell.adminSpace.products.fields.description' | transloco }}</mat-label>
+                    <textarea matInput rows="3" formControlName="description"></textarea>
+                </mat-form-field>
+
+                <div class="editor-actions">
+                    <button mat-stroked-button type="button" (click)="onCancelEditor()">
+                        {{ 'common.cancel' | transloco }}
+                    </button>
+                    <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+                        @if (saving()) {
+                        <mat-spinner diameter="18"></mat-spinner>
+                        }
+                        {{
+                        isEditMode()
+                        ? ('common.save' | transloco)
+                        : ('shell.adminSpace.products.actions.create' | transloco)
+                        }}
+                    </button>
+                </div>
+            </form>
+        </mat-card-content>
+    </mat-card>
+    }
+
+    @if (loading() && !page()) {
+    <div class="loading-container" aria-live="polite">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>{{ 'shell.adminSpace.products.loading' | transloco }}</p>
+    </div>
+    }
+
+    @if (isEmpty()) {
+    <div class="empty-state" role="status" aria-live="polite">
+        <mat-icon aria-hidden="true">inventory_2</mat-icon>
+        <h3>{{ 'shell.adminSpace.products.empty.title' | transloco }}</h3>
+        <p>{{ 'shell.adminSpace.products.empty.message' | transloco }}</p>
+        <button mat-flat-button color="primary" type="button" (click)="onOpenCreate()">
+            <mat-icon aria-hidden="true">add</mat-icon>
+            {{ 'shell.adminSpace.products.actions.new' | transloco }}
+        </button>
+    </div>
+    }
+
+    @if (page() && !isEmpty()) {
+    <div class="list-stack">
+        <div class="mobile-cards">
+            @for (product of page()!.data; track product.id) {
+            <mat-card class="product-card">
+                <mat-card-header>
+                    <mat-card-title>{{ product.name }}</mat-card-title>
+                    <mat-card-subtitle>{{ product.category.name }}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                    <dl>
+                        <div>
+                            <dt>{{ 'shell.adminSpace.products.columns.saleUnit' | transloco }}</dt>
+                            <dd>{{ getSaleUnitLabel(product.saleUnit) | transloco }}</dd>
+                        </div>
+                        <div>
+                            <dt>{{ 'shell.adminSpace.products.columns.price' | transloco }}</dt>
+                            <dd>{{ formatPrice(product.priceInCents) }}</dd>
+                        </div>
+                        <div>
+                            <dt>{{ 'shell.adminSpace.products.columns.storeOffers' | transloco }}</dt>
+                            <dd>{{ product._count.storeOffers }}</dd>
+                        </div>
+                        <div>
+                            <dt>{{ 'shell.adminSpace.products.columns.status' | transloco }}</dt>
+                            <dd>
+                                <span class="status-chip" [class.inactive]="!product.isActive">
+                                    {{ getStatusLabel(product.isActive) | transloco }}
+                                </span>
+                            </dd>
+                        </div>
+                    </dl>
+                </mat-card-content>
+                <mat-card-actions>
+                    <button mat-stroked-button type="button" (click)="onEdit(product)">
+                        <mat-icon aria-hidden="true">edit</mat-icon>
+                        {{ 'shell.adminSpace.products.actions.edit' | transloco }}
+                    </button>
+                    <div class="toggle-wrapper">
+                        <mat-slide-toggle [checked]="product.isActive"
+                            [disabled]="togglingProductId() === product.id || saving()"
+                            (change)="onToggleActivation(product)" [attr.aria-label]="
+                        product.isActive
+                          ? ('shell.adminSpace.products.actions.deactivate' | transloco)
+                          : ('shell.adminSpace.products.actions.activate' | transloco)
+                      ">
+                        </mat-slide-toggle>
+                        @if (togglingProductId() === product.id) {
+                        <mat-spinner diameter="14"></mat-spinner>
+                        }
+                    </div>
+                </mat-card-actions>
+            </mat-card>
+            }
+        </div>
+
+        <mat-card class="desktop-table">
+            <div class="table-responsive">
+                <table mat-table [dataSource]="page()!.data"
+                    [attr.aria-label]="'shell.adminSpace.products.title' | transloco">
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.adminSpace.products.columns.name' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="category">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.adminSpace.products.columns.category' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let row">{{ row.category.name }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="saleUnit">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.adminSpace.products.columns.saleUnit' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let row">{{ getSaleUnitLabel(row.saleUnit) | transloco }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="price">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.adminSpace.products.columns.price' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let row">{{ formatPrice(row.priceInCents) }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.adminSpace.products.columns.status' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let row">
+                            <span class="status-chip" [class.inactive]="!row.isActive">
+                                {{ getStatusLabel(row.isActive) | transloco }}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="offersCount">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.adminSpace.products.columns.storeOffers' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let row">{{ row._count.storeOffers }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'common.actions' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="actions-cell">
+                                <button mat-icon-button type="button" (click)="onEdit(row)"
+                                    [attr.aria-label]="'shell.adminSpace.products.actions.edit' | transloco">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                                <div class="toggle-wrapper">
+                                    <mat-slide-toggle [checked]="row.isActive"
+                                        [disabled]="togglingProductId() === row.id || saving()"
+                                        (change)="onToggleActivation(row)" [attr.aria-label]="
+                      row.isActive
+                        ? ('shell.adminSpace.products.actions.deactivate' | transloco)
+                        : ('shell.adminSpace.products.actions.activate' | transloco)
+                    ">
+                                    </mat-slide-toggle>
+                                    @if (togglingProductId() === row.id) {
+                                    <mat-spinner diameter="14"></mat-spinner>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                </table>
+            </div>
+        </mat-card>
+
+        <mat-paginator [length]="page()!.total" [pageIndex]="currentPage() - 1" [pageSize]="pageSize()"
+            [pageSizeOptions]="[5, 10, 25]" (page)="onPageChange($event)" showFirstLastButtons
+            [attr.aria-label]="'common.pagination' | transloco"></mat-paginator>
+    </div>
+    }
+</section>

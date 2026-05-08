@@ -36,6 +36,9 @@
     "adminCreateMerchant": {
       "title": "Inviter un marchand"
     },
+    "adminProducts": {
+      "title": "Catalogue produits"
+    },
     "activateInvite": {
       "title": "Activation du compte marchand"
     },
@@ -517,7 +520,8 @@
       "eyebrow": "Administration",
       "navigationLabel": "Navigation admin",
       "sections": {
-        "merchants": "Marchands"
+        "merchants": "Marchands",
+        "products": "Produits"
       },
       "merchants": {
         "title": "Liste des marchands",
@@ -568,6 +572,52 @@
         "actions": {
           "submit": "Envoyer l'invitation",
           "back": "Retour à la liste"
+        }
+      },
+      "products": {
+        "title": "Catalogue produits",
+        "subtitle": "Créez, modifiez et activez les produits disponibles pour les marchands.",
+        "loading": "Chargement des produits...",
+        "empty": {
+          "title": "Aucun produit catalogue",
+          "message": "Ajoutez le premier produit du catalogue global."
+        },
+        "columns": {
+          "name": "Produit",
+          "category": "Catégorie",
+          "saleUnit": "Unité",
+          "price": "Prix",
+          "status": "Statut",
+          "storeOffers": "Offres marchands"
+        },
+        "fields": {
+          "name": "Nom du produit",
+          "category": "Catégorie",
+          "saleUnit": "Unité de vente",
+          "price": "Prix (DZD)",
+          "priceHint": "Laissez vide pour créer un produit sans prix par défaut.",
+          "description": "Description"
+        },
+        "status": {
+          "active": "Actif",
+          "inactive": "Inactif"
+        },
+        "actions": {
+          "new": "Nouveau produit",
+          "create": "Créer le produit",
+          "edit": "Modifier",
+          "activate": "Activer",
+          "deactivate": "Désactiver"
+        },
+        "editor": {
+          "createTitle": "Créer un produit catalogue",
+          "editTitle": "Modifier le produit"
+        },
+        "messages": {
+          "created": "Produit créé avec succès.",
+          "updated": "Produit mis à jour avec succès.",
+          "activated": "Produit activé avec succès.",
+          "deactivated": "Produit désactivé avec succès."
         }
       }
     },

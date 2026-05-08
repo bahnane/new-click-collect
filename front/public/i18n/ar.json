@@ -36,6 +36,9 @@
     "adminCreateMerchant": {
       "title": "دعوة تاجر"
     },
+    "adminProducts": {
+      "title": "كتالوج المنتجات"
+    },
     "activateInvite": {
       "title": "تفعيل حساب التاجر"
     },
@@ -499,7 +502,7 @@
           "title": "إنشاء عرض",
           "priceHint": "اتركه فارغاً لاستخدام سعر الكاتالوج.",
           "confirm": "إنشاء العرض"
-        }
+        },
         "messages": {
           "created": "تم إرسال الاقتراح بنجاح.",
           "updated": "تم تحديث الاقتراح بنجاح.",
@@ -517,7 +520,8 @@
       "eyebrow": "إدارة",
       "navigationLabel": "تصفح الإدارة",
       "sections": {
-        "merchants": "التجار"
+        "merchants": "التجار",
+        "products": "المنتجات"
       },
       "merchants": {
         "title": "قائمة التجار",
@@ -568,6 +572,52 @@
         "actions": {
           "submit": "إرسال الدعوة",
           "back": "العودة إلى القائمة"
+        }
+      },
+      "products": {
+        "title": "كتالوج المنتجات",
+        "subtitle": "أنشئ وعدّل وفعل/عطل منتجات الكتالوج العام.",
+        "loading": "جاري تحميل المنتجات...",
+        "empty": {
+          "title": "لا توجد منتجات في الكتالوج",
+          "message": "أضف أول منتج في الكتالوج العام."
+        },
+        "columns": {
+          "name": "المنتج",
+          "category": "الفئة",
+          "saleUnit": "الوحدة",
+          "price": "السعر",
+          "status": "الحالة",
+          "storeOffers": "عروض التجار"
+        },
+        "fields": {
+          "name": "اسم المنتج",
+          "category": "الفئة",
+          "saleUnit": "وحدة البيع",
+          "price": "السعر (دج)",
+          "priceHint": "اتركه فارغًا لإنشاء منتج بدون سعر افتراضي.",
+          "description": "الوصف"
+        },
+        "status": {
+          "active": "نشط",
+          "inactive": "غير نشط"
+        },
+        "actions": {
+          "new": "منتج جديد",
+          "create": "إنشاء المنتج",
+          "edit": "تعديل",
+          "activate": "تفعيل",
+          "deactivate": "تعطيل"
+        },
+        "editor": {
+          "createTitle": "إنشاء منتج كتالوج",
+          "editTitle": "تعديل المنتج"
+        },
+        "messages": {
+          "created": "تم إنشاء المنتج بنجاح.",
+          "updated": "تم تحديث المنتج بنجاح.",
+          "activated": "تم تفعيل المنتج بنجاح.",
+          "deactivated": "تم تعطيل المنتج بنجاح."
         }
       }
     },

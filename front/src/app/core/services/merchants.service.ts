@@ -87,6 +87,57 @@ export interface CatalogProductsPaginatedResponse {
   pageSize: number;
 }
 
+export interface AdminProductCategory {
+  id: string;
+  name: string;
+  slug: string;
+  isActive: boolean;
+  _count?: {
+    products: number;
+  };
+}
+
+export interface AdminCatalogProduct {
+  id: string;
+  name: string;
+  description: string | null;
+  saleUnit: Product['saleUnit'];
+  priceInCents: number | null;
+  isActive: boolean;
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+    isActive: boolean;
+  };
+  _count: {
+    storeOffers: number;
+  };
+}
+
+export interface AdminCatalogProductsPaginatedResponse {
+  data: AdminCatalogProduct[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateAdminCatalogProductPayload {
+  name: string;
+  description?: string;
+  saleUnit: Product['saleUnit'];
+  priceInCents?: number;
+  categoryId: string;
+}
+
+export interface UpdateAdminCatalogProductPayload {
+  name?: string;
+  description?: string;
+  saleUnit?: Product['saleUnit'];
+  priceInCents?: number;
+  categoryId?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MerchantsService {
   private readonly http = inject(HttpClient);
@@ -275,6 +326,61 @@ export class MerchantsService {
     return this.http.post<MerchantInviteResponse>(
       `${environment.apiUrl}/admin/merchants`,
       payload,
+      { withCredentials: true },
+    );
+  }
+
+  listAdminProductCategories(): Observable<AdminProductCategory[]> {
+    return this.http.get<AdminProductCategory[]>(
+      `${environment.apiUrl}/admin/product-categories`,
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
+  listAdminCatalogProducts(
+    page = 1,
+    pageSize = 10,
+  ): Observable<AdminCatalogProductsPaginatedResponse> {
+    return this.http.get<AdminCatalogProductsPaginatedResponse>(
+      `${environment.apiUrl}/admin/products`,
+      {
+        withCredentials: true,
+        params: { page: page.toString(), pageSize: pageSize.toString() },
+      },
+    );
+  }
+
+  createAdminCatalogProduct(
+    payload: CreateAdminCatalogProductPayload,
+  ): Observable<AdminCatalogProduct> {
+    return this.http.post<AdminCatalogProduct>(
+      `${environment.apiUrl}/products`,
+      payload,
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
+  updateAdminCatalogProduct(
+    productId: string,
+    payload: UpdateAdminCatalogProductPayload,
+  ): Observable<AdminCatalogProduct> {
+    return this.http.patch<AdminCatalogProduct>(
+      `${environment.apiUrl}/admin/products/${productId}`,
+      payload,
+      { withCredentials: true },
+    );
+  }
+
+  toggleAdminCatalogProduct(
+    productId: string,
+  ): Observable<AdminCatalogProduct> {
+    return this.http.patch<AdminCatalogProduct>(
+      `${environment.apiUrl}/admin/products/${productId}/toggle`,
+      {},
       { withCredentials: true },
     );
   }
