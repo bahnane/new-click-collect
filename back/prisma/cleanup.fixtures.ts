@@ -4,10 +4,12 @@ import { PrismaClient } from '@prisma/client';
 
 const FIXTURE = {
   merchantEmail:
-    process.env.SEED_FIXTURE_MERCHANT_EMAIL ??
-    'fixture-merchant@click-collect.local',
+    process.env.SEED_FIXTURE_MERCHANT_EMAIL ?? 'merchant@mailinator.com',
   merchantSlug: process.env.SEED_FIXTURE_MERCHANT_SLUG ?? 'boutique-fixture',
   productPrefix: process.env.SEED_FIXTURE_PRODUCT_PREFIX ?? '[FIXTURE] Produit',
+  unofferedProductPrefix:
+    process.env.SEED_FIXTURE_UNOFFERED_PRODUCT_PREFIX ??
+    '[FIXTURE][SANS_OFFRE] Produit',
   categoryPrefix: process.env.SEED_FIXTURE_CATEGORY_PREFIX ?? 'fixture-',
 };
 
@@ -44,6 +46,11 @@ async function main() {
           where: { merchantId: merchant.id },
         });
 
+        // Soumissions produit du marchand fixture
+        await tx.productSubmission.deleteMany({
+          where: { merchantId: merchant.id },
+        });
+
         // Autres dépendances potentielles
         await tx.pickupSlot.deleteMany({
           where: { merchantId: merchant.id },
@@ -73,10 +80,33 @@ async function main() {
       console.log('No fixture merchant found, skipping merchant cleanup.');
     }
 
-    // Produits fixtures
+    // Soumissions fixtures restantes par catégories fixture
+    const deletedSubmissionsByCategory =
+      await prisma.productSubmission.deleteMany({
+        where: {
+          category: {
+            slug: { startsWith: FIXTURE.categoryPrefix },
+          },
+        },
+      });
+
+    // Produits fixtures par préfixes connus
     const deletedProducts = await prisma.product.deleteMany({
       where: {
-        name: { startsWith: FIXTURE.productPrefix },
+        OR: [
+          { name: { startsWith: FIXTURE.productPrefix } },
+          { name: { startsWith: FIXTURE.unofferedProductPrefix } },
+          { name: { startsWith: '[FIXTURE] Proposition' } },
+        ],
+      },
+    });
+
+    // Produits fixtures restants liés aux catégories fixture
+    const deletedProductsByCategory = await prisma.product.deleteMany({
+      where: {
+        category: {
+          slug: { startsWith: FIXTURE.categoryPrefix },
+        },
       },
     });
 
@@ -89,6 +119,12 @@ async function main() {
 
     console.log('✓ Fixture cleanup completed');
     console.log(`  Products deleted: ${deletedProducts.count}`);
+    console.log(
+      `  Products deleted (by category): ${deletedProductsByCategory.count}`,
+    );
+    console.log(
+      `  Product submissions deleted (by category): ${deletedSubmissionsByCategory.count}`,
+    );
     console.log(`  Categories deleted: ${deletedCategories.count}`);
   } finally {
     await prisma.$disconnect();
