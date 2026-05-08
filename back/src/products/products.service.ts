@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, ProductSubmissionStatus } from '@prisma/client';
+import { Prisma, ProductSubmissionStatus, SaleUnit } from '@prisma/client';
 import { compareTwoStrings } from 'string-similarity';
 import { ErrorCodes } from '../common/errors/api-error-codes';
 import { PrismaService } from '../prisma/prisma.service';
@@ -16,6 +16,10 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateStoreOfferDto } from './dto/create-store-offer.dto';
 import { UpdateStoreOfferDto } from './dto/update-store-offer.dto';
 import { UpdateProductSubmissionDto } from './dto/update-product-submission.dto';
+import {
+  ApproveProductSubmissionsBatchDto,
+  ApproveProductSubmissionBatchItemDto,
+} from './dto/approve-product-submissions-batch.dto';
 
 @Injectable()
 export class ProductsService {
@@ -272,6 +276,13 @@ export class ProductsService {
     submissionId: string,
     status: ProductSubmissionStatus,
     rejectionReason?: string,
+    approvedProductOverrides?: {
+      name?: string;
+      description?: string;
+      saleUnit?: SaleUnit;
+      priceInCents?: number | null;
+      categoryId?: string;
+    },
   ) {
     if (
       status !== ProductSubmissionStatus.APPROVED &&
@@ -302,15 +313,25 @@ export class ProductsService {
       });
     }
 
+    if (
+      status === ProductSubmissionStatus.APPROVED &&
+      approvedProductOverrides?.categoryId
+    ) {
+      await this.findCategoryOrFail(approvedProductOverrides.categoryId);
+    }
+
     if (status === ProductSubmissionStatus.APPROVED) {
       return this.prisma.$transaction(async (tx) => {
         const product = await tx.product.create({
           data: {
-            name: submission.name,
-            description: submission.description,
-            saleUnit: submission.saleUnit,
-            priceInCents: submission.priceInCents,
-            categoryId: submission.categoryId,
+            name: approvedProductOverrides?.name ?? submission.name,
+            description:
+              approvedProductOverrides?.description ?? submission.description,
+            saleUnit: approvedProductOverrides?.saleUnit ?? submission.saleUnit,
+            priceInCents:
+              approvedProductOverrides?.priceInCents ?? submission.priceInCents,
+            categoryId:
+              approvedProductOverrides?.categoryId ?? submission.categoryId,
             isActive: true,
           },
         });
@@ -376,6 +397,115 @@ export class ProductsService {
           },
         },
       },
+    });
+  }
+
+  async approveProductSubmissionsBatch(
+    adminUserId: string,
+    dto: ApproveProductSubmissionsBatchDto,
+  ) {
+    const uniqueSubmissionIds = new Set<string>();
+    for (const item of dto.items) {
+      if (uniqueSubmissionIds.has(item.id)) {
+        throw new BadRequestException({
+          code: ErrorCodes.BAD_REQUEST,
+          message: 'Batch payload contains duplicate submission ids',
+        });
+      }
+      uniqueSubmissionIds.add(item.id);
+    }
+
+    const itemsById = new Map<string, ApproveProductSubmissionBatchItemDto>(
+      dto.items.map((item) => [item.id, item]),
+    );
+
+    return this.prisma.$transaction(async (tx) => {
+      const submissions = await tx.productSubmission.findMany({
+        where: {
+          id: { in: Array.from(uniqueSubmissionIds) },
+        },
+      });
+
+      if (submissions.length !== uniqueSubmissionIds.size) {
+        throw new NotFoundException({
+          code: ErrorCodes.PRODUCT_SUBMISSION_NOT_FOUND,
+          message: 'One or more product submissions were not found',
+        });
+      }
+
+      const nonPending = submissions.find(
+        (submission) => submission.status !== ProductSubmissionStatus.PENDING,
+      );
+      if (nonPending) {
+        throw new BadRequestException({
+          code: ErrorCodes.PRODUCT_SUBMISSION_ALREADY_REVIEWED,
+          message: 'Only pending submissions can be approved',
+        });
+      }
+
+      const categoryIds = Array.from(
+        new Set(
+          dto.items
+            .map((item) => item.categoryId)
+            .filter((id): id is string => !!id),
+        ),
+      );
+
+      if (categoryIds.length > 0) {
+        const categories = await tx.productCategory.findMany({
+          where: { id: { in: categoryIds } },
+          select: { id: true },
+        });
+        if (categories.length !== categoryIds.length) {
+          throw new NotFoundException({
+            code: ErrorCodes.PRODUCT_CATEGORY_NOT_FOUND,
+            message: 'One or more product categories were not found',
+          });
+        }
+      }
+
+      const approvedEntries: Array<{
+        submissionId: string;
+        productId: string;
+      }> = [];
+
+      for (const submission of submissions) {
+        const item = itemsById.get(submission.id);
+        if (!item) continue;
+
+        const created = await tx.product.create({
+          data: {
+            name: item.name ?? submission.name,
+            description: item.description ?? submission.description,
+            saleUnit: item.saleUnit ?? submission.saleUnit,
+            priceInCents: item.priceInCents ?? submission.priceInCents,
+            categoryId: item.categoryId ?? submission.categoryId,
+            isActive: true,
+          },
+          select: { id: true },
+        });
+
+        await tx.productSubmission.update({
+          where: { id: submission.id },
+          data: {
+            status: ProductSubmissionStatus.APPROVED,
+            reviewedAt: new Date(),
+            reviewedByUserId: adminUserId,
+            approvedProductId: created.id,
+            rejectionReason: null,
+          },
+        });
+
+        approvedEntries.push({
+          submissionId: submission.id,
+          productId: created.id,
+        });
+      }
+
+      return {
+        count: approvedEntries.length,
+        data: approvedEntries,
+      };
     });
   }
 

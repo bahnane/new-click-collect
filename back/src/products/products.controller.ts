@@ -25,6 +25,7 @@ import { CreateStoreOffersBatchDto } from './dto/create-store-offers-batch.dto';
 import { UpdateStoreOfferDto } from './dto/update-store-offer.dto';
 import { ReviewProductSubmissionDto } from './dto/review-product-submission.dto';
 import { UpdateProductSubmissionDto } from './dto/update-product-submission.dto';
+import { ApproveProductSubmissionsBatchDto } from './dto/approve-product-submissions-batch.dto';
 import { ProductsService } from './products.service';
 
 @Controller()
@@ -232,7 +233,24 @@ export class ProductsController {
       id,
       dto.status,
       dto.rejectionReason,
+      {
+        name: dto.name,
+        description: dto.description,
+        saleUnit: dto.saleUnit,
+        priceInCents: dto.priceInCents,
+        categoryId: dto.categoryId,
+      },
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('admin/product-submissions/approve-batch')
+  approveProductSubmissionsBatch(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: ApproveProductSubmissionsBatchDto,
+  ) {
+    this.assertAdmin(user);
+    return this.productsService.approveProductSubmissionsBatch(user.sub, dto);
   }
 
   // ── Store offers — MERCHANT ─────────────────────────────────────────────
