@@ -1,5 +1,16 @@
 <div class="shell">
-    <header class="shell-header">
+    @if (globalErrorKey(); as currentGlobalErrorKey) {
+    <div class="shell-global-error" role="alert" aria-live="assertive">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <span>{{ currentGlobalErrorKey | transloco }}</span>
+        <button mat-icon-button type="button" (click)="clearGlobalError()"
+            [attr.aria-label]="'common.close' | transloco">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+    }
+
+    <header class="shell-header" [class.with-global-error]="!!globalErrorKey()">
         <a class="brand" [routerLink]="homeRoute()" (click)="closeMenu()">
             <span class="brand-title">{{ 'app.name' | transloco }}</span>
         </a>

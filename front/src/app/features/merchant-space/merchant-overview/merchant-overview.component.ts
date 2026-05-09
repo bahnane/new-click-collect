@@ -1,5 +1,5 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +13,7 @@ import {
   PaginatedMerchantOrders,
 } from '../../../core/models/order.model';
 import { OrdersService } from '../../../core/services/orders.service';
+import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 
 type MerchantOrderFilter = OrderStatus | 'ALL';
 
@@ -48,6 +49,7 @@ const STATUS_FILTERS: MerchantStatusFilterOption[] = [
 })
 export class MerchantOverviewComponent {
   private readonly ordersService = inject(OrdersService);
+  private readonly uiFeedback = inject(UiFeedbackService);
 
   readonly loading = signal(false);
   readonly errorKey = signal<string | null>(null);
@@ -67,6 +69,14 @@ export class MerchantOverviewComponent {
   );
 
   constructor() {
+    effect(() => {
+      const currentError = this.errorKey() ?? this.actionErrorKey();
+      if (currentError) {
+        this.uiFeedback.showError(currentError);
+      } else {
+        this.uiFeedback.clearError();
+      }
+    });
     this.loadOrders();
   }
 

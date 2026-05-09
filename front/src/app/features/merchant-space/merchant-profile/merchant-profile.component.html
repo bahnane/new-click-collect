@@ -4,8 +4,6 @@
         <mat-spinner diameter="32" />
         <p>{{ 'shell.merchant.profile.loading' | transloco }}</p>
     </div>
-    } @else if (loadErrorKey()) {
-    <p class="error-banner" role="alert">{{ loadErrorKey()! | transloco }}</p>
     } @else {
     <div class="slug-banner">
         <mat-icon aria-hidden="true">tag</mat-icon>
@@ -189,17 +187,6 @@
         </mat-card>
 
         <!-- Feedback banners -->
-        @if (saveErrorKey()) {
-        <p class="error-banner" role="alert">
-            {{ saveErrorKey()! | transloco }}
-        </p>
-        }
-        @if (saveSuccess()) {
-        <p class="success-banner" role="status">
-            {{ 'shell.merchant.profile.saveSuccess' | transloco }}
-        </p>
-        }
-
         <!-- Submit -->
         <div class="form-actions">
             <button mat-flat-button type="submit" [disabled]="saving() || form.invalid">

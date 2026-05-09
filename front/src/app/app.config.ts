@@ -1,4 +1,8 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  importProvidersFrom,
+  provideZoneChangeDetection,
+} from '@angular/core';
 import {
   provideHttpClient,
   withFetch,
@@ -11,6 +15,7 @@ import {
   withComponentInputBinding,
 } from '@angular/router';
 import { provideTransloco } from '@jsverse/transloco';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { environment } from '../environments/environment';
 import { I18nTitleStrategy } from './core/i18n/i18n-title.strategy';
 import { LanguageService } from './core/i18n/language.service';
@@ -21,6 +26,7 @@ import { routes } from './app.routes';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
+    importProvidersFrom(MatSnackBarModule),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     provideTransloco({

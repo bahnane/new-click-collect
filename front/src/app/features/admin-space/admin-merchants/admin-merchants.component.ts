@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -15,6 +15,7 @@ import {
   AdminMerchantsPaginatedResponse,
 } from '../../../core/models/merchant-shop.model';
 import { MerchantsService } from '../../../core/services/merchants.service';
+import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 
 @Component({
   selector: 'app-admin-merchants',
@@ -34,6 +35,7 @@ import { MerchantsService } from '../../../core/services/merchants.service';
 })
 export class AdminMerchantsComponent {
   private readonly merchantsService = inject(MerchantsService);
+  private readonly uiFeedback = inject(UiFeedbackService);
 
   readonly loading = signal(false);
   readonly errorKey = signal<string | null>(null);
@@ -55,6 +57,14 @@ export class AdminMerchantsComponent {
   );
 
   constructor() {
+    effect(() => {
+      const currentError = this.errorKey();
+      if (currentError) {
+        this.uiFeedback.showError(currentError);
+      } else {
+        this.uiFeedback.clearError();
+      }
+    });
     this.loadMerchants();
   }
 
@@ -86,6 +96,7 @@ export class AdminMerchantsComponent {
 
   clearError(): void {
     this.errorKey.set(null);
+    this.uiFeedback.clearError();
   }
 
   shopUrl(merchant: AdminMerchantEntry): string {

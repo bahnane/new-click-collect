@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -9,6 +16,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
 import { Order } from '../../core/models/order.model';
 import { OrdersService } from '../../core/services/orders.service';
+import { UiFeedbackService } from '../../core/services/ui-feedback.service';
 import { resolvePostAuthMerchantSlug } from '../../core/utils/post-auth-redirect.util';
 
 @Component({
@@ -29,6 +37,7 @@ export class OrderConfirmationComponent implements OnInit {
   private readonly ordersService = inject(OrdersService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly uiFeedback = inject(UiFeedbackService);
   protected readonly languageService = inject(LanguageService);
 
   readonly loading = signal(true);
@@ -37,6 +46,17 @@ export class OrderConfirmationComponent implements OnInit {
   readonly currentDirection = this.languageService.currentDirection;
 
   readonly orderStatus = computed(() => this.order()?.status);
+
+  constructor() {
+    effect(() => {
+      const currentError = this.errorMessageKey();
+      if (currentError) {
+        this.uiFeedback.showError(currentError);
+      } else {
+        this.uiFeedback.clearError();
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.loadOrderFromRoute();

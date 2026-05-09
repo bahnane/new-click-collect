@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -10,6 +10,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { OrderListItem, PaginatedOrders } from '../../core/models/order.model';
 import { AuthService } from '../../core/services/auth.service';
 import { OrdersService } from '../../core/services/orders.service';
+import { UiFeedbackService } from '../../core/services/ui-feedback.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -29,6 +30,7 @@ export class DashboardComponent {
   private readonly authService = inject(AuthService);
   private readonly ordersService = inject(OrdersService);
   private readonly router = inject(Router);
+  private readonly uiFeedback = inject(UiFeedbackService);
 
   readonly currentUser = this.authService.currentUser;
 
@@ -43,6 +45,15 @@ export class DashboardComponent {
   readonly isCustomer = computed(() => this.currentUser()?.role === 'CUSTOMER');
 
   constructor() {
+    effect(() => {
+      const currentError = this.ordersErrorKey() ?? this.orderActionErrorKey();
+      if (currentError) {
+        this.uiFeedback.showError(currentError);
+      } else {
+        this.uiFeedback.clearError();
+      }
+    });
+
     if (this.isCustomer()) {
       this.loadMyOrders();
     }

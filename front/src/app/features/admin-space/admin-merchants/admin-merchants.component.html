@@ -12,16 +12,6 @@
         </a>
     </header>
 
-    @if (errorKey(); as key) {
-    <div class="error-banner" role="alert" aria-live="polite">
-        <mat-icon aria-hidden="true">error_outline</mat-icon>
-        <span>{{ key | transloco }}</span>
-        <button mat-icon-button type="button" (click)="clearError()" [attr.aria-label]="'common.close' | transloco">
-            <mat-icon>close</mat-icon>
-        </button>
-    </div>
-    }
-
     @if (loading() && !page()) {
     <div class="loading-container" aria-live="polite">
         <mat-spinner diameter="40"></mat-spinner>

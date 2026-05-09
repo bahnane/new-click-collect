@@ -77,4 +77,14 @@ a {
     max-height: none !important;
   }
 }
+
+.app-success-snackbar {
+  --mdc-snackbar-container-color: color-mix(
+    in srgb,
+    var(--color-success, #2e7d32) 20%,
+    var(--color-bg-secondary)
+  );
+  --mdc-snackbar-supporting-text-color: var(--color-text-primary);
+  --mat-snack-bar-button-color: var(--color-text-primary);
+}
 /* You can add global styles to this file, and also import other style files */

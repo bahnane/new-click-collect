@@ -8,6 +8,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { AuthService } from '../../../core/services/auth.service';
+import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 
 type VerificationState = 'loading' | 'success' | 'error';
 
@@ -27,6 +28,7 @@ type VerificationState = 'loading' | 'success' | 'error';
 export class VerifyEmailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
+  private readonly uiFeedback = inject(UiFeedbackService);
 
   readonly state = signal<VerificationState>('loading');
   readonly messageKey = signal<string>('auth.verifyEmail.loading');
@@ -43,7 +45,8 @@ export class VerifyEmailComponent {
     this.authService.verifyEmail({ token }).subscribe({
       next: () => {
         this.state.set('success');
-        this.messageKey.set('auth.verifyEmail.successMessage');
+        this.uiFeedback.showSuccessToast('auth.verifyEmail.successMessage');
+        this.messageKey.set('auth.verifyEmail.loading');
       },
       error: (error) => {
         this.state.set('error');

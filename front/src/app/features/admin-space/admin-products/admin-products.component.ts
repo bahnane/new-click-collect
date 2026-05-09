@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -21,6 +21,7 @@ import {
   MerchantsService,
   UpdateAdminCatalogProductPayload,
 } from '../../../core/services/merchants.service';
+import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 import { AdminProductEditorDialogComponent } from './admin-product-editor-dialog/admin-product-editor-dialog.component';
 
 @Component({
@@ -42,6 +43,7 @@ import { AdminProductEditorDialogComponent } from './admin-product-editor-dialog
 export class AdminProductsComponent {
   private readonly merchantsService = inject(MerchantsService);
   private readonly dialog = inject(MatDialog);
+  private readonly uiFeedback = inject(UiFeedbackService);
 
   readonly loading = signal(false);
   readonly saving = signal(false);
@@ -72,6 +74,21 @@ export class AdminProductsComponent {
   });
 
   constructor() {
+    effect(() => {
+      const currentError = this.errorKey() ?? this.actionErrorKey();
+      if (currentError) {
+        this.uiFeedback.showError(currentError);
+      } else {
+        this.uiFeedback.clearError();
+      }
+    });
+    effect(() => {
+      const success = this.successKey();
+      if (success) {
+        this.uiFeedback.showSuccessToast(success);
+        this.successKey.set(null);
+      }
+    });
     this.loadInitialData();
   }
 
@@ -214,10 +231,12 @@ export class AdminProductsComponent {
 
   clearErrorKey(): void {
     this.errorKey.set(null);
+    this.uiFeedback.clearError();
   }
 
   clearActionErrorKey(): void {
     this.actionErrorKey.set(null);
+    this.uiFeedback.clearError();
   }
 
   getSaleUnitLabel(saleUnit: Product['saleUnit']): string {

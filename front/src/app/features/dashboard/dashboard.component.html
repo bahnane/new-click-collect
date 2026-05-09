@@ -28,23 +28,6 @@
                 <p>{{ 'shell.dashboard.orders.subtitle' | transloco }}</p>
             </div>
 
-            @if (orderActionErrorKey()) {
-            <div class="orders-feedback error" role="alert" aria-live="polite">
-                <mat-icon aria-hidden="true">error_outline</mat-icon>
-                <span>{{ orderActionErrorKey()! | transloco }}</span>
-            </div>
-            }
-
-            @if (ordersErrorKey()) {
-            <div class="orders-feedback error" role="alert" aria-live="polite">
-                <mat-icon aria-hidden="true">error_outline</mat-icon>
-                <span>{{ ordersErrorKey()! | transloco }}</span>
-                <button mat-stroked-button type="button" (click)="loadMyOrders()">
-                    {{ 'common.retry' | transloco }}
-                </button>
-            </div>
-            }
-
             @if (loadingOrders()) {
             <div class="orders-state">
                 <mat-progress-spinner mode="indeterminate" diameter="36" />

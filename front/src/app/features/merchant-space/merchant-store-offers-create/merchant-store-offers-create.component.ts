@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -16,6 +16,7 @@ import {
   CreateStoreOfferPayload,
   MerchantsService,
 } from '../../../core/services/merchants.service';
+import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 
 interface OfferDraftRow {
   productId: string;
@@ -48,11 +49,11 @@ interface OfferDraftRow {
 })
 export class MerchantStoreOffersCreateComponent {
   private readonly merchantsService = inject(MerchantsService);
+  private readonly uiFeedback = inject(UiFeedbackService);
 
   readonly loading = signal(false);
   readonly creatingOffer = signal(false);
   readonly errorKey = signal<string | null>(null);
-  readonly createSuccess = signal(false);
   readonly catalogPage = signal<CatalogProductsPaginatedResponse | null>(null);
   readonly draftRows = signal<OfferDraftRow[]>([]);
   readonly currentPage = signal(1);
@@ -76,6 +77,14 @@ export class MerchantStoreOffersCreateComponent {
   );
 
   constructor() {
+    effect(() => {
+      const currentError = this.errorKey();
+      if (currentError) {
+        this.uiFeedback.showError(currentError);
+      } else {
+        this.uiFeedback.clearError();
+      }
+    });
     this.loadCatalogProducts();
   }
 
@@ -176,13 +185,14 @@ export class MerchantStoreOffersCreateComponent {
     }
 
     this.creatingOffer.set(true);
-    this.createSuccess.set(false);
     this.errorKey.set(null);
 
     this.merchantsService.createOffersBatch(payloads).subscribe({
       next: () => {
         this.creatingOffer.set(false);
-        this.createSuccess.set(true);
+        this.uiFeedback.showSuccessToast(
+          'shell.merchant.storeOffers.create.success',
+        );
         this.loadCatalogProducts(this.currentPage(), this.pageSize());
       },
       error: (error) => {
@@ -198,6 +208,7 @@ export class MerchantStoreOffersCreateComponent {
 
   clearErrorKey(): void {
     this.errorKey.set(null);
+    this.uiFeedback.clearError();
   }
 
   formatPrice(priceInCents: number | null): string {

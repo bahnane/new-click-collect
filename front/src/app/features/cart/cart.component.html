@@ -4,16 +4,6 @@
         <p>{{ 'cart.subtitle' | transloco }}</p>
     </header>
 
-    @if (errorMessageKey()) {
-    <div class="error-banner" role="alert" aria-live="polite">
-        <mat-icon aria-hidden="true">error_outline</mat-icon>
-        <span>{{ errorMessageKey()! | transloco }}</span>
-        <button mat-stroked-button type="button" (click)="loadCart()">
-            {{ 'cart.retry' | transloco }}
-        </button>
-    </div>
-    }
-
     @if (loading()) {
     <div class="state-block">
         <mat-progress-spinner mode="indeterminate" diameter="42" />

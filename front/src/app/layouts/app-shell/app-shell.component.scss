@@ -1,8 +1,32 @@
 @use "../../shared/styles/language-switcher.shared" as languageSwitcher;
 
 .shell {
+  --size-global-error-bar-height: 3rem;
   min-height: var(--size-app-min-height);
   background-color: var(--color-bg-primary);
+}
+
+.shell-global-error {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-fixed);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-sm);
+  min-block-size: var(--size-global-error-bar-height);
+  padding-inline: var(--space-lg);
+  background: color-mix(
+    in srgb,
+    var(--color-error) 18%,
+    var(--color-bg-secondary)
+  );
+  border-block-end: 1px solid
+    color-mix(in srgb, var(--color-error) 40%, transparent);
+
+  mat-icon {
+    color: var(--color-error);
+  }
 }
 
 .shell-header {
@@ -23,6 +47,10 @@
     transparent
   );
   backdrop-filter: blur(6px);
+}
+
+.shell-header.with-global-error {
+  inset-block-start: var(--size-global-error-bar-height);
 }
 
 .brand {
@@ -81,6 +109,10 @@
 }
 
 @media (min-width: 56rem) {
+  .shell-global-error {
+    padding-inline: var(--space-xl);
+  }
+
   .shell-header {
     grid-template-columns: auto 1fr;
     align-items: center;

@@ -42,23 +42,6 @@
                 </div>
             </div>
 
-            @if (errorKey()) {
-            <div class="feedback error" role="alert" aria-live="polite">
-                <mat-icon aria-hidden="true">error_outline</mat-icon>
-                <span>{{ errorKey()! | transloco }}</span>
-                <button mat-stroked-button type="button" (click)="loadOrders()">
-                    {{ 'common.retry' | transloco }}
-                </button>
-            </div>
-            }
-
-            @if (actionErrorKey()) {
-            <div class="feedback error" role="alert" aria-live="polite">
-                <mat-icon aria-hidden="true">error_outline</mat-icon>
-                <span>{{ actionErrorKey()! | transloco }}</span>
-            </div>
-            }
-
             @if (loading()) {
             <div class="orders-state">
                 <mat-progress-spinner mode="indeterminate" diameter="36" />

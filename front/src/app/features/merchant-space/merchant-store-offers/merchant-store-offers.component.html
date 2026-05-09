@@ -12,27 +12,6 @@
         </a>
     </header>
 
-    @if (errorKey(); as currentErrorKey) {
-    <div class="error-banner" role="alert" aria-live="polite">
-        <mat-icon aria-hidden="true">error_outline</mat-icon>
-        <span>{{ currentErrorKey | transloco }}</span>
-        <button mat-icon-button type="button" (click)="clearErrorKey()" [attr.aria-label]="'common.close' | transloco">
-            <mat-icon>close</mat-icon>
-        </button>
-    </div>
-    }
-
-    @if (actionErrorKey(); as currentActionErrorKey) {
-    <div class="error-banner" role="alert" aria-live="polite">
-        <mat-icon aria-hidden="true">error_outline</mat-icon>
-        <span>{{ currentActionErrorKey | transloco }}</span>
-        <button mat-icon-button type="button" (click)="clearActionErrorKey()"
-            [attr.aria-label]="'common.close' | transloco">
-            <mat-icon>close</mat-icon>
-        </button>
-    </div>
-    }
-
     @if (loading() && !offersPage()) {
     <div class="loading-container" aria-live="polite">
         <mat-spinner diameter="40"></mat-spinner>

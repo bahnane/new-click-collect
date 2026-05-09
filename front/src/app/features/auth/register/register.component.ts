@@ -13,6 +13,7 @@ import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 
 @Component({
   selector: 'app-register',
@@ -33,6 +34,7 @@ import { AuthService } from '../../../core/services/auth.service';
 export class RegisterComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly uiFeedback = inject(UiFeedbackService);
   protected readonly languageService = inject(LanguageService);
 
   readonly isLoading = signal(false);
@@ -64,6 +66,7 @@ export class RegisterComponent {
       next: () => {
         this.isLoading.set(false);
         this.successMessageKey.set('auth.register.successMessage');
+        this.uiFeedback.showSuccessToast('auth.register.successMessage');
       },
       error: (error) => {
         this.isLoading.set(false);

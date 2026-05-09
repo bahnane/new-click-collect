@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -23,6 +23,7 @@ import {
   SimilarCatalogProduct,
   UpdateProductSubmissionPayload,
 } from '../../../core/services/merchants.service';
+import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 import { DeleteConfirmationDialogComponent } from '../../../shared/dialogs/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import {
   CreateOfferFromSuggestionDialogComponent,
@@ -51,6 +52,7 @@ import { SubmissionEditorDialogComponent } from './submission-editor-dialog/subm
 export class MerchantProductSubmissionsComponent {
   private readonly merchantsService = inject(MerchantsService);
   private readonly dialog = inject(MatDialog);
+  private readonly uiFeedback = inject(UiFeedbackService);
 
   readonly loading = signal(false);
   readonly saving = signal(false);
@@ -81,6 +83,21 @@ export class MerchantProductSubmissionsComponent {
   });
 
   constructor() {
+    effect(() => {
+      const currentError = this.errorKey() ?? this.actionErrorKey();
+      if (currentError) {
+        this.uiFeedback.showError(currentError);
+      } else {
+        this.uiFeedback.clearError();
+      }
+    });
+    effect(() => {
+      const success = this.successKey();
+      if (success) {
+        this.uiFeedback.showSuccessToast(success);
+        this.successKey.set(null);
+      }
+    });
     this.loadInitialData();
   }
 
@@ -289,10 +306,12 @@ export class MerchantProductSubmissionsComponent {
 
   clearErrorKey(): void {
     this.errorKey.set(null);
+    this.uiFeedback.clearError();
   }
 
   clearActionErrorKey(): void {
     this.actionErrorKey.set(null);
+    this.uiFeedback.clearError();
   }
 
   getSaleUnitLabel(saleUnit: Product['saleUnit']): string {

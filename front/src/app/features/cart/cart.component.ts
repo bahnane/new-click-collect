@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -14,6 +21,7 @@ import {
   CartService,
   PublicPickupSlot,
 } from '../../core/services/cart.service';
+import { UiFeedbackService } from '../../core/services/ui-feedback.service';
 import { resolvePostAuthMerchantSlug } from '../../core/utils/post-auth-redirect.util';
 
 const CHECKOUT_ERROR_KEY_BY_CODE: Record<string, string> = {
@@ -49,6 +57,7 @@ export class CartComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly cartService = inject(CartService);
   private readonly router = inject(Router);
+  private readonly uiFeedback = inject(UiFeedbackService);
   protected readonly languageService = inject(LanguageService);
 
   readonly loading = signal(true);
@@ -70,6 +79,20 @@ export class CartComponent implements OnInit {
     pickupSlotId: ['', [Validators.required]],
     note: ['', [Validators.maxLength(1000)]],
   });
+
+  constructor() {
+    effect(() => {
+      const currentError =
+        this.errorMessageKey() ??
+        this.slotsErrorMessageKey() ??
+        this.checkoutErrorMessageKey();
+      if (currentError) {
+        this.uiFeedback.showError(currentError);
+      } else {
+        this.uiFeedback.clearError();
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.checkoutForm.controls.pickupSlotId.disable({ emitEvent: false });

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -23,6 +23,7 @@ import {
   Weekday,
 } from '../../../core/models/merchant-shop.model';
 import { MerchantsService } from '../../../core/services/merchants.service';
+import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 
 type DayHoursGroup = FormGroup<{
   enabled: FormControl<boolean>;
@@ -60,13 +61,13 @@ const DAYS: Weekday[] = [
 export class MerchantProfileComponent {
   private readonly fb = inject(FormBuilder);
   private readonly merchantsService = inject(MerchantsService);
+  private readonly uiFeedback = inject(UiFeedbackService);
 
   readonly DAYS = DAYS;
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly loadErrorKey = signal<string | null>(null);
   readonly saveErrorKey = signal<string | null>(null);
-  readonly saveSuccess = signal(false);
   readonly profile = signal<MerchantProfile | null>(null);
 
   readonly openingStartHours = Array.from({ length: 24 }, (_, i) => i);
@@ -103,6 +104,15 @@ export class MerchantProfileComponent {
   }
 
   constructor() {
+    effect(() => {
+      const currentError = this.loadErrorKey() ?? this.saveErrorKey();
+      if (currentError) {
+        this.uiFeedback.showError(currentError);
+      } else {
+        this.uiFeedback.clearError();
+      }
+    });
+
     this.merchantsService.getMyProfile().subscribe({
       next: (profile) => {
         this.profile.set(profile);
@@ -141,13 +151,12 @@ export class MerchantProfileComponent {
 
     this.saving.set(true);
     this.saveErrorKey.set(null);
-    this.saveSuccess.set(false);
 
     this.merchantsService.updateMyProfile(payload).subscribe({
       next: (updated) => {
         this.profile.set(updated);
         this.saving.set(false);
-        this.saveSuccess.set(true);
+        this.uiFeedback.showSuccessToast('shell.merchant.profile.saveSuccess');
       },
       error: () => {
         this.saveErrorKey.set('shell.merchant.profile.errors.saveFailed');

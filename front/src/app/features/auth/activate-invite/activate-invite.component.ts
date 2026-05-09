@@ -20,6 +20,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { AuthService } from '../../../core/services/auth.service';
+import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 import { getDefaultAuthenticatedRoute } from '../../../core/utils/default-auth-route.util';
 import { resolvePostAuthMerchantSlug } from '../../../core/utils/post-auth-redirect.util';
 
@@ -57,6 +58,7 @@ export class ActivateInviteComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly uiFeedback = inject(UiFeedbackService);
 
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
@@ -114,6 +116,9 @@ export class ActivateInviteComponent {
         next: (response) => {
           this.isLoading.set(false);
           this.successMessageKey.set('auth.activateInvite.successMessage');
+          this.uiFeedback.showSuccessToast(
+            'auth.activateInvite.successMessage',
+          );
           const merchantSlug = resolvePostAuthMerchantSlug(
             this.route.snapshot.queryParamMap.get('merchantSlug'),
           );

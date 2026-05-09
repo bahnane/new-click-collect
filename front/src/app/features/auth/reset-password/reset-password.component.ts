@@ -20,6 +20,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { AuthService } from '../../../core/services/auth.service';
+import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 
 const passwordMatchValidator: ValidatorFn = (
   control: AbstractControl,
@@ -54,6 +55,7 @@ export class ResetPasswordComponent {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
+  private readonly uiFeedback = inject(UiFeedbackService);
 
   private readonly queryParamMap = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
@@ -113,6 +115,7 @@ export class ResetPasswordComponent {
           this.form.enable();
           this.form.reset();
           this.successMessageKey.set('auth.resetPassword.successMessage');
+          this.uiFeedback.showSuccessToast('auth.resetPassword.successMessage');
         },
         error: (error) => {
           this.isLoading.set(false);

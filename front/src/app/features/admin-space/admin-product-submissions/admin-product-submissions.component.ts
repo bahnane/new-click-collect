@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -25,6 +25,7 @@ import {
   ProductSubmissionStatus,
   ReviewAdminProductSubmissionPayload,
 } from '../../../core/services/merchants.service';
+import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 import { SubmissionDiffDialogComponent } from '../../merchant-space/merchant-product-submissions/submission-diff-dialog/submission-diff-dialog.component';
 
 @Component({
@@ -50,6 +51,7 @@ import { SubmissionDiffDialogComponent } from '../../merchant-space/merchant-pro
 export class AdminProductSubmissionsComponent {
   private readonly merchantsService = inject(MerchantsService);
   private readonly dialog = inject(MatDialog);
+  private readonly uiFeedback = inject(UiFeedbackService);
 
   readonly loading = signal(false);
   readonly reviewingId = signal<string | null>(null);
@@ -107,6 +109,21 @@ export class AdminProductSubmissionsComponent {
   });
 
   constructor() {
+    effect(() => {
+      const currentError = this.errorKey() ?? this.actionErrorKey();
+      if (currentError) {
+        this.uiFeedback.showError(currentError);
+      } else {
+        this.uiFeedback.clearError();
+      }
+    });
+    effect(() => {
+      const success = this.successKey();
+      if (success) {
+        this.uiFeedback.showSuccessToast(success);
+        this.successKey.set(null);
+      }
+    });
     this.loadInitialData();
   }
 
@@ -382,10 +399,12 @@ export class AdminProductSubmissionsComponent {
 
   clearErrorKey(): void {
     this.errorKey.set(null);
+    this.uiFeedback.clearError();
   }
 
   clearActionErrorKey(): void {
     this.actionErrorKey.set(null);
+    this.uiFeedback.clearError();
   }
 
   isSelected(id: string): boolean {

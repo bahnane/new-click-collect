@@ -29,13 +29,6 @@
                 </div>
                 }
 
-                @if (successMessageKey()) {
-                <div class="success-banner" role="status" aria-live="polite">
-                    <mat-icon aria-hidden="true">check_circle</mat-icon>
-                    <span>{{ successMessageKey()! | transloco }}</span>
-                </div>
-                }
-
                 @if (!successMessageKey()) {
                 <mat-form-field appearance="outline" class="field-full-width">
                     <mat-label>{{ 'auth.register.email' | transloco }}</mat-label>

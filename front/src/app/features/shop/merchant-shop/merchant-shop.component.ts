@@ -1,4 +1,11 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -15,6 +22,7 @@ import { MerchantShopService } from '../../../core/services/merchant-shop.servic
 import { CartService } from '../../../core/services/cart.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 import {
   MerchantShopInfo,
   StoreOffersPaginatedResponse,
@@ -44,6 +52,7 @@ export class MerchantShopComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+  private readonly uiFeedback = inject(UiFeedbackService);
   protected readonly languageService = inject(LanguageService);
 
   readonly merchantInfo = signal<MerchantShopInfo | null>(null);
@@ -68,6 +77,24 @@ export class MerchantShopComponent implements OnInit {
 
   readonly isRtl = this.languageService.isRtl;
   readonly currentDirection = this.languageService.currentDirection;
+
+  constructor() {
+    effect(() => {
+      const currentError = this.error() ?? this.addToCartErrorKey();
+      if (currentError) {
+        this.uiFeedback.showError(currentError);
+      } else {
+        this.uiFeedback.clearError();
+      }
+    });
+    effect(() => {
+      const success = this.addToCartSuccessKey();
+      if (success) {
+        this.uiFeedback.showSuccessToast(success);
+        this.addToCartSuccessKey.set(null);
+      }
+    });
+  }
 
   ngOnInit(): void {
     const merchantSlug = this.route.snapshot.paramMap.get('merchantSlug');

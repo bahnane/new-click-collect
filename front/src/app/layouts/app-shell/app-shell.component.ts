@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
 import { AuthService } from '../../core/services/auth.service';
+import { UiFeedbackService } from '../../core/services/ui-feedback.service';
 import { getDefaultAuthenticatedRoute } from '../../core/utils/default-auth-route.util';
 import { resolvePostAuthMerchantSlug } from '../../core/utils/post-auth-redirect.util';
 
@@ -23,6 +24,7 @@ import { resolvePostAuthMerchantSlug } from '../../core/utils/post-auth-redirect
 })
 export class AppShellComponent {
   private readonly authService = inject(AuthService);
+  private readonly uiFeedback = inject(UiFeedbackService);
   protected readonly languageService = inject(LanguageService);
 
   readonly isMenuOpen = signal(false);
@@ -39,6 +41,7 @@ export class AppShellComponent {
     () => this.currentUser()?.role !== 'MERCHANT',
   );
   readonly merchantShopSlug = resolvePostAuthMerchantSlug();
+  readonly globalErrorKey = this.uiFeedback.errorKey;
 
   toggleMenu(): void {
     this.isMenuOpen.update((value) => !value);
@@ -55,5 +58,9 @@ export class AppShellComponent {
 
   setLanguage(language: 'fr' | 'ar'): void {
     this.authService.updatePreferredLanguage(language).subscribe();
+  }
+
+  clearGlobalError(): void {
+    this.uiFeedback.clearError();
   }
 }

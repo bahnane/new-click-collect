@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -21,6 +21,7 @@ import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import { MerchantHours } from '../../../core/models/merchant-shop.model';
 import { MerchantsService } from '../../../core/services/merchants.service';
+import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 
 type Weekday =
   | 'MONDAY'
@@ -69,6 +70,7 @@ export class AdminCreateMerchantComponent {
   private readonly merchantsService = inject(MerchantsService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly uiFeedback = inject(UiFeedbackService);
 
   readonly DAYS = DAYS;
   readonly saving = signal(false);
@@ -102,6 +104,17 @@ export class AdminCreateMerchantComponent {
 
   get pickupDayGroups(): DayHoursGroup[] {
     return this.pickupHoursArray.controls as DayHoursGroup[];
+  }
+
+  constructor() {
+    effect(() => {
+      const currentError = this.errorKey();
+      if (currentError) {
+        this.uiFeedback.showError(currentError);
+      } else {
+        this.uiFeedback.clearError();
+      }
+    });
   }
 
   onSubmit(): void {
@@ -155,6 +168,7 @@ export class AdminCreateMerchantComponent {
 
   clearError(): void {
     this.errorKey.set(null);
+    this.uiFeedback.clearError();
   }
 
   getDayLabel(day: Weekday): string {
