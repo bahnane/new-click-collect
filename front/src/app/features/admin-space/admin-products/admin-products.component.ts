@@ -1,18 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -27,19 +21,17 @@ import {
   MerchantsService,
   UpdateAdminCatalogProductPayload,
 } from '../../../core/services/merchants.service';
+import { AdminProductEditorDialogComponent } from './admin-product-editor-dialog/admin-product-editor-dialog.component';
 
 @Component({
   selector: 'app-admin-products',
   imports: [
-    ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
-    MatFormFieldModule,
+    MatDialogModule,
     MatIconModule,
-    MatInputModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
     MatSlideToggleModule,
     MatTableModule,
     TranslocoPipe,
@@ -49,6 +41,7 @@ import {
 })
 export class AdminProductsComponent {
   private readonly merchantsService = inject(MerchantsService);
+  private readonly dialog = inject(MatDialog);
 
   readonly loading = signal(false);
   readonly saving = signal(false);
@@ -63,9 +56,6 @@ export class AdminProductsComponent {
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
 
-  readonly editorOpen = signal(false);
-  readonly editingProductId = signal<string | null>(null);
-
   readonly displayedColumns = [
     'name',
     'category',
@@ -76,36 +66,10 @@ export class AdminProductsComponent {
     'actions',
   ];
 
-  readonly form = new FormGroup({
-    name: new FormControl('', {
-      nonNullable: true,
-      validators: [
-        Validators.required,
-        Validators.minLength(2),
-        Validators.maxLength(191),
-      ],
-    }),
-    categoryId: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    saleUnit: new FormControl<Product['saleUnit']>('UNIT', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    price: new FormControl('', { nonNullable: true }),
-    description: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.maxLength(2000)],
-    }),
-  });
-
   readonly isEmpty = computed(() => {
     const current = this.page();
     return !this.loading() && current !== null && current.data.length === 0;
   });
-
-  readonly isEditMode = computed(() => this.editingProductId() !== null);
 
   constructor() {
     this.loadInitialData();
@@ -118,9 +82,6 @@ export class AdminProductsComponent {
     this.merchantsService.listAdminProductCategories().subscribe({
       next: (categories) => {
         this.categories.set(categories);
-        if (categories.length > 0 && !this.form.controls.categoryId.value) {
-          this.form.controls.categoryId.setValue(categories[0].id);
-        }
         this.loadProducts();
       },
       error: (error) => {
@@ -155,87 +116,54 @@ export class AdminProductsComponent {
   onOpenCreate(): void {
     this.successKey.set(null);
     this.actionErrorKey.set(null);
-    this.editorOpen.set(true);
-    this.editingProductId.set(null);
-    this.form.reset({
-      name: '',
-      categoryId: this.categories()[0]?.id ?? '',
-      saleUnit: 'UNIT',
-      price: '',
-      description: '',
+
+    const dialogRef = this.dialog.open(AdminProductEditorDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      data: {
+        categories: this.categories(),
+        isEditMode: false,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result) return;
+      this.submitProduct(result, null);
     });
   }
 
   onEdit(product: AdminCatalogProduct): void {
     this.successKey.set(null);
     this.actionErrorKey.set(null);
-    this.editorOpen.set(true);
-    this.editingProductId.set(product.id);
-    this.form.reset({
-      name: product.name,
-      categoryId: product.category.id,
-      saleUnit: product.saleUnit,
-      price:
-        product.priceInCents == null
-          ? ''
-          : (product.priceInCents / 100).toFixed(2),
-      description: product.description ?? '',
+
+    const dialogRef = this.dialog.open(AdminProductEditorDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      data: {
+        product,
+        categories: this.categories(),
+        isEditMode: true,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result) return;
+      this.submitProduct(result, product.id);
     });
   }
 
-  onCancelEditor(): void {
-    this.editorOpen.set(false);
-    this.editingProductId.set(null);
-    this.form.reset({
-      name: '',
-      categoryId: this.categories()[0]?.id ?? '',
-      saleUnit: 'UNIT',
-      price: '',
-      description: '',
-    });
-  }
-
-  onSubmitForm(): void {
-    if (this.saving()) {
-      return;
-    }
-
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      this.actionErrorKey.set('auth.apiErrors.VALIDATION_ERROR');
-      return;
-    }
-
-    const parsedPrice = this.parsePriceToCents(this.form.controls.price.value);
-    if (parsedPrice === null) {
-      this.actionErrorKey.set('auth.apiErrors.VALIDATION_ERROR');
-      return;
-    }
-
-    const payloadBase = {
-      name: this.form.controls.name.value.trim(),
-      categoryId: this.form.controls.categoryId.value,
-      saleUnit: this.form.controls.saleUnit.value,
-      description: this.form.controls.description.value.trim() || undefined,
-    };
-
+  private submitProduct(payload: any, productId: string | null): void {
     this.saving.set(true);
     this.actionErrorKey.set(null);
 
-    const editingId = this.editingProductId();
-    if (editingId) {
-      const payload: UpdateAdminCatalogProductPayload = {
-        ...payloadBase,
-        ...(parsedPrice === undefined ? {} : { priceInCents: parsedPrice }),
-      };
-
+    if (productId) {
+      const updatePayload: UpdateAdminCatalogProductPayload = payload;
       this.merchantsService
-        .updateAdminCatalogProduct(editingId, payload)
+        .updateAdminCatalogProduct(productId, updatePayload)
         .subscribe({
           next: () => {
             this.saving.set(false);
             this.successKey.set('shell.adminSpace.products.messages.updated');
-            this.onCancelEditor();
             this.loadProducts(this.currentPage(), this.pageSize());
           },
           error: (error) => {
@@ -243,26 +171,20 @@ export class AdminProductsComponent {
             this.actionErrorKey.set(this.mapApiError(error));
           },
         });
-      return;
+    } else {
+      const createPayload: CreateAdminCatalogProductPayload = payload;
+      this.merchantsService.createAdminCatalogProduct(createPayload).subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.successKey.set('shell.adminSpace.products.messages.created');
+          this.loadProducts(1, this.pageSize());
+        },
+        error: (error) => {
+          this.saving.set(false);
+          this.actionErrorKey.set(this.mapApiError(error));
+        },
+      });
     }
-
-    const payload: CreateAdminCatalogProductPayload = {
-      ...payloadBase,
-      ...(parsedPrice === undefined ? {} : { priceInCents: parsedPrice }),
-    };
-
-    this.merchantsService.createAdminCatalogProduct(payload).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.successKey.set('shell.adminSpace.products.messages.created');
-        this.onCancelEditor();
-        this.loadProducts(1, this.pageSize());
-      },
-      error: (error) => {
-        this.saving.set(false);
-        this.actionErrorKey.set(this.mapApiError(error));
-      },
-    });
   }
 
   onToggleActivation(product: AdminCatalogProduct): void {
@@ -314,20 +236,6 @@ export class AdminProductsComponent {
     }
 
     return (priceInCents / 100).toFixed(2);
-  }
-
-  private parsePriceToCents(value: string): number | undefined | null {
-    const normalized = value.trim();
-    if (!normalized) {
-      return undefined;
-    }
-
-    const parsed = Number.parseFloat(normalized);
-    if (!Number.isFinite(parsed) || parsed < 0) {
-      return null;
-    }
-
-    return Math.round(parsed * 100);
   }
 
   private mapApiError(error: unknown): string {
