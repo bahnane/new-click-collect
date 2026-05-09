@@ -28,7 +28,14 @@ export interface ProductSubmission {
   createdAt: string;
   updatedAt: string;
   category: ProductCategory;
-  approvedProduct: Pick<Product, 'id' | 'name'> | null;
+  approvedProduct: {
+    id: string;
+    name: string;
+    description: string | null;
+    saleUnit: Product['saleUnit'];
+    priceInCents: number | null;
+    category: { id: string; name: string; slug: string };
+  } | null;
 }
 
 export interface ProductSubmissionsPaginatedResponse {
@@ -65,7 +72,11 @@ export interface AdminProductSubmission {
   approvedProduct: {
     id: string;
     name: string;
+    description: string | null;
+    saleUnit: Product['saleUnit'];
+    priceInCents: number | null;
     isActive: boolean;
+    category: { id: string; name: string; slug: string };
   } | null;
 }
 

@@ -45,6 +45,7 @@ import {
   CreateOfferFromSuggestionDialogComponent,
   CreateOfferFromSuggestionDialogResult,
 } from '../../../shared/dialogs/create-offer-from-suggestion-dialog/create-offer-from-suggestion-dialog.component';
+import { SubmissionDiffDialogComponent } from './submission-diff-dialog/submission-diff-dialog.component';
 
 @Component({
   selector: 'app-merchant-product-submissions',
@@ -398,6 +399,28 @@ export class MerchantProductSubmissionsComponent {
 
   canMutate(submission: ProductSubmission): boolean {
     return submission.status === 'PENDING';
+  }
+
+  hasApprovedDiff(submission: ProductSubmission): boolean {
+    if (submission.status !== 'APPROVED' || !submission.approvedProduct) {
+      return false;
+    }
+    const p = submission.approvedProduct;
+    return (
+      p.name !== submission.name ||
+      p.description !== submission.description ||
+      p.saleUnit !== submission.saleUnit ||
+      p.priceInCents !== submission.priceInCents ||
+      p.category.id !== submission.category.id
+    );
+  }
+
+  onViewDiff(submission: ProductSubmission): void {
+    this.dialog.open(SubmissionDiffDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      data: submission,
+    });
   }
 
   formatPrice(priceInCents: number | null): string {

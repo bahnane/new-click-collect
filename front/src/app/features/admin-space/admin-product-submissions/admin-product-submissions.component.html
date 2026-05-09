@@ -197,6 +197,14 @@
                                     <mat-icon>info</mat-icon>
                                 </button>
                                 }
+                                @if (hasApprovedDiff(submission)) {
+                                <button mat-icon-button type="button" class="status-reason-info"
+                                    (click)="onViewDiff(submission)"
+                                    [matTooltip]="'shell.adminSpace.productSubmissions.diff.tooltip' | transloco"
+                                    [attr.aria-label]="'shell.adminSpace.productSubmissions.diff.tooltip' | transloco">
+                                    <mat-icon>compare_arrows</mat-icon>
+                                </button>
+                                }
                             </dd>
                         </div>
                     </dl>
@@ -353,6 +361,14 @@
                                     [matTooltip]="row.rejectionReason"
                                     [attr.aria-label]="'shell.adminSpace.productSubmissions.columns.rejectionReason' | transloco">
                                     <mat-icon>info</mat-icon>
+                                </button>
+                                }
+                                @if (hasApprovedDiff(row)) {
+                                <button mat-icon-button type="button" class="status-reason-info"
+                                    (click)="onViewDiff(row)"
+                                    [matTooltip]="'shell.adminSpace.productSubmissions.diff.tooltip' | transloco"
+                                    [attr.aria-label]="'shell.adminSpace.productSubmissions.diff.tooltip' | transloco">
+                                    <mat-icon>compare_arrows</mat-icon>
                                 </button>
                                 }
                             </span>

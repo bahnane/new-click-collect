@@ -195,6 +195,16 @@ export class ProductsService {
             select: {
               id: true,
               name: true,
+              description: true,
+              saleUnit: true,
+              priceInCents: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
             },
           },
         },
@@ -255,7 +265,17 @@ export class ProductsService {
             select: {
               id: true,
               name: true,
+              description: true,
+              saleUnit: true,
+              priceInCents: true,
               isActive: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
             },
           },
         },

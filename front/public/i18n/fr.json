@@ -515,6 +515,13 @@
         "deleteConfirm": {
           "title": "Supprimer la proposition",
           "message": "Voulez-vous supprimer la proposition {itemName} ?"
+        },
+        "diff": {
+          "tooltip": "L'admin a modifié cette proposition — voir les différences",
+          "title": "Proposition vs version finale",
+          "subtitle": "L'administrateur a ajusté votre proposition avant de l'intégrer au catalogue.",
+          "submitted": "Votre proposition",
+          "approved": "Version finale"
         }
       }
     },
@@ -686,6 +693,9 @@
         "errors": {
           "rejectionReasonRequired": "Le motif de refus doit contenir au moins 3 caractères.",
           "rejectionReasonRequiredForSelected": "Renseignez un motif de refus (3 caractères minimum) pour chaque soumission sélectionnée."
+        },
+        "diff": {
+          "tooltip": "Des modifications ont été apportées avant approbation — voir le comparatif"
         }
       }
     },

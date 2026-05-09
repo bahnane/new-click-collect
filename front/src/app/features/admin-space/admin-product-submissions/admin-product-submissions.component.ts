@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -24,6 +25,7 @@ import {
   ProductSubmissionStatus,
   ReviewAdminProductSubmissionPayload,
 } from '../../../core/services/merchants.service';
+import { SubmissionDiffDialogComponent } from '../../merchant-space/merchant-product-submissions/submission-diff-dialog/submission-diff-dialog.component';
 
 @Component({
   selector: 'app-admin-product-submissions',
@@ -31,6 +33,7 @@ import {
     MatButtonModule,
     MatCardModule,
     MatCheckboxModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -46,6 +49,7 @@ import {
 })
 export class AdminProductSubmissionsComponent {
   private readonly merchantsService = inject(MerchantsService);
+  private readonly dialog = inject(MatDialog);
 
   readonly loading = signal(false);
   readonly reviewingId = signal<string | null>(null);
@@ -390,6 +394,28 @@ export class AdminProductSubmissionsComponent {
 
   canReview(submission: AdminProductSubmission): boolean {
     return submission.status === 'PENDING';
+  }
+
+  hasApprovedDiff(submission: AdminProductSubmission): boolean {
+    if (submission.status !== 'APPROVED' || !submission.approvedProduct) {
+      return false;
+    }
+    const p = submission.approvedProduct;
+    return (
+      p.name !== submission.name ||
+      p.description !== submission.description ||
+      p.saleUnit !== submission.saleUnit ||
+      p.priceInCents !== submission.priceInCents ||
+      p.category.id !== submission.category.id
+    );
+  }
+
+  onViewDiff(submission: AdminProductSubmission): void {
+    this.dialog.open(SubmissionDiffDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      data: submission,
+    });
   }
 
   getSaleUnitLabel(saleUnit: Product['saleUnit']): string {
