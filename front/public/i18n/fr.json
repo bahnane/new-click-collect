@@ -453,6 +453,11 @@
             "message": "Voulez-vous désactiver l'offre pour {itemName} ?"
           }
         },
+        "messages": {
+          "updated": "Offre mise à jour avec succès.",
+          "activated": "Offre réactivée avec succès.",
+          "deactivated": "Offre désactivée avec succès."
+        },
         "errors": {
           "loadFailed": "Impossible de charger vos offres.",
           "deleteFailed": "Impossible de modifier le statut de cette offre."
