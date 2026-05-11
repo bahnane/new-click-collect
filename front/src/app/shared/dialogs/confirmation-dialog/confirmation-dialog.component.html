@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>{{ data.title | transloco }}</h2>
+<mat-dialog-content>
+    <div class="dialog-content">
+        <mat-icon class="dialog-icon">{{ data.icon ?? 'warning' }}</mat-icon>
+        <div class="message">
+            <p [innerHTML]="getTranslatedMessage()"></p>
+        </div>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    @if (apiErrorKey) {
+    <div class="error-row" role="alert" aria-live="polite">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <span>{{ apiErrorKey | transloco }}</span>
+    </div>
+    }
+    <button mat-button type="button" [disabled]="confirming" (click)="onCancel()">
+        {{ 'common.cancel' | transloco }}
+    </button>
+    <button mat-raised-button [color]="data.confirmColor ?? 'warn'" type="button" [disabled]="confirming"
+        (click)="onConfirm()">
+        @if (confirming) {
+        <mat-spinner diameter="16"></mat-spinner>
+        } @else {
+        {{ (data.confirmLabel ?? 'common.delete') | transloco }}
+        }
+    </button>
+</mat-dialog-actions>

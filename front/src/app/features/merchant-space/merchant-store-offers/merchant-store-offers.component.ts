@@ -13,18 +13,16 @@ import {
 import { MatTableModule } from '@angular/material/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { finalize, tap } from 'rxjs/operators';
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import {
   StoreOffer,
   StoreOffersPaginatedResponse,
 } from '../../../core/models/merchant-shop.model';
-import {
-  MerchantsService,
-  UpdateStoreOfferPayload,
-} from '../../../core/services/merchants.service';
+import { MerchantsService } from '../../../core/services/merchants.service';
 import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
-import { DeleteConfirmationDialogComponent } from '../../../shared/dialogs/delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { ConfirmationDialogComponent } from '../../../shared/dialogs/confirmation-dialog/confirmation-dialog.component';
 import { EditStoreOfferDialogComponent } from './edit-store-offer-dialog.component';
 
 @Component({
@@ -119,12 +117,10 @@ export class MerchantStoreOffersComponent {
       data: { offer },
     });
 
-    dialogRef.afterClosed().subscribe((payload) => {
-      if (!payload) {
-        return;
+    dialogRef.afterClosed().subscribe((updated: boolean | undefined) => {
+      if (updated) {
+        this.loadOffers(this.currentPage(), this.pageSize());
       }
-
-      this.updateOffer(offer.id, payload);
     });
   }
 
@@ -137,7 +133,7 @@ export class MerchantStoreOffersComponent {
     }
 
     const statusAction = offer.isActive ? 'deactivate' : 'activate';
-    const dialogRef = this.dialog.open(DeleteConfirmationDialogComponent, {
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '400px',
       panelClass: 'status-confirmation-dialog-panel',
       data: {
@@ -146,52 +142,17 @@ export class MerchantStoreOffersComponent {
         confirmLabel: `shell.merchant.storeOffers.${statusAction}`,
         confirmColor: offer.isActive ? 'warn' : 'primary',
         itemName: offer.product.name,
+        confirmAction: () =>
+          this.merchantsService.toggleOffer(offer.id).pipe(
+            tap(() => this.loadOffers(this.currentPage(), this.pageSize())),
+            finalize(() => this.deleting.set(null)),
+          ),
       },
     });
 
-    dialogRef.afterClosed().subscribe((confirmed) => {
-      if (confirmed) {
-        this.toggleOfferStatus(offer.id);
-      }
-    });
-  }
-
-  private toggleOfferStatus(offerId: string): void {
-    this.deleting.set(offerId);
-    this.actionErrorKey.set(null);
-
-    // Toggle status: deactivate active offers and reactivate inactive ones.
-    this.merchantsService.toggleOffer(offerId).subscribe({
-      next: () => {
-        this.deleting.set(null);
-        // Reload current page
-        this.loadOffers(this.currentPage(), this.pageSize());
-      },
-      error: (error) => {
-        this.deleting.set(null);
-        const errorCode = extractApiErrorCode(error) || 'INTERNAL_SERVER_ERROR';
-        const errorKey =
-          AUTH_ERROR_I18N_KEY_BY_CODE[errorCode] ||
-          'auth.apiErrors.INTERNAL_SERVER_ERROR';
-        this.actionErrorKey.set(errorKey);
-      },
-    });
-  }
-
-  private updateOffer(offerId: string, payload: UpdateStoreOfferPayload): void {
-    this.actionErrorKey.set(null);
-
-    this.merchantsService.updateOffer(offerId, payload).subscribe({
-      next: () => {
-        this.loadOffers(this.currentPage(), this.pageSize());
-      },
-      error: (error) => {
-        const errorCode = extractApiErrorCode(error) || 'INTERNAL_SERVER_ERROR';
-        const errorKey =
-          AUTH_ERROR_I18N_KEY_BY_CODE[errorCode] ||
-          'auth.apiErrors.INTERNAL_SERVER_ERROR';
-        this.actionErrorKey.set(errorKey);
-      },
+    this.deleting.set(offer.id);
+    dialogRef.afterClosed().subscribe(() => {
+      this.deleting.set(null);
     });
   }
 

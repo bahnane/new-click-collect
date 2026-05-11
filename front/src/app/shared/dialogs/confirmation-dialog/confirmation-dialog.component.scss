@@ -1,0 +1,53 @@
+mat-dialog-content {
+  overflow-y: hidden !important;
+  overflow-x: hidden !important;
+  max-height: none !important;
+  padding: 0.5rem 1.25rem 0.25rem;
+}
+
+.dialog-content {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.dialog-icon {
+  color: #f57c00;
+  flex-shrink: 0;
+  margin-block-start: 0.25rem;
+}
+
+.message {
+  flex: 1;
+}
+
+.message p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.error-row {
+  flex: 1 0 100%;
+  margin-block-end: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-error);
+}
+
+mat-dialog-actions mat-spinner {
+  display: inline-block;
+}
+
+mat-dialog-actions {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 1;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem 1.25rem;
+  background-color: var(--color-bg-secondary);
+  border-block-start: 1px solid
+    color-mix(in srgb, var(--color-divider) 70%, transparent);
+}

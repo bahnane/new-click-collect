@@ -9,10 +9,16 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { extractApiErrorCode } from '../../../core/errors/api-error.util';
+import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import { StoreOffer } from '../../../core/models/merchant-shop.model';
-import { UpdateStoreOfferPayload } from '../../../core/services/merchants.service';
+import {
+  MerchantsService,
+  UpdateStoreOfferPayload,
+} from '../../../core/services/merchants.service';
 
 interface EditStoreOfferDialogData {
   offer: StoreOffer;
@@ -28,6 +34,7 @@ interface EditStoreOfferDialogData {
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
+    MatProgressSpinnerModule,
     ReactiveFormsModule,
     TranslocoPipe,
   ],
@@ -74,16 +81,15 @@ interface EditStoreOfferDialogData {
           <input matInput type="text" [formControl]="stepQtyControl" />
         </mat-form-field>
       </form>
-
-      @if (validationErrorKey) {
-        <div class="error-banner" role="alert" aria-live="polite">
-          <mat-icon aria-hidden="true">error_outline</mat-icon>
-          <span>{{ validationErrorKey | transloco }}</span>
-        </div>
-      }
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">
+      @if (apiErrorKey || validationErrorKey; as currentErrorKey) {
+        <div class="error-row" role="alert" aria-live="polite">
+          <mat-icon aria-hidden="true">error_outline</mat-icon>
+          <span>{{ currentErrorKey | transloco }}</span>
+        </div>
+      }
       <button mat-button type="button" (click)="onCancel()">
         {{ 'common.cancel' | transloco }}
       </button>
@@ -91,9 +97,14 @@ interface EditStoreOfferDialogData {
         mat-flat-button
         color="primary"
         type="button"
+        [disabled]="saving"
         (click)="onConfirm()"
       >
-        {{ 'common.save' | transloco }}
+        @if (saving) {
+          <mat-spinner diameter="18"></mat-spinner>
+        } @else {
+          {{ 'common.save' | transloco }}
+        }
       </button>
     </mat-dialog-actions>
   `,
@@ -110,7 +121,7 @@ interface EditStoreOfferDialogData {
 
       .edit-form {
         display: grid;
-        gap: 0.25rem;
+        gap: 0.75rem;
       }
 
       .field {
@@ -118,33 +129,52 @@ interface EditStoreOfferDialogData {
       }
 
       .price-field {
-        margin-block-end: 0.5rem;
+        margin-block-end: 0.75rem;
       }
 
-      .error-banner {
-        margin-block-start: 0.75rem;
+      mat-dialog-actions {
+        position: sticky;
+        inset-block-end: 0;
+        z-index: 1;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        padding-block-start: 0.75rem;
+        background-color: var(--color-bg-secondary);
+        border-block-start: 1px solid
+          color-mix(in srgb, var(--color-divider) 70%, transparent);
+      }
+
+      .error-row {
+        flex: 1 0 100%;
+        margin-block-end: 0.5rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        color: var(--app-color-danger-700, #b42318);
+        color: var(--color-error);
       }
     `,
   ],
 })
 export class EditStoreOfferDialogComponent {
+  private readonly merchantsService: MerchantsService;
+
   readonly priceControl: FormControl<string>;
   readonly minOrderQtyControl: FormControl<string>;
   readonly stepQtyControl: FormControl<string>;
 
+  saving = false;
   validationErrorKey: string | null = null;
+  apiErrorKey: string | null = null;
 
   constructor(
     public dialogRef: MatDialogRef<
       EditStoreOfferDialogComponent,
-      UpdateStoreOfferPayload | undefined
+      boolean | undefined
     >,
     @Inject(MAT_DIALOG_DATA) public data: EditStoreOfferDialogData,
+    merchantsService: MerchantsService,
   ) {
+    this.merchantsService = merchantsService;
     this.priceControl = new FormControl<string>(
       this.data.offer.overridePriceInCents == null
         ? ''
@@ -175,6 +205,10 @@ export class EditStoreOfferDialogComponent {
   }
 
   onConfirm(): void {
+    if (this.saving) {
+      return;
+    }
+
     const minOrderQty = this.parsePositiveDecimal(
       this.minOrderQtyControl.value,
     );
@@ -187,11 +221,34 @@ export class EditStoreOfferDialogComponent {
       return;
     }
 
-    this.dialogRef.close({
+    this.validationErrorKey = null;
+    this.apiErrorKey = null;
+    this.saving = true;
+
+    const payload: UpdateStoreOfferPayload = {
       minOrderQty,
       stepQty,
       priceInCents,
+    };
+
+    this.merchantsService.updateOffer(this.data.offer.id, payload).subscribe({
+      next: () => {
+        this.saving = false;
+        this.dialogRef.close(true);
+      },
+      error: (error) => {
+        this.saving = false;
+        this.apiErrorKey = this.mapApiError(error);
+      },
     });
+  }
+
+  private mapApiError(error: unknown): string {
+    const errorCode = extractApiErrorCode(error) || 'INTERNAL_SERVER_ERROR';
+    return (
+      AUTH_ERROR_I18N_KEY_BY_CODE[errorCode] ||
+      'auth.apiErrors.INTERNAL_SERVER_ERROR'
+    );
   }
 
   private parsePositiveDecimal(value: string): number | null {

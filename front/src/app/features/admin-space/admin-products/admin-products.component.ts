@@ -17,12 +17,13 @@ import {
   AdminCatalogProduct,
   AdminCatalogProductsPaginatedResponse,
   AdminProductCategory,
-  CreateAdminCatalogProductPayload,
   MerchantsService,
-  UpdateAdminCatalogProductPayload,
 } from '../../../core/services/merchants.service';
 import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
-import { AdminProductEditorDialogComponent } from './admin-product-editor-dialog/admin-product-editor-dialog.component';
+import {
+  AdminProductEditorDialogComponent,
+  AdminProductEditorDialogResult,
+} from './admin-product-editor-dialog/admin-product-editor-dialog.component';
 
 @Component({
   selector: 'app-admin-products',
@@ -143,10 +144,18 @@ export class AdminProductsComponent {
       },
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (!result) return;
-      this.submitProduct(result, null);
-    });
+    dialogRef
+      .afterClosed()
+      .subscribe((result: AdminProductEditorDialogResult | undefined) => {
+        if (!result) {
+          return;
+        }
+
+        if (result.created) {
+          this.successKey.set('shell.adminSpace.products.messages.created');
+          this.loadProducts(1, this.pageSize());
+        }
+      });
   }
 
   onEdit(product: AdminCatalogProduct): void {
@@ -163,45 +172,18 @@ export class AdminProductsComponent {
       },
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (!result) return;
-      this.submitProduct(result, product.id);
-    });
-  }
+    dialogRef
+      .afterClosed()
+      .subscribe((result: AdminProductEditorDialogResult | undefined) => {
+        if (!result) {
+          return;
+        }
 
-  private submitProduct(payload: any, productId: string | null): void {
-    this.saving.set(true);
-    this.actionErrorKey.set(null);
-
-    if (productId) {
-      const updatePayload: UpdateAdminCatalogProductPayload = payload;
-      this.merchantsService
-        .updateAdminCatalogProduct(productId, updatePayload)
-        .subscribe({
-          next: () => {
-            this.saving.set(false);
-            this.successKey.set('shell.adminSpace.products.messages.updated');
-            this.loadProducts(this.currentPage(), this.pageSize());
-          },
-          error: (error) => {
-            this.saving.set(false);
-            this.actionErrorKey.set(this.mapApiError(error));
-          },
-        });
-    } else {
-      const createPayload: CreateAdminCatalogProductPayload = payload;
-      this.merchantsService.createAdminCatalogProduct(createPayload).subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.successKey.set('shell.adminSpace.products.messages.created');
-          this.loadProducts(1, this.pageSize());
-        },
-        error: (error) => {
-          this.saving.set(false);
-          this.actionErrorKey.set(this.mapApiError(error));
-        },
+        if (result.updated) {
+          this.successKey.set('shell.adminSpace.products.messages.updated');
+          this.loadProducts(this.currentPage(), this.pageSize());
+        }
       });
-    }
   }
 
   onToggleActivation(product: AdminCatalogProduct): void {

@@ -16,21 +16,17 @@ import {
   ProductCategory,
 } from '../../../core/models/merchant-shop.model';
 import {
-  CreateProductSubmissionPayload,
   MerchantsService,
   ProductSubmission,
   ProductSubmissionsPaginatedResponse,
-  SimilarCatalogProduct,
-  UpdateProductSubmissionPayload,
 } from '../../../core/services/merchants.service';
 import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
-import { DeleteConfirmationDialogComponent } from '../../../shared/dialogs/delete-confirmation-dialog/delete-confirmation-dialog.component';
-import {
-  CreateOfferFromSuggestionDialogComponent,
-  CreateOfferFromSuggestionDialogResult,
-} from '../../../shared/dialogs/create-offer-from-suggestion-dialog/create-offer-from-suggestion-dialog.component';
+import { ConfirmationDialogComponent } from '../../../shared/dialogs/confirmation-dialog/confirmation-dialog.component';
 import { SubmissionDiffDialogComponent } from './submission-diff-dialog/submission-diff-dialog.component';
-import { SubmissionEditorDialogComponent } from './submission-editor-dialog/submission-editor-dialog.component';
+import {
+  SubmissionEditorDialogComponent,
+  SubmissionEditorDialogResult,
+} from './submission-editor-dialog/submission-editor-dialog.component';
 
 @Component({
   selector: 'app-merchant-product-submissions',
@@ -152,10 +148,20 @@ export class MerchantProductSubmissionsComponent {
       },
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (!result) return;
-      this.submitSubmission(result, null);
-    });
+    dialogRef
+      .afterClosed()
+      .subscribe((result: SubmissionEditorDialogResult | undefined) => {
+        if (!result) {
+          return;
+        }
+
+        if (result.created) {
+          this.successKey.set(
+            'shell.merchant.productSubmissions.messages.created',
+          );
+          this.loadSubmissions(1, this.pageSize());
+        }
+      });
   }
 
   onEdit(submission: ProductSubmission): void {
@@ -176,49 +182,20 @@ export class MerchantProductSubmissionsComponent {
       },
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (!result) return;
-      this.submitSubmission(result, submission.id);
-    });
-  }
+    dialogRef
+      .afterClosed()
+      .subscribe((result: SubmissionEditorDialogResult | undefined) => {
+        if (!result) {
+          return;
+        }
 
-  private submitSubmission(payload: any, submissionId: string | null): void {
-    this.saving.set(true);
-    this.actionErrorKey.set(null);
-
-    if (submissionId) {
-      const updatePayload: UpdateProductSubmissionPayload = payload;
-      this.merchantsService
-        .updateProductSubmission(submissionId, updatePayload)
-        .subscribe({
-          next: () => {
-            this.saving.set(false);
-            this.successKey.set(
-              'shell.merchant.productSubmissions.messages.updated',
-            );
-            this.loadSubmissions(this.currentPage(), this.pageSize());
-          },
-          error: (error) => {
-            this.saving.set(false);
-            this.actionErrorKey.set(this.mapApiError(error));
-          },
-        });
-    } else {
-      const createPayload: CreateProductSubmissionPayload = payload;
-      this.merchantsService.createProductSubmission(createPayload).subscribe({
-        next: () => {
-          this.saving.set(false);
+        if (result.updated) {
           this.successKey.set(
-            'shell.merchant.productSubmissions.messages.created',
+            'shell.merchant.productSubmissions.messages.updated',
           );
-          this.loadSubmissions(1, this.pageSize());
-        },
-        error: (error) => {
-          this.saving.set(false);
-          this.actionErrorKey.set(this.mapApiError(error));
-        },
+          this.loadSubmissions(this.currentPage(), this.pageSize());
+        }
       });
-    }
   }
 
   onDelete(submission: ProductSubmission): void {
@@ -229,7 +206,9 @@ export class MerchantProductSubmissionsComponent {
       return;
     }
 
-    const dialogRef = this.dialog.open(DeleteConfirmationDialogComponent, {
+    this.deletingSubmissionId.set(submission.id);
+
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '400px',
       data: {
         title: 'shell.merchant.productSubmissions.deleteConfirm.title',
@@ -237,71 +216,20 @@ export class MerchantProductSubmissionsComponent {
         confirmLabel: 'common.delete',
         confirmColor: 'warn',
         itemName: submission.name,
+        confirmAction: () =>
+          this.merchantsService.deleteProductSubmission(submission.id),
       },
     });
 
     dialogRef.afterClosed().subscribe((confirmed) => {
-      if (!confirmed) {
-        return;
+      this.deletingSubmissionId.set(null);
+      if (confirmed) {
+        this.successKey.set(
+          'shell.merchant.productSubmissions.messages.deleted',
+        );
+        this.loadSubmissions(this.currentPage(), this.pageSize());
       }
-
-      this.deletingSubmissionId.set(submission.id);
-      this.actionErrorKey.set(null);
-      this.merchantsService.deleteProductSubmission(submission.id).subscribe({
-        next: () => {
-          this.deletingSubmissionId.set(null);
-          this.successKey.set(
-            'shell.merchant.productSubmissions.messages.deleted',
-          );
-          this.loadSubmissions(this.currentPage(), this.pageSize());
-        },
-        error: (error) => {
-          this.deletingSubmissionId.set(null);
-          this.actionErrorKey.set(this.mapApiError(error));
-        },
-      });
     });
-  }
-
-  onCreateOfferFromSuggestion(product: SimilarCatalogProduct): void {
-    const dialogRef = this.dialog.open(
-      CreateOfferFromSuggestionDialogComponent,
-      {
-        width: '400px',
-        data: { product },
-      },
-    );
-
-    dialogRef
-      .afterClosed()
-      .subscribe(
-        (result: CreateOfferFromSuggestionDialogResult | undefined) => {
-          if (!result) {
-            return;
-          }
-
-          this.creatingOfferForId.set(product.id);
-          this.actionErrorKey.set(null);
-
-          this.merchantsService
-            .createOffer({
-              productId: product.id,
-              ...result,
-            })
-            .subscribe({
-              next: () => {
-                this.creatingOfferForId.set(null);
-                this.successKey.set(
-                  'shell.merchant.productSubmissions.messages.offerCreated',
-                );
-              },
-              error: (error) => {
-                this.creatingOfferForId.set(null);
-                this.actionErrorKey.set(this.mapApiError(error));
-              },
-            });
-        },
-      );
   }
 
   clearErrorKey(): void {

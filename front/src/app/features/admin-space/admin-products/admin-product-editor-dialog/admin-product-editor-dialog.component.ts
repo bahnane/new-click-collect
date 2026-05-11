@@ -18,10 +18,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { extractApiErrorCode } from '../../../../core/errors/api-error.util';
+import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../../core/errors/auth-error-i18n-map';
 import { Product } from '../../../../core/models/merchant-shop.model';
 import {
   AdminCatalogProduct,
   AdminProductCategory,
+  CreateAdminCatalogProductPayload,
+  MerchantsService,
+  UpdateAdminCatalogProductPayload,
 } from '../../../../core/services/merchants.service';
 
 export interface AdminProductEditorDialogData {
@@ -35,7 +40,12 @@ export interface AdminProductEditorPayload {
   categoryId: string;
   saleUnit: Product['saleUnit'];
   description?: string;
-  priceInCents: number | null | undefined;
+  priceInCents: number | undefined;
+}
+
+export interface AdminProductEditorDialogResult {
+  created?: boolean;
+  updated?: boolean;
 }
 
 @Component({
@@ -130,6 +140,12 @@ export interface AdminProductEditorPayload {
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">
+      @if (apiErrorKey) {
+        <div class="error-row" role="alert" aria-live="polite">
+          <mat-icon aria-hidden="true">error_outline</mat-icon>
+          <span>{{ apiErrorKey | transloco }}</span>
+        </div>
+      }
       <button mat-stroked-button (click)="cancel()">
         {{ 'common.cancel' | transloco }}
       </button>
@@ -145,7 +161,7 @@ export interface AdminProductEditorPayload {
         {{
           isEditMode
             ? ('common.save' | transloco)
-            : ('common.create' | transloco)
+            : ('shell.adminSpace.products.actions.create' | transloco)
         }}
       </button>
     </mat-dialog-actions>
@@ -163,6 +179,31 @@ export interface AdminProductEditorPayload {
         grid-column: 1 / -1;
       }
 
+      .editor-form mat-form-field:has(mat-hint) {
+        margin-block-end: 0.5rem;
+      }
+
+      mat-dialog-actions {
+        position: sticky;
+        inset-block-end: 0;
+        z-index: 1;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        padding-block-start: 0.75rem;
+        background-color: var(--color-bg-secondary);
+        border-block-start: 1px solid
+          color-mix(in srgb, var(--color-divider) 70%, transparent);
+      }
+
+      .error-row {
+        flex: 1 0 100%;
+        margin-block-end: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--color-error);
+      }
+
       @media (max-width: 699px) {
         .editor-form {
           grid-template-columns: 1fr;
@@ -172,8 +213,11 @@ export interface AdminProductEditorPayload {
   ],
 })
 export class AdminProductEditorDialogComponent implements OnInit {
+  private readonly merchantsService = inject(MerchantsService);
+
   isEditMode: boolean;
   saving = false;
+  apiErrorKey: string | null = null;
 
   form = new FormGroup({
     name: new FormControl('', {
@@ -239,10 +283,44 @@ export class AdminProductEditorDialogComponent implements OnInit {
       categoryId: this.form.controls.categoryId.value,
       saleUnit: this.form.controls.saleUnit.value,
       description: this.form.controls.description.value.trim() || undefined,
-      priceInCents,
+      priceInCents: priceInCents ?? undefined,
     };
 
-    this.dialogRef.close(payload);
+    this.saving = true;
+    this.apiErrorKey = null;
+
+    if (this.isEditMode && this.data.product) {
+      const updatePayload: UpdateAdminCatalogProductPayload = payload;
+      this.merchantsService
+        .updateAdminCatalogProduct(this.data.product.id, updatePayload)
+        .subscribe({
+          next: () => {
+            this.saving = false;
+            this.dialogRef.close({
+              updated: true,
+            } as AdminProductEditorDialogResult);
+          },
+          error: (error) => {
+            this.saving = false;
+            this.apiErrorKey = this.mapApiError(error);
+          },
+        });
+      return;
+    }
+
+    const createPayload: CreateAdminCatalogProductPayload = payload;
+    this.merchantsService.createAdminCatalogProduct(createPayload).subscribe({
+      next: () => {
+        this.saving = false;
+        this.dialogRef.close({
+          created: true,
+        } as AdminProductEditorDialogResult);
+      },
+      error: (error) => {
+        this.saving = false;
+        this.apiErrorKey = this.mapApiError(error);
+      },
+    });
   }
 
   cancel(): void {
@@ -259,5 +337,13 @@ export class AdminProductEditorDialogComponent implements OnInit {
       return null;
     }
     return Math.round(parsed * 100);
+  }
+
+  private mapApiError(error: unknown): string {
+    const code = extractApiErrorCode(error) || 'INTERNAL_SERVER_ERROR';
+    return (
+      AUTH_ERROR_I18N_KEY_BY_CODE[code] ||
+      'auth.apiErrors.INTERNAL_SERVER_ERROR'
+    );
   }
 }

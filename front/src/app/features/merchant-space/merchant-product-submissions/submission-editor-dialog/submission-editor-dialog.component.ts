@@ -8,6 +8,7 @@ import {
 } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
+  MatDialog,
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
@@ -31,15 +32,29 @@ import {
   ProductCategory,
 } from '../../../../core/models/merchant-shop.model';
 import {
+  CreateProductSubmissionPayload,
   ProductSubmission,
   MerchantsService,
   SimilarCatalogProduct,
+  UpdateProductSubmissionPayload,
 } from '../../../../core/services/merchants.service';
+import {
+  CreateOfferFromSuggestionDialogComponent,
+  CreateOfferFromSuggestionDialogResult,
+} from '../../../../shared/dialogs/create-offer-from-suggestion-dialog/create-offer-from-suggestion-dialog.component';
+import { UiFeedbackService } from '../../../../core/services/ui-feedback.service';
+import { extractApiErrorCode } from '../../../../core/errors/api-error.util';
+import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../../core/errors/auth-error-i18n-map';
 
 export interface SubmissionEditorDialogData {
   submission?: ProductSubmission;
   categories: ProductCategory[];
   isEditMode: boolean;
+}
+
+export interface SubmissionEditorDialogResult {
+  created?: boolean;
+  updated?: boolean;
 }
 
 @Component({
@@ -178,6 +193,12 @@ export interface SubmissionEditorDialogData {
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">
+      @if (apiErrorKey) {
+        <div class="error-row" role="alert" aria-live="polite">
+          <mat-icon aria-hidden="true">error_outline</mat-icon>
+          <span>{{ apiErrorKey | transloco }}</span>
+        </div>
+      }
       <button mat-stroked-button (click)="cancel()">
         {{ 'common.cancel' | transloco }}
       </button>
@@ -209,6 +230,10 @@ export interface SubmissionEditorDialogData {
 
       .editor-form .full-width {
         grid-column: 1 / -1;
+      }
+
+      .editor-form mat-form-field:has(mat-hint) {
+        margin-block-end: 0.5rem;
       }
 
       .similar-products {
@@ -250,6 +275,27 @@ export interface SubmissionEditorDialogData {
         font-size: 0.8rem;
       }
 
+      mat-dialog-actions {
+        position: sticky;
+        inset-block-end: 0;
+        z-index: 1;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        padding-block-start: 0.75rem;
+        background-color: var(--color-bg-secondary);
+        border-block-start: 1px solid
+          color-mix(in srgb, var(--color-divider) 70%, transparent);
+      }
+
+      .error-row {
+        flex: 1 0 100%;
+        margin-block-end: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--color-error);
+      }
+
       @media (max-width: 699px) {
         .editor-form {
           grid-template-columns: 1fr;
@@ -260,10 +306,13 @@ export interface SubmissionEditorDialogData {
 })
 export class SubmissionEditorDialogComponent implements OnInit {
   private readonly merchantsService = inject(MerchantsService);
+  private readonly dialog = inject(MatDialog);
+  private readonly uiFeedback = inject(UiFeedbackService);
   private readonly destroyRef = inject(DestroyRef);
 
   isEditMode: boolean;
   saving = false;
+  apiErrorKey: string | null = null;
   similarProducts: SimilarCatalogProduct[] = [];
   creatingOfferForId: string | null = null;
 
@@ -330,10 +379,42 @@ export class SubmissionEditorDialogComponent implements OnInit {
       categoryId: this.form.controls.categoryId.value,
       saleUnit: this.form.controls.saleUnit.value,
       description: this.form.controls.description.value.trim() || undefined,
-      priceInCents,
+      priceInCents: priceInCents ?? undefined,
     };
 
-    this.dialogRef.close(payload);
+    this.saving = true;
+    this.apiErrorKey = null;
+
+    if (this.isEditMode && this.data.submission) {
+      const updatePayload: UpdateProductSubmissionPayload = payload;
+      this.merchantsService
+        .updateProductSubmission(this.data.submission.id, updatePayload)
+        .subscribe({
+          next: () => {
+            this.saving = false;
+            this.dialogRef.close({
+              updated: true,
+            } as SubmissionEditorDialogResult);
+          },
+          error: (error) => {
+            this.saving = false;
+            this.apiErrorKey = this.mapApiError(error);
+          },
+        });
+      return;
+    }
+
+    const createPayload: CreateProductSubmissionPayload = payload;
+    this.merchantsService.createProductSubmission(createPayload).subscribe({
+      next: () => {
+        this.saving = false;
+        this.dialogRef.close({ created: true } as SubmissionEditorDialogResult);
+      },
+      error: (error) => {
+        this.saving = false;
+        this.apiErrorKey = this.mapApiError(error);
+      },
+    });
   }
 
   cancel(): void {
@@ -341,8 +422,42 @@ export class SubmissionEditorDialogComponent implements OnInit {
   }
 
   onCreateOfferFromSuggestion(product: SimilarCatalogProduct): void {
-    // This would typically open another dialog, but for now we'll skip it
-    // or handle it via callback in the parent component
+    const dialogRef = this.dialog.open(
+      CreateOfferFromSuggestionDialogComponent,
+      {
+        width: '400px',
+        data: { product },
+      },
+    );
+
+    dialogRef
+      .afterClosed()
+      .subscribe(
+        (result: CreateOfferFromSuggestionDialogResult | undefined) => {
+          if (!result) {
+            return;
+          }
+
+          this.creatingOfferForId = product.id;
+          this.merchantsService
+            .createOffer({
+              productId: product.id,
+              ...result,
+            })
+            .subscribe({
+              next: () => {
+                this.creatingOfferForId = null;
+                this.uiFeedback.showSuccessToast(
+                  'shell.merchant.productSubmissions.messages.offerCreated',
+                );
+              },
+              error: (error) => {
+                this.creatingOfferForId = null;
+                this.apiErrorKey = this.mapApiError(error);
+              },
+            });
+        },
+      );
   }
 
   getSaleUnitLabel(saleUnit: Product['saleUnit']): string {
@@ -380,5 +495,13 @@ export class SubmissionEditorDialogComponent implements OnInit {
       return undefined;
     }
     return Math.round(parsed * 100);
+  }
+
+  private mapApiError(error: unknown): string {
+    const errorCode = extractApiErrorCode(error) || 'INTERNAL_SERVER_ERROR';
+    return (
+      AUTH_ERROR_I18N_KEY_BY_CODE[errorCode] ||
+      'auth.apiErrors.INTERNAL_SERVER_ERROR'
+    );
   }
 }
