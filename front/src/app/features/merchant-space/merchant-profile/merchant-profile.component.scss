@@ -127,27 +127,6 @@
   width: 6.5rem;
 }
 
-/* Feedback banners */
-.error-banner {
-  margin: 0;
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
-  color: var(--mat-sys-on-error-container);
-  font: var(--mat-sys-body-medium);
-  border: 1px solid color-mix(in srgb, var(--mat-sys-error) 30%, transparent);
-}
-
-.success-banner {
-  margin: 0;
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);
-}
-
 /* Actions */
 .form-actions {
   display: flex;

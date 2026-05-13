@@ -85,6 +85,10 @@ export class MerchantProfileComponent {
     address: ['', [Validators.maxLength(255)]],
     city: ['', [Validators.maxLength(100)]],
     zipCode: ['', [Validators.maxLength(10)]],
+    pickupSlotCapacity: [
+      10,
+      [Validators.required, Validators.min(1), Validators.max(999)],
+    ],
   });
 
   readonly openingHoursArray: FormArray<DayHoursGroup> = this.fb.array(
@@ -145,6 +149,7 @@ export class MerchantProfileComponent {
       address: raw.address || undefined,
       city: raw.city || undefined,
       zipCode: raw.zipCode || undefined,
+      pickupSlotCapacity: raw.pickupSlotCapacity,
       openingHours: this.extractEnabledHours(this.openingHoursArray),
       pickupHours: this.extractEnabledHours(this.pickupHoursArray),
     };
@@ -185,6 +190,7 @@ export class MerchantProfileComponent {
       address: profile.address ?? '',
       city: profile.city ?? '',
       zipCode: profile.zipCode ?? '',
+      pickupSlotCapacity: profile.pickupSlotCapacity ?? 10,
     });
 
     this.patchDayArray(this.openingHoursArray, profile.openingHours, 8, 18);

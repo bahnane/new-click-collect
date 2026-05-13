@@ -97,8 +97,7 @@
                         <mat-checkbox [formControl]="group.controls['enabled']">
                             {{ 'shop.day.' + DAYS[i] | transloco }}
                         </mat-checkbox>
-                        @if (group.controls['enabled'].value) {
-                        <div class="hour-selects">
+                        <div class="hour-selects" [style.display]="group.controls['enabled'].value ? '' : 'none'">
                             <mat-form-field appearance="outline" subscriptSizing="dynamic">
                                 <mat-label>
                                     {{
@@ -125,7 +124,6 @@
                                 </mat-select>
                             </mat-form-field>
                         </div>
-                        }
                     </div>
                     }
                 </div>
@@ -143,6 +141,15 @@
                 </mat-card-subtitle>
             </mat-card-header>
             <mat-card-content>
+                <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>
+                        {{ 'shell.merchant.profile.fields.pickupSlotCapacity' | transloco }}
+                    </mat-label>
+                    <input matInput formControlName="pickupSlotCapacity" type="number" min="1" max="999"
+                        inputmode="numeric" />
+                    <mat-hint>{{ 'shell.merchant.profile.fields.pickupSlotCapacityHint' | transloco }}</mat-hint>
+                </mat-form-field>
+
                 <div class="hours-grid" role="group" [attr.aria-label]="
               'shell.merchant.profile.sections.pickupHours' | transloco
             ">
@@ -151,8 +158,7 @@
                         <mat-checkbox [formControl]="group.controls['enabled']">
                             {{ 'shop.day.' + DAYS[i] | transloco }}
                         </mat-checkbox>
-                        @if (group.controls['enabled'].value) {
-                        <div class="hour-selects">
+                        <div class="hour-selects" [style.display]="group.controls['enabled'].value ? '' : 'none'">
                             <mat-form-field appearance="outline" subscriptSizing="dynamic">
                                 <mat-label>
                                     {{
@@ -179,7 +185,6 @@
                                 </mat-select>
                             </mat-form-field>
                         </div>
-                        }
                     </div>
                     }
                 </div>

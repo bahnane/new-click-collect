@@ -379,7 +379,9 @@
           "city": "Ville",
           "zipCode": "Code postal",
           "startHour": "Ouverture",
-          "endHour": "Fermeture"
+          "endHour": "Fermeture",
+          "pickupSlotCapacity": "Capacité max par créneau",
+          "pickupSlotCapacityHint": "Nombre de commandes acceptées par créneau de collecte."
         },
         "loading": "Chargement du profil...",
         "saving": "Enregistrement...",

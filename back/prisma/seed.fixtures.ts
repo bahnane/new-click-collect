@@ -347,7 +347,6 @@ async function main() {
       daysAhead: FIXTURE.slotDaysAhead,
       now: new Date(),
       slotDurationHours: FIXTURE.slotDurationHours,
-      maxOrdersPerSlot: FIXTURE.slotMaxOrders,
     });
 
     const createdSlots =

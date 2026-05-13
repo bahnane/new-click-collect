@@ -1,4 +1,4 @@
-import { IsDateString, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsDateString } from 'class-validator';
 
 export class CreatePickupSlotDto {
   @IsDateString()
@@ -6,10 +6,4 @@ export class CreatePickupSlotDto {
 
   @IsDateString()
   endsAt: string;
-
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  @Max(500)
-  maxOrders?: number;
 }

@@ -85,7 +85,7 @@ export class PickupSlotsService {
   async listPublicMerchantSlots(merchantId: string) {
     const merchant = await this.prisma.merchantProfile.findUnique({
       where: { id: merchantId },
-      select: { id: true, isActive: true },
+      select: { id: true, isActive: true, pickupSlotCapacity: true },
     });
 
     if (!merchant || !merchant.isActive) {
@@ -106,12 +106,13 @@ export class PickupSlotsService {
         id: true,
         startsAt: true,
         endsAt: true,
-        maxOrders: true,
         currentOrders: true,
       },
     });
 
-    return slots.filter((slot) => slot.currentOrders < slot.maxOrders);
+    return slots.filter(
+      (slot) => slot.currentOrders < merchant.pickupSlotCapacity,
+    );
   }
 
   async listMySlots(userId: string) {
@@ -148,7 +149,6 @@ export class PickupSlotsService {
         merchantId: profile.id,
         startsAt,
         endsAt,
-        maxOrders: dto.maxOrders ?? 10,
       },
     });
   }
@@ -184,20 +184,9 @@ export class PickupSlotsService {
       });
     }
 
-    if (dto.maxOrders != null && dto.maxOrders < slot.currentOrders) {
-      throw new BadRequestException({
-        code: ErrorCodes.PICKUP_SLOT_MAX_ORDERS_TOO_LOW,
-        message: 'maxOrders cannot be lower than currentOrders',
-      });
-    }
-
     return this.prisma.pickupSlot.update({
       where: { id: slotId },
-      data: {
-        startsAt,
-        endsAt,
-        ...(dto.maxOrders != null ? { maxOrders: dto.maxOrders } : {}),
-      },
+      data: { startsAt, endsAt },
     });
   }
 
@@ -276,7 +265,6 @@ export class PickupSlotsService {
       daysAhead,
       now,
       slotDurationHours: 2,
-      maxOrdersPerSlot: 10,
     });
 
     let deletedCount = 0;

@@ -10,7 +10,6 @@ export type PickupSlotRow = {
   merchantId: string;
   startsAt: Date;
   endsAt: Date;
-  maxOrders: number;
 };
 
 export type GeneratePickupSlotsInput = {
@@ -19,7 +18,6 @@ export type GeneratePickupSlotsInput = {
   daysAhead: number;
   now?: Date;
   slotDurationHours?: number;
-  maxOrdersPerSlot?: number;
 };
 
 export function generatePickupSlotsForWindow(
@@ -27,7 +25,6 @@ export function generatePickupSlotsForWindow(
 ): PickupSlotRow[] {
   const now = input.now ?? new Date();
   const slotDurationHours = input.slotDurationHours ?? 2;
-  const maxOrdersPerSlot = input.maxOrdersPerSlot ?? 10;
 
   if (input.daysAhead <= 0 || slotDurationHours <= 0) {
     return [];
@@ -74,7 +71,6 @@ export function generatePickupSlotsForWindow(
         merchantId: input.merchantId,
         startsAt,
         endsAt,
-        maxOrders: maxOrdersPerSlot,
       });
     }
   }

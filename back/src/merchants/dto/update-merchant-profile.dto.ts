@@ -4,9 +4,12 @@ import {
   IsBoolean,
   IsArray,
   IsEnum,
+  IsInt,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
+  Min,
   MinLength,
   ValidateNested,
 } from 'class-validator';
@@ -52,6 +55,12 @@ export class UpdateMerchantProfileDto {
   @IsString()
   @MaxLength(10)
   zipCode?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(999)
+  pickupSlotCapacity?: number;
 
   @IsOptional()
   @IsArray()

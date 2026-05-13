@@ -129,24 +129,6 @@
                         </ul>
                     </div>
                     }
-
-                    @if (merchantInfo()!.pickupHours.length) {
-                    <div class="hours-section">
-                        <h3>{{ 'shop.pickupHours' | transloco }}</h3>
-                        <ul class="hours-list">
-                            @for (hour of merchantInfo()!.pickupHours; track hour.dayOfWeek) {
-                            <li class="hour-item">
-                                <span class="day">
-                                    {{ 'shop.day.' + hour.dayOfWeek | transloco }}
-                                </span>
-                                <span class="time">
-                                    {{ hour.startHour }}:00 - {{ hour.endHour }}:00
-                                </span>
-                            </li>
-                            }
-                        </ul>
-                    </div>
-                    }
                 </div>
             </div>
         </mat-card-content>

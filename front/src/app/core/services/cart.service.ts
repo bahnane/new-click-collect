@@ -14,7 +14,6 @@ export interface PublicPickupSlot {
   id: string;
   startsAt: string;
   endsAt: string;
-  maxOrders: number;
   currentOrders: number;
 }
 

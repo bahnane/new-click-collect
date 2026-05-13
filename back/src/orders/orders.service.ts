@@ -49,6 +49,9 @@ export class OrdersService {
 
     const pickupSlot = await this.prisma.pickupSlot.findUnique({
       where: { id: dto.pickupSlotId },
+      include: {
+        merchant: { select: { pickupSlotCapacity: true } },
+      },
     });
 
     if (!pickupSlot || !pickupSlot.isActive) {
@@ -117,7 +120,7 @@ export class OrdersService {
           id: pickupSlot.id,
           isActive: true,
           startsAt: { gt: now },
-          currentOrders: { lt: pickupSlot.maxOrders },
+          currentOrders: { lt: pickupSlot.merchant.pickupSlotCapacity },
         },
         data: {
           currentOrders: {
