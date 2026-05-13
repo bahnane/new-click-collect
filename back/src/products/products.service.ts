@@ -105,15 +105,26 @@ export class ProductsService {
 
   async createCatalogProduct(dto: CreateProductDto) {
     await this.findCategoryOrFail(dto.categoryId);
-    return this.prisma.product.create({
-      data: {
-        name: dto.name,
-        description: dto.description,
-        saleUnit: dto.saleUnit,
-        priceInCents: dto.priceInCents,
-        categoryId: dto.categoryId,
-      },
-    });
+    try {
+      return await this.prisma.product.create({
+        data: {
+          name: dto.name,
+          description: dto.description,
+          saleUnit: dto.saleUnit,
+          priceInCents: dto.priceInCents,
+          categoryId: dto.categoryId,
+        },
+      });
+    } catch (error) {
+      if (this.isUniqueConstraintError(error, ['name', 'categoryId'])) {
+        throw new ConflictException({
+          code: ErrorCodes.PRODUCT_DUPLICATE,
+          message:
+            'A catalog product with the same name already exists in this category',
+        });
+      }
+      throw error;
+    }
   }
 
   async createProductSubmission(userId: string, dto: CreateProductDto) {
@@ -137,25 +148,42 @@ export class ProductsService {
       });
     }
 
-    return this.prisma.productSubmission.create({
-      data: {
-        merchantId: profile.id,
-        name: dto.name,
-        description: dto.description,
-        saleUnit: dto.saleUnit,
-        priceInCents: dto.priceInCents,
-        categoryId: dto.categoryId,
-      },
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
+    try {
+      return await this.prisma.productSubmission.create({
+        data: {
+          merchantId: profile.id,
+          name: dto.name,
+          description: dto.description,
+          saleUnit: dto.saleUnit,
+          priceInCents: dto.priceInCents,
+          categoryId: dto.categoryId,
+        },
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      if (
+        this.isUniqueConstraintError(error, [
+          'merchantId',
+          'categoryId',
+          'name',
+          'status',
+        ])
+      ) {
+        throw new ConflictException({
+          code: ErrorCodes.PRODUCT_SUBMISSION_ALREADY_PENDING,
+          message: 'A similar product submission is already pending review',
+        });
+      }
+      throw error;
+    }
   }
 
   async listMyProductSubmissions(
@@ -341,55 +369,68 @@ export class ProductsService {
     }
 
     if (status === ProductSubmissionStatus.APPROVED) {
-      return this.prisma.$transaction(async (tx) => {
-        const product = await tx.product.create({
-          data: {
-            name: approvedProductOverrides?.name ?? submission.name,
-            description:
-              approvedProductOverrides?.description ?? submission.description,
-            saleUnit: approvedProductOverrides?.saleUnit ?? submission.saleUnit,
-            priceInCents:
-              approvedProductOverrides?.priceInCents ?? submission.priceInCents,
-            categoryId:
-              approvedProductOverrides?.categoryId ?? submission.categoryId,
-            isActive: true,
-          },
-        });
+      try {
+        return await this.prisma.$transaction(async (tx) => {
+          const product = await tx.product.create({
+            data: {
+              name: approvedProductOverrides?.name ?? submission.name,
+              description:
+                approvedProductOverrides?.description ?? submission.description,
+              saleUnit:
+                approvedProductOverrides?.saleUnit ?? submission.saleUnit,
+              priceInCents:
+                approvedProductOverrides?.priceInCents ??
+                submission.priceInCents,
+              categoryId:
+                approvedProductOverrides?.categoryId ?? submission.categoryId,
+              isActive: true,
+            },
+          });
 
-        return tx.productSubmission.update({
-          where: { id: submission.id },
-          data: {
-            status: ProductSubmissionStatus.APPROVED,
-            reviewedAt: new Date(),
-            reviewedByUserId: adminUserId,
-            approvedProductId: product.id,
-            rejectionReason: null,
-          },
-          include: {
-            merchant: {
-              select: {
-                id: true,
-                storeName: true,
-                slug: true,
+          return tx.productSubmission.update({
+            where: { id: submission.id },
+            data: {
+              status: ProductSubmissionStatus.APPROVED,
+              reviewedAt: new Date(),
+              reviewedByUserId: adminUserId,
+              approvedProductId: product.id,
+              rejectionReason: null,
+            },
+            include: {
+              merchant: {
+                select: {
+                  id: true,
+                  storeName: true,
+                  slug: true,
+                },
+              },
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
+              approvedProduct: {
+                select: {
+                  id: true,
+                  name: true,
+                  isActive: true,
+                },
               },
             },
-            category: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-            approvedProduct: {
-              select: {
-                id: true,
-                name: true,
-                isActive: true,
-              },
-            },
-          },
+          });
         });
-      });
+      } catch (error) {
+        if (this.isUniqueConstraintError(error, ['name', 'categoryId'])) {
+          throw new ConflictException({
+            code: ErrorCodes.PRODUCT_DUPLICATE,
+            message:
+              'A catalog product with the same name already exists in this category',
+          });
+        }
+        throw error;
+      }
     }
 
     return this.prisma.productSubmission.update({
@@ -439,94 +480,105 @@ export class ProductsService {
       dto.items.map((item) => [item.id, item]),
     );
 
-    return this.prisma.$transaction(async (tx) => {
-      const submissions = await tx.productSubmission.findMany({
-        where: {
-          id: { in: Array.from(uniqueSubmissionIds) },
-        },
-      });
-
-      if (submissions.length !== uniqueSubmissionIds.size) {
-        throw new NotFoundException({
-          code: ErrorCodes.PRODUCT_SUBMISSION_NOT_FOUND,
-          message: 'One or more product submissions were not found',
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        const submissions = await tx.productSubmission.findMany({
+          where: {
+            id: { in: Array.from(uniqueSubmissionIds) },
+          },
         });
-      }
 
-      const nonPending = submissions.find(
-        (submission) => submission.status !== ProductSubmissionStatus.PENDING,
-      );
-      if (nonPending) {
-        throw new BadRequestException({
-          code: ErrorCodes.PRODUCT_SUBMISSION_ALREADY_REVIEWED,
-          message: 'Only pending submissions can be approved',
-        });
-      }
-
-      const categoryIds = Array.from(
-        new Set(
-          dto.items
-            .map((item) => item.categoryId)
-            .filter((id): id is string => !!id),
-        ),
-      );
-
-      if (categoryIds.length > 0) {
-        const categories = await tx.productCategory.findMany({
-          where: { id: { in: categoryIds } },
-          select: { id: true },
-        });
-        if (categories.length !== categoryIds.length) {
+        if (submissions.length !== uniqueSubmissionIds.size) {
           throw new NotFoundException({
-            code: ErrorCodes.PRODUCT_CATEGORY_NOT_FOUND,
-            message: 'One or more product categories were not found',
+            code: ErrorCodes.PRODUCT_SUBMISSION_NOT_FOUND,
+            message: 'One or more product submissions were not found',
           });
         }
+
+        const nonPending = submissions.find(
+          (submission) => submission.status !== ProductSubmissionStatus.PENDING,
+        );
+        if (nonPending) {
+          throw new BadRequestException({
+            code: ErrorCodes.PRODUCT_SUBMISSION_ALREADY_REVIEWED,
+            message: 'Only pending submissions can be approved',
+          });
+        }
+
+        const categoryIds = Array.from(
+          new Set(
+            dto.items
+              .map((item) => item.categoryId)
+              .filter((id): id is string => !!id),
+          ),
+        );
+
+        if (categoryIds.length > 0) {
+          const categories = await tx.productCategory.findMany({
+            where: { id: { in: categoryIds } },
+            select: { id: true },
+          });
+          if (categories.length !== categoryIds.length) {
+            throw new NotFoundException({
+              code: ErrorCodes.PRODUCT_CATEGORY_NOT_FOUND,
+              message: 'One or more product categories were not found',
+            });
+          }
+        }
+
+        const approvedEntries: Array<{
+          submissionId: string;
+          productId: string;
+        }> = [];
+
+        for (const submission of submissions) {
+          const item = itemsById.get(submission.id);
+          if (!item) continue;
+
+          const created = await tx.product.create({
+            data: {
+              name: item.name ?? submission.name,
+              description: item.description ?? submission.description,
+              saleUnit: item.saleUnit ?? submission.saleUnit,
+              priceInCents: item.priceInCents ?? submission.priceInCents,
+              categoryId: item.categoryId ?? submission.categoryId,
+              isActive: true,
+            },
+            select: { id: true },
+          });
+
+          await tx.productSubmission.update({
+            where: { id: submission.id },
+            data: {
+              status: ProductSubmissionStatus.APPROVED,
+              reviewedAt: new Date(),
+              reviewedByUserId: adminUserId,
+              approvedProductId: created.id,
+              rejectionReason: null,
+            },
+          });
+
+          approvedEntries.push({
+            submissionId: submission.id,
+            productId: created.id,
+          });
+        }
+
+        return {
+          count: approvedEntries.length,
+          data: approvedEntries,
+        };
+      });
+    } catch (error) {
+      if (this.isUniqueConstraintError(error, ['name', 'categoryId'])) {
+        throw new ConflictException({
+          code: ErrorCodes.PRODUCT_DUPLICATE,
+          message:
+            'A catalog product with the same name already exists in this category',
+        });
       }
-
-      const approvedEntries: Array<{
-        submissionId: string;
-        productId: string;
-      }> = [];
-
-      for (const submission of submissions) {
-        const item = itemsById.get(submission.id);
-        if (!item) continue;
-
-        const created = await tx.product.create({
-          data: {
-            name: item.name ?? submission.name,
-            description: item.description ?? submission.description,
-            saleUnit: item.saleUnit ?? submission.saleUnit,
-            priceInCents: item.priceInCents ?? submission.priceInCents,
-            categoryId: item.categoryId ?? submission.categoryId,
-            isActive: true,
-          },
-          select: { id: true },
-        });
-
-        await tx.productSubmission.update({
-          where: { id: submission.id },
-          data: {
-            status: ProductSubmissionStatus.APPROVED,
-            reviewedAt: new Date(),
-            reviewedByUserId: adminUserId,
-            approvedProductId: created.id,
-            rejectionReason: null,
-          },
-        });
-
-        approvedEntries.push({
-          submissionId: submission.id,
-          productId: created.id,
-        });
-      }
-
-      return {
-        count: approvedEntries.length,
-        data: approvedEntries,
-      };
-    });
+      throw error;
+    }
   }
 
   async listCatalogProducts(page = 1, pageSize = 10) {
@@ -733,25 +785,42 @@ export class ProductsService {
       });
     }
 
-    return this.prisma.productSubmission.update({
-      where: { id: submissionId },
-      data: dto,
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
+    try {
+      return await this.prisma.productSubmission.update({
+        where: { id: submissionId },
+        data: dto,
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          approvedProduct: {
+            select: {
+              id: true,
+              name: true,
+            },
           },
         },
-        approvedProduct: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
+      });
+    } catch (error) {
+      if (
+        this.isUniqueConstraintError(error, [
+          'merchantId',
+          'categoryId',
+          'name',
+          'status',
+        ])
+      ) {
+        throw new ConflictException({
+          code: ErrorCodes.PRODUCT_SUBMISSION_ALREADY_PENDING,
+          message: 'A similar product submission is already pending review',
+        });
+      }
+      throw error;
+    }
   }
 
   async deleteMyProductSubmission(userId: string, submissionId: string) {
@@ -823,10 +892,21 @@ export class ProductsService {
     if (dto.categoryId) {
       await this.findCategoryOrFail(dto.categoryId);
     }
-    return this.prisma.product.update({
-      where: { id: productId },
-      data: dto,
-    });
+    try {
+      return await this.prisma.product.update({
+        where: { id: productId },
+        data: dto,
+      });
+    } catch (error) {
+      if (this.isUniqueConstraintError(error, ['name', 'categoryId'])) {
+        throw new ConflictException({
+          code: ErrorCodes.PRODUCT_DUPLICATE,
+          message:
+            'A catalog product with the same name already exists in this category',
+        });
+      }
+      throw error;
+    }
   }
 
   async toggleCatalogProduct(productId: string) {
@@ -1235,6 +1315,28 @@ export class ProductsService {
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
+
+  private isUniqueConstraintError(error: unknown, fields?: string[]) {
+    if (
+      !(
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      )
+    ) {
+      return false;
+    }
+
+    if (!fields || fields.length === 0) {
+      return true;
+    }
+
+    const target = error.meta?.target;
+    if (!Array.isArray(target)) {
+      return true;
+    }
+
+    return fields.every((field) => target.includes(field));
+  }
 
   private async resolveMerchantProfile(userId: string) {
     const profile = await this.prisma.merchantProfile.findUnique({

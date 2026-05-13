@@ -176,6 +176,7 @@ model Product {
   submissions ProductSubmission[]
   orderItems  OrderItem[]
 
+  @@unique([name, categoryId])
   @@index([name])
   @@index([categoryId])
   @@map("products")
@@ -203,6 +204,7 @@ model ProductSubmission {
   reviewedByUser  User?           @relation("SubmissionReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
   approvedProduct Product?        @relation(fields: [approvedProductId], references: [id], onDelete: SetNull)
 
+  @@unique([merchantId, categoryId, name, status])
   @@index([merchantId, status])
   @@index([status, createdAt])
   @@index([categoryId])

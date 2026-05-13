@@ -87,8 +87,8 @@
       "ar": "Arabe"
     },
     "quantity": {
-      "decrease": "Diminuer la quantite",
-      "increase": "Augmenter la quantite"
+      "decrease": "Diminuer la quantité",
+      "increase": "Augmenter la quantité"
     }
   },
   "auth": {
@@ -117,6 +117,7 @@
       "MERCHANT_PROFILE_NOT_FOUND": "Profil marchand introuvable.",
       "MERCHANT_ACCOUNT_INACTIVE": "Le compte marchand est inactif.",
       "PRODUCT_NOT_FOUND": "Produit introuvable.",
+      "PRODUCT_DUPLICATE": "Un produit avec le même nom existe déjà dans cette catégorie.",
       "PRODUCT_CATEGORY_NOT_FOUND": "Catégorie de produit introuvable.",
       "PRODUCT_CATEGORY_DUPLICATE": "Le nom ou le slug de catégorie existe déjà.",
       "PRODUCT_SUBMISSION_NOT_FOUND": "Soumission de produit introuvable.",
@@ -280,7 +281,7 @@
       "cart": "Panier",
       "merchant": "Espace marchand",
       "admin": "Espace admin",
-      "logout": "Se deconnecter"
+      "logout": "Se déconnecter"
     },
     "dashboard": {
       "eyebrow": "Espace connecté",
@@ -744,50 +745,50 @@
     "addToCart": "Ajouter au panier",
     "addingToCart": "Ajout en cours...",
     "addedToCart": "Produit ajouté au panier.",
-    "quantityLabel": "Quantite",
-    "quantityInvalid": "Quantite invalide. Respectez la quantite minimale et le pas.",
+    "quantityLabel": "Quantité",
+    "quantityInvalid": "Quantité invalide. Respectez la quantité minimale et le pas.",
     "goToCart": "Voir le panier",
-    "requiresCustomerRole": "Vous devez etre connecte en tant que client pour ajouter au panier.",
+    "requiresCustomerRole": "Vous devez être connecté en tant que client pour ajouter au panier.",
     "addToCartFailed": "Impossible d'ajouter cet article au panier."
   },
   "cart": {
     "title": "Votre panier",
     "subtitle": "Revoyez vos articles avant de passer commande.",
     "loading": "Chargement du panier...",
-    "retry": "Reessayer",
+    "retry": "Réessayer",
     "empty": "Votre panier est vide pour le moment.",
     "itemsList": "Articles du panier",
     "removeItem": "Retirer",
     "removing": "Suppression...",
-    "updatingQuantity": "Mise a jour...",
-    "quantityValue": "Quantite",
+    "updatingQuantity": "Mise à jour...",
+    "quantityValue": "Quantité",
     "merchant": "Boutique",
     "itemsCount": "Articles",
-    "total": "Total estime",
+    "total": "Total estimé",
     "continueShopping": "Continuer les achats",
-    "checkoutSoon": "Checkout bientot disponible",
+    "checkoutSoon": "Checkout bientôt disponible",
     "checkout": {
-      "slotLabel": "Choisir un creneau de retrait",
-      "loadingSlots": "Chargement des creneaux...",
-      "noSlots": "Aucun creneau disponible actuellement.",
+      "slotLabel": "Choisir un créneau de retrait",
+      "loadingSlots": "Chargement des créneaux...",
+      "noSlots": "Aucun créneau disponible actuellement.",
       "noteLabel": "Note pour la commande (optionnel)",
       "notePlaceholder": "Exemple: j'arrive vers 18h",
       "submit": "Valider la commande",
       "submitting": "Validation en cours...",
-      "success": "Commande validee avec succes.",
+      "success": "Commande validée avec succès.",
       "errors": {
-        "slotRequired": "Veuillez selectionner un creneau.",
-        "loadSlotsFailed": "Impossible de charger les creneaux du marchand.",
-        "slotNotFound": "Le creneau selectionne est introuvable.",
-        "slotUnavailable": "Ce creneau n'est plus disponible.",
+        "slotRequired": "Veuillez sélectionner un créneau.",
+        "loadSlotsFailed": "Impossible de charger les créneaux du marchand.",
+        "slotNotFound": "Le créneau sélectionné est introuvable.",
+        "slotUnavailable": "Ce créneau n'est plus disponible.",
         "invalidRequest": "Impossible de finaliser la commande avec les informations actuelles.",
-        "generic": "Impossible de valider la commande. Veuillez reessayer."
+        "generic": "Impossible de valider la commande. Veuillez réessayer."
       }
     },
     "errors": {
       "loadFailed": "Impossible de charger votre panier.",
       "removeFailed": "Impossible de retirer cet article.",
-      "updateFailed": "Impossible de mettre a jour la quantite."
+      "updateFailed": "Impossible de mettre à jour la quantité."
     }
   },
   "order": {
