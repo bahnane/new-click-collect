@@ -88,3 +88,8 @@ a {
   --mat-snack-bar-button-color: var(--color-text-primary);
 }
 /* You can add global styles to this file, and also import other style files */
+
+// Add spacing below all mat-card-header elements in cards
+mat-card-header {
+  margin-block-end: var(--space-md, 0.75rem); // fallback if token missing
+}
