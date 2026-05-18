@@ -773,6 +773,7 @@
       "slotLabel": "Choisir un créneau de retrait",
       "loadingSlots": "Chargement des créneaux...",
       "noSlots": "Aucun créneau disponible actuellement.",
+      "slotOption": "{{ slot }} ({{ remaining }} place(s) restante(s))",
       "noteLabel": "Note pour la commande (optionnel)",
       "notePlaceholder": "Exemple: j'arrive vers 18h",
       "submit": "Valider la commande",

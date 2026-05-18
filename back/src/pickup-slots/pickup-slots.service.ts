@@ -110,9 +110,12 @@ export class PickupSlotsService {
       },
     });
 
-    return slots.filter(
-      (slot) => slot.currentOrders < merchant.pickupSlotCapacity,
-    );
+    return slots
+      .filter((slot) => slot.currentOrders < merchant.pickupSlotCapacity)
+      .map((slot) => ({
+        ...slot,
+        remainingPlaces: merchant.pickupSlotCapacity - slot.currentOrders,
+      }));
   }
 
   async listMySlots(userId: string) {

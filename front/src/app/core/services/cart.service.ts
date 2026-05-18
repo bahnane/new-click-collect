@@ -15,6 +15,7 @@ export interface PublicPickupSlot {
   startsAt: string;
   endsAt: string;
   currentOrders: number;
+  remainingPlaces: number;
 }
 
 interface CheckoutOrderPayload {
