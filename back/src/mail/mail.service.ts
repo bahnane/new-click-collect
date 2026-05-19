@@ -148,8 +148,16 @@ export class MailService {
 
   async sendCustomerOrderStatusEmail(
     to: string,
-    payload: OrderNotificationPayload & { status: OrderStatusLabel },
+    payload: OrderNotificationPayload & {
+      status: OrderStatusLabel;
+      cancellationReason?: string | null;
+    },
   ): Promise<void> {
+    const cancellationReasonBlock =
+      payload.status.subjectSuffix === 'annulee' && payload.cancellationReason
+        ? ['', `Motif d'annulation : ${payload.cancellationReason}`]
+        : [];
+
     const subject = `Commande ${payload.orderId} ${payload.status.subjectSuffix}`;
     const text = [
       'Bonjour,',
@@ -160,6 +168,7 @@ export class MailService {
       `Retrait : ${this.formatDateRange(payload.pickupStartsAt, payload.pickupEndsAt)}.`,
       '',
       payload.status.description,
+      ...cancellationReasonBlock,
     ].join('\n');
 
     await this.sendMail({ to, subject, text });

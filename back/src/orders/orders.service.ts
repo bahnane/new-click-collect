@@ -194,6 +194,7 @@ export class OrdersService {
           finalTotalInCents: true,
           pickupStartsAt: true,
           pickupEndsAt: true,
+          cancellationReason: true,
           createdAt: true,
           merchant: { select: { id: true, storeName: true } },
           _count: { select: { items: true } },
@@ -270,6 +271,7 @@ export class OrdersService {
           status: OrderStatus.CANCELLED,
           cancelledAt,
           collectedAt: null,
+          cancellationReason: null,
         },
       });
 
@@ -337,6 +339,7 @@ export class OrdersService {
           finalTotalInCents: true,
           pickupStartsAt: true,
           pickupEndsAt: true,
+          cancellationReason: true,
           createdAt: true,
           customer: { select: { id: true, email: true } },
           _count: { select: { items: true } },
@@ -397,6 +400,11 @@ export class OrdersService {
 
     this.assertStatusTransitionAllowed(order.status, dto.status);
 
+    const cancellationReason =
+      dto.status === OrderStatus.CANCELLED
+        ? this.requireMerchantCancellationReason(dto.cancellationReason)
+        : null;
+
     const updatedOrder = await this.prisma.$transaction(async (tx) => {
       const nextCancelledAt =
         dto.status === OrderStatus.CANCELLED ? new Date() : null;
@@ -406,6 +414,7 @@ export class OrdersService {
           status: dto.status,
           collectedAt: dto.status === OrderStatus.COLLECTED ? new Date() : null,
           cancelledAt: nextCancelledAt,
+          cancellationReason,
         },
         include: {
           items: true,
@@ -471,7 +480,7 @@ export class OrdersService {
       pickupStartsAt.getTime() - cutoffMinutes * 60_000,
     );
 
-    if (now > cancellationDeadline) {
+    if (now >= cancellationDeadline) {
       throw new BadRequestException({
         code: ErrorCodes.ORDER_CANCELLATION_DEADLINE_PASSED,
         message: `Order can only be cancelled at least ${cutoffMinutes} minute(s) before pickup`,
@@ -489,6 +498,20 @@ export class OrdersService {
     }
 
     return parsed;
+  }
+
+  private requireMerchantCancellationReason(
+    reason: string | undefined,
+  ): string {
+    const normalized = reason?.trim();
+    if (!normalized) {
+      throw new BadRequestException({
+        code: ErrorCodes.ORDER_CANCELLATION_REASON_REQUIRED,
+        message: 'Cancellation reason is required when merchant cancels order',
+      });
+    }
+
+    return normalized;
   }
 
   private async decrementPickupSlotCurrentOrders(
@@ -565,6 +588,7 @@ export class OrdersService {
           finalTotalInCents: true,
           pickupStartsAt: true,
           pickupEndsAt: true,
+          cancellationReason: true,
           customer: {
             select: {
               email: true,
@@ -628,6 +652,7 @@ export class OrdersService {
         {
           ...payload,
           status: statusLabel,
+          cancellationReason: order.cancellationReason,
         },
       );
     } catch (error) {
