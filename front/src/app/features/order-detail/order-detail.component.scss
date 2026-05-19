@@ -83,6 +83,10 @@
   }
 }
 
+.cancellation-reason-section {
+  padding-block-end: calc(var(--space-lg) + var(--space-sm));
+}
+
 .label {
   margin: 0;
   margin-block-end: var(--space-xs);

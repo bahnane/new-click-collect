@@ -66,6 +66,13 @@
             </div>
             }
 
+            @if (currentOrder.status === 'CANCELLED' && currentOrder.cancellationReason) {
+            <div class="note-section cancellation-reason-section">
+                <p class="label">{{ 'order.detail.cancellationReason' | transloco }}</p>
+                <p class="value note-text">{{ currentOrder.cancellationReason }}</p>
+            </div>
+            }
+
             <div class="summary-section">
                 <dl class="summary-values">
                     <div>

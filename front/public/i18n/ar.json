@@ -147,6 +147,7 @@
       "ORDER_INVALID_STATUS_FILTER": "فلتر حالة الطلب غير صالح.",
       "ORDER_INVALID_STATUS_TRANSITION": "انتقال حالة الطلب غير صالح.",
       "ORDER_CANCELLATION_NOT_ALLOWED_STATUS": "لا يمكن إلغاء الطلب في حالته الحالية.",
+      "ORDER_CANCELLATION_REASON_REQUIRED": "سبب الإلغاء مطلوب.",
       "ORDER_CANCELLATION_PICKUP_STARTED": "لا يمكن إلغاء الطلب لأن وقت الاستلام بدأ.",
       "ORDER_CANCELLATION_DEADLINE_PASSED": "انتهت مهلة إلغاء الطلب.",
       "ORDER_PICKUP_SLOT_NOT_FOUND": "موعد الاستلام لهذا الطلب غير موجود.",
@@ -354,6 +355,13 @@
           "cancel": "إلغاء",
           "update": "تحديث",
           "none": "لا توجد إجراءات متاحة"
+        },
+        "cancelDialog": {
+          "title": "إلغاء الطلب",
+          "message": "يرجى إدخال سبب الإلغاء لإبلاغ العميل.",
+          "reasonLabel": "سبب الإلغاء",
+          "reasonPlaceholder": "مثال: المنتج غير متوفر اليوم",
+          "reasonRequired": "سبب الإلغاء مطلوب."
         },
         "errors": {
           "loadFailed": "تعذر تحميل طلبات التاجر.",
@@ -802,6 +810,7 @@
       "backToOrders": "العودة إلى طلباتي",
       "backToMerchantOrders": "العودة إلى طلبات التاجر",
       "customer": "العميل",
+      "cancellationReason": "سبب الإلغاء",
       "actions": {
         "cancelOrder": "إلغاء الطلب"
       },

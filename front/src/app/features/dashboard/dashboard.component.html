@@ -45,8 +45,23 @@
                         <p class="order-meta">
                             {{ order.merchant.storeName }}
                             <span class="dot">•</span>
-                            {{ 'order.status.' + order.status.toLowerCase() | transloco }}
+                            <span class="status-pill" [attr.data-status]="order.status">
+                                {{ 'order.status.' + order.status.toLowerCase() | transloco }}
+                            </span>
                         </p>
+                        @if (order.status === 'CANCELLED' && order.cancellationReason) {
+                        <p class="order-meta cancellation-reason-row">
+                            <span class="cancellation-reason-label">{{ 'order.detail.cancellationReason' | transloco
+                                }}:</span>
+                            <span class="cancellation-reason-text" [matTooltip]="order.cancellationReason"
+                                matTooltipPosition="above">
+                                {{ order.cancellationReason }}
+                            </span>
+                            <mat-icon class="reason-info-icon" [matTooltip]="order.cancellationReason"
+                                matTooltipPosition="above" role="button" tabindex="0"
+                                [attr.aria-label]="'order.detail.cancellationReason' | transloco">info_outline</mat-icon>
+                        </p>
+                        }
                     </div>
                     <div class="order-row-side">
                         <p class="order-total">

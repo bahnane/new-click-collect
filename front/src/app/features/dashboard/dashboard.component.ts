@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { OrderListItem, PaginatedOrders } from '../../core/models/order.model';
 import { AuthService } from '../../core/services/auth.service';
@@ -20,6 +21,7 @@ import { UiFeedbackService } from '../../core/services/ui-feedback.service';
     MatIconModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     DecimalPipe,
     TranslocoPipe,
   ],

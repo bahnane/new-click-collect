@@ -75,10 +75,16 @@ export class OrdersService {
   updateMerchantOrderStatus(
     orderId: string,
     status: OrderStatus,
+    cancellationReason?: string,
   ): Observable<MerchantOrder> {
     return this.http.patch<MerchantOrder>(
       `${environment.apiUrl}/merchants/me/orders/${encodeURIComponent(orderId)}/status`,
-      { status },
+      {
+        status,
+        ...(cancellationReason?.trim()
+          ? { cancellationReason: cancellationReason.trim() }
+          : {}),
+      },
       {
         withCredentials: true,
       },

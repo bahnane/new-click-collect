@@ -45,6 +45,7 @@ export interface Order {
   createdAt: string;
   collectedAt: string | null;
   cancelledAt: string | null;
+  cancellationReason: string | null;
   merchant: OrderMerchant;
   items: OrderItem[];
 }
@@ -56,6 +57,7 @@ export interface OrderListItem {
   finalTotalInCents: number | null;
   pickupStartsAt: string;
   pickupEndsAt: string;
+  cancellationReason: string | null;
   createdAt: string;
   itemCount: number;
   merchant: OrderMerchant;
@@ -75,6 +77,7 @@ export interface MerchantOrderListItem {
   finalTotalInCents: number | null;
   pickupStartsAt: string;
   pickupEndsAt: string;
+  cancellationReason: string | null;
   createdAt: string;
   itemCount: number;
   customer: OrderCustomer;

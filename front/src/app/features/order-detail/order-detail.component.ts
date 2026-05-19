@@ -10,6 +10,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -22,6 +23,7 @@ import {
 } from '../../core/models/order.model';
 import { OrdersService } from '../../core/services/orders.service';
 import { UiFeedbackService } from '../../core/services/ui-feedback.service';
+import { MerchantCancelOrderDialogComponent } from '../../shared/dialogs/merchant-cancel-order-dialog/merchant-cancel-order-dialog.component';
 
 type OrderDetailViewMode = 'customer' | 'merchant';
 type OrderDetailData = Order | MerchantOrder;
@@ -44,6 +46,7 @@ export class OrderDetailComponent implements OnInit {
   private readonly ordersService = inject(OrdersService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   private readonly uiFeedback = inject(UiFeedbackService);
   protected readonly languageService = inject(LanguageService);
 
@@ -188,6 +191,11 @@ export class OrderDetailComponent implements OnInit {
       return;
     }
 
+    if (nextStatus === 'CANCELLED') {
+      this.openMerchantCancelDialog(currentOrder.id, nextStatus);
+      return;
+    }
+
     this.actionInProgress.set(true);
     this.actionErrorKey.set(null);
 
@@ -203,6 +211,37 @@ export class OrderDetailComponent implements OnInit {
           this.actionInProgress.set(false);
         },
       });
+  }
+
+  private openMerchantCancelDialog(
+    orderId: string,
+    nextStatus: Extract<OrderStatus, 'CANCELLED'>,
+  ): void {
+    const dialogRef = this.dialog.open(MerchantCancelOrderDialogComponent, {
+      width: '520px',
+    });
+
+    dialogRef.afterClosed().subscribe((reason) => {
+      if (!reason) {
+        return;
+      }
+
+      this.actionInProgress.set(true);
+      this.actionErrorKey.set(null);
+
+      this.ordersService
+        .updateMerchantOrderStatus(orderId, nextStatus, reason)
+        .subscribe({
+          next: (updatedOrder) => {
+            this.order.set(updatedOrder);
+            this.actionInProgress.set(false);
+          },
+          error: () => {
+            this.actionErrorKey.set('order.detail.errors.updateFailed');
+            this.actionInProgress.set(false);
+          },
+        });
+    });
   }
 
   cancelCustomerOrder(): void {

@@ -147,6 +147,7 @@
       "ORDER_INVALID_STATUS_FILTER": "Filtre de statut de commande invalide.",
       "ORDER_INVALID_STATUS_TRANSITION": "Transition de statut de commande invalide.",
       "ORDER_CANCELLATION_NOT_ALLOWED_STATUS": "Cette commande ne peut pas être annulée dans son statut actuel.",
+      "ORDER_CANCELLATION_REASON_REQUIRED": "Le motif d'annulation est obligatoire.",
       "ORDER_CANCELLATION_PICKUP_STARTED": "La commande ne peut plus être annulée car le retrait a déjà commencé.",
       "ORDER_CANCELLATION_DEADLINE_PASSED": "Le délai d'annulation est dépassé.",
       "ORDER_PICKUP_SLOT_NOT_FOUND": "Créneau de retrait introuvable pour cette commande.",
@@ -354,6 +355,13 @@
           "cancel": "Annuler",
           "update": "Mettre à jour",
           "none": "Aucune action disponible"
+        },
+        "cancelDialog": {
+          "title": "Annuler la commande",
+          "message": "Veuillez saisir le motif d'annulation pour informer le client.",
+          "reasonLabel": "Motif d'annulation",
+          "reasonPlaceholder": "Exemple: produit indisponible aujourd'hui",
+          "reasonRequired": "Le motif d'annulation est obligatoire."
         },
         "errors": {
           "loadFailed": "Impossible de charger les commandes marchand.",
@@ -802,6 +810,7 @@
       "backToOrders": "Retour à mes commandes",
       "backToMerchantOrders": "Retour aux commandes marchand",
       "customer": "Client",
+      "cancellationReason": "Motif d'annulation",
       "actions": {
         "cancelOrder": "Annuler la commande"
       },

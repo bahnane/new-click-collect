@@ -3,9 +3,11 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
   MerchantOrderListItem,
@@ -14,6 +16,7 @@ import {
 } from '../../../core/models/order.model';
 import { OrdersService } from '../../../core/services/orders.service';
 import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
+import { MerchantCancelOrderDialogComponent } from '../../../shared/dialogs/merchant-cancel-order-dialog/merchant-cancel-order-dialog.component';
 
 type MerchantOrderFilter = OrderStatus | 'ALL';
 
@@ -37,9 +40,11 @@ const STATUS_FILTERS: MerchantStatusFilterOption[] = [
     RouterLink,
     MatButtonModule,
     MatCardModule,
+    MatDialogModule,
     MatIconModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     DatePipe,
     DecimalPipe,
     TranslocoPipe,
@@ -50,6 +55,7 @@ const STATUS_FILTERS: MerchantStatusFilterOption[] = [
 export class MerchantOverviewComponent {
   private readonly ordersService = inject(OrdersService);
   private readonly uiFeedback = inject(UiFeedbackService);
+  private readonly dialog = inject(MatDialog);
 
   readonly loading = signal(false);
   readonly errorKey = signal<string | null>(null);
@@ -136,6 +142,41 @@ export class MerchantOverviewComponent {
           );
         },
       });
+  }
+
+  onStatusAction(orderId: string, nextStatus: OrderStatus): void {
+    if (nextStatus !== 'CANCELLED') {
+      this.updateOrderStatus(orderId, nextStatus);
+      return;
+    }
+
+    const dialogRef = this.dialog.open(MerchantCancelOrderDialogComponent, {
+      width: '520px',
+    });
+
+    dialogRef.afterClosed().subscribe((reason) => {
+      if (!reason) {
+        return;
+      }
+
+      this.currentActionOrderId.set(orderId);
+      this.actionErrorKey.set(null);
+
+      this.ordersService
+        .updateMerchantOrderStatus(orderId, nextStatus, reason)
+        .subscribe({
+          next: () => {
+            this.currentActionOrderId.set(null);
+            this.loadOrders();
+          },
+          error: () => {
+            this.currentActionOrderId.set(null);
+            this.actionErrorKey.set(
+              'shell.merchant.overview.errors.updateFailed',
+            );
+          },
+        });
+    });
   }
 
   availableTransitions(status: OrderStatus): OrderStatus[] {

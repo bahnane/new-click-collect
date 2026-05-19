@@ -132,8 +132,72 @@
   font: var(--font-body-small);
 }
 
+.cancellation-reason-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+  min-inline-size: 0;
+}
+
+.cancellation-reason-label {
+  flex: 0 0 auto;
+}
+
 .dot {
   margin-inline: var(--space-2xs);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding-inline: 0.5rem;
+  padding-block: 0.125rem;
+  border-radius: 999px;
+  font: var(--font-label-small);
+  white-space: nowrap;
+  background: var(--color-bg-secondary);
+}
+
+.status-pill[data-status="PENDING"] {
+  color: #8a5600;
+  background: #fff1cf;
+}
+
+.status-pill[data-status="CONFIRMED"] {
+  color: #005c4f;
+  background: #c8fff3;
+}
+
+.status-pill[data-status="READY"] {
+  color: #004e7a;
+  background: #d7efff;
+}
+
+.status-pill[data-status="COLLECTED"] {
+  color: #275c00;
+  background: #daf6c8;
+}
+
+.status-pill[data-status="CANCELLED"] {
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+}
+
+.cancellation-reason-text {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-inline-size: 30ch;
+}
+
+.reason-info-icon {
+  inline-size: 1rem;
+  block-size: 1rem;
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  cursor: help;
 }
 
 .order-row-side {

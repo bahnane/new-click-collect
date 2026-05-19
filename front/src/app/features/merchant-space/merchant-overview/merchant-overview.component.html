@@ -94,6 +94,20 @@
                                 </dd>
                             </div>
                         </dl>
+
+                        @if (order.status === 'CANCELLED' && order.cancellationReason) {
+                        <p class="order-customer cancellation-reason-row">
+                            <span class="cancellation-reason-label">{{ 'order.detail.cancellationReason' | transloco
+                                }}:</span>
+                            <span class="cancellation-reason-text" [matTooltip]="order.cancellationReason"
+                                matTooltipPosition="above">
+                                {{ order.cancellationReason }}
+                            </span>
+                            <mat-icon class="reason-info-icon" [matTooltip]="order.cancellationReason"
+                                matTooltipPosition="above" role="button" tabindex="0"
+                                [attr.aria-label]="'order.detail.cancellationReason' | transloco">info_outline</mat-icon>
+                        </p>
+                        }
                     </div>
 
                     <div class="order-actions">
@@ -105,7 +119,7 @@
                         @for (nextStatus of availableTransitions(order.status); track nextStatus) {
                         <button mat-stroked-button type="button" [disabled]="currentActionOrderId() === order.id"
                             [class.is-destructive]="nextStatus === 'CANCELLED'"
-                            (click)="updateOrderStatus(order.id, nextStatus)">
+                            (click)="onStatusAction(order.id, nextStatus)">
                             {{ actionLabelKey(nextStatus) | transloco }}
                         </button>
                         }
