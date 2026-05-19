@@ -297,9 +297,13 @@
         "empty": "Vous n'avez pas encore de commande.",
         "viewDetail": "Afficher détail",
         "cancel": "Annuler",
+        "cancelConfirmTitle": "Confirmer l'annulation",
+        "cancelConfirmMessage": "Voulez-vous vraiment annuler cette commande ?",
         "errors": {
           "loadFailed": "Impossible de charger vos commandes.",
-          "cancelFailed": "Impossible d'annuler cette commande."
+          "cancelFailed": "Impossible d'annuler cette commande.",
+          "contactMerchantForCancellation": "Veuillez contacter le marchand pour voir s'il est possible d'annuler cette commande.",
+          "readyNoCancel": "Le statut de votre commande ne permet plus de l'annuler."
         }
       }
     },
@@ -812,12 +816,16 @@
       "customer": "Client",
       "cancellationReason": "Motif d'annulation",
       "actions": {
-        "cancelOrder": "Annuler la commande"
+        "cancelOrder": "Annuler la commande",
+        "cancelConfirmTitle": "Confirmer l'annulation",
+        "cancelConfirmMessage": "Voulez-vous vraiment annuler cette commande ?"
       },
       "errors": {
         "notFound": "La commande n'a pas été trouvée.",
         "loadFailed": "Impossible de charger les détails de la commande.",
         "cancelFailed": "Impossible d'annuler cette commande.",
+        "contactMerchantForCancellation": "Veuillez contacter le marchand pour voir s'il est possible d'annuler cette commande.",
+        "readyNoCancel": "Le statut de votre commande ne permet plus de l'annuler.",
         "updateFailed": "Impossible de mettre à jour le statut de la commande."
       }
     },

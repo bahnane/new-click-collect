@@ -10,11 +10,12 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
+import { extractApiErrorCode } from '../../core/errors/api-error.util';
 import { LanguageService } from '../../core/i18n/language.service';
 import {
   MerchantOrder,
@@ -23,16 +24,24 @@ import {
 } from '../../core/models/order.model';
 import { OrdersService } from '../../core/services/orders.service';
 import { UiFeedbackService } from '../../core/services/ui-feedback.service';
+import { ConfirmationDialogComponent } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog.component';
 import { MerchantCancelOrderDialogComponent } from '../../shared/dialogs/merchant-cancel-order-dialog/merchant-cancel-order-dialog.component';
 
 type OrderDetailViewMode = 'customer' | 'merchant';
 type OrderDetailData = Order | MerchantOrder;
+
+const CUSTOMER_CANCEL_CONTACT_MERCHANT_CODES = new Set([
+  'ORDER_CANCELLATION_NOT_ALLOWED_STATUS',
+  'ORDER_CANCELLATION_PICKUP_STARTED',
+  'ORDER_CANCELLATION_DEADLINE_PASSED',
+]);
 
 @Component({
   selector: 'app-order-detail',
   standalone: true,
   imports: [
     CommonModule,
+    MatDialogModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -70,7 +79,11 @@ export class OrderDetailComponent implements OnInit {
       : 'order.detail.backToOrders',
   );
   readonly customerCanCancel = computed(
-    () => this.viewMode() === 'customer' && this.order()?.status === 'PENDING',
+    () =>
+      this.viewMode() === 'customer' &&
+      (this.order()?.status === 'PENDING' ||
+        this.order()?.status === 'CONFIRMED' ||
+        this.order()?.status === 'READY'),
   );
   readonly merchantAvailableTransitions = computed(() => {
     if (this.viewMode() !== 'merchant') {
@@ -249,21 +262,61 @@ export class OrderDetailComponent implements OnInit {
     if (
       !currentOrder ||
       this.viewMode() !== 'customer' ||
-      currentOrder.status !== 'PENDING'
+      (currentOrder.status !== 'PENDING' &&
+        currentOrder.status !== 'CONFIRMED' &&
+        currentOrder.status !== 'READY')
     ) {
       return;
     }
 
+    if (currentOrder.status === 'CONFIRMED') {
+      this.actionErrorKey.set(
+        'order.detail.errors.contactMerchantForCancellation',
+      );
+      return;
+    }
+
+    if (currentOrder.status === 'READY') {
+      this.actionErrorKey.set('order.detail.errors.readyNoCancel');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'order.detail.actions.cancelConfirmTitle',
+        message: 'order.detail.actions.cancelConfirmMessage',
+        confirmLabel: 'order.detail.actions.cancelOrder',
+        confirmColor: 'warn',
+        icon: 'warning',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean | undefined) => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.executeCustomerCancel(currentOrder.id);
+    });
+  }
+
+  private executeCustomerCancel(orderId: string): void {
     this.actionInProgress.set(true);
     this.actionErrorKey.set(null);
 
-    this.ordersService.cancelMyOrder(currentOrder.id).subscribe({
+    this.ordersService.cancelMyOrder(orderId).subscribe({
       next: (updatedOrder) => {
         this.order.set(updatedOrder);
         this.actionInProgress.set(false);
       },
-      error: () => {
-        this.actionErrorKey.set('order.detail.errors.cancelFailed');
+      error: (error: unknown) => {
+        const code = extractApiErrorCode(error);
+        this.actionErrorKey.set(
+          code && CUSTOMER_CANCEL_CONTACT_MERCHANT_CODES.has(code)
+            ? 'order.detail.errors.contactMerchantForCancellation'
+            : 'order.detail.errors.cancelFailed',
+        );
         this.actionInProgress.set(false);
       },
     });

@@ -297,9 +297,13 @@
         "empty": "لا توجد لديك طلبات حتى الآن.",
         "viewDetail": "عرض التفاصيل",
         "cancel": "إلغاء",
+        "cancelConfirmTitle": "تأكيد الإلغاء",
+        "cancelConfirmMessage": "هل أنت متأكد أنك تريد إلغاء هذا الطلب؟",
         "errors": {
           "loadFailed": "تعذر تحميل طلباتك.",
-          "cancelFailed": "تعذر إلغاء هذا الطلب."
+          "cancelFailed": "تعذر إلغاء هذا الطلب.",
+          "contactMerchantForCancellation": "يرجى التواصل مع التاجر لمعرفة ما إذا كان إلغاء هذا الطلب ممكناً.",
+          "readyNoCancel": "حالة طلبك لم تعد تسمح بإلغائه."
         }
       }
     },
@@ -812,12 +816,16 @@
       "customer": "العميل",
       "cancellationReason": "سبب الإلغاء",
       "actions": {
-        "cancelOrder": "إلغاء الطلب"
+        "cancelOrder": "إلغاء الطلب",
+        "cancelConfirmTitle": "تأكيد الإلغاء",
+        "cancelConfirmMessage": "هل أنت متأكد أنك تريد إلغاء هذا الطلب؟"
       },
       "errors": {
         "notFound": "لم يتم العثور على الطلب.",
         "loadFailed": "تعذر تحميل تفاصيل الطلب.",
         "cancelFailed": "تعذر إلغاء هذا الطلب.",
+        "contactMerchantForCancellation": "يرجى التواصل مع التاجر لمعرفة ما إذا كان إلغاء هذا الطلب ممكناً.",
+        "readyNoCancel": "حالة طلبك لم تعد تسمح بإلغائه.",
         "updateFailed": "تعذر تحديث حالة الطلب."
       }
     },

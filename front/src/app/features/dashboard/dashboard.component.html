@@ -75,7 +75,7 @@
 
                             @if (canCancelOrder(order)) {
                             <button mat-stroked-button type="button" class="danger-action"
-                                [disabled]="currentActionOrderId() === order.id" (click)="cancelOrder(order.id)">
+                                [disabled]="currentActionOrderId() === order.id" (click)="cancelOrder(order)">
                                 {{ 'shell.dashboard.orders.cancel' | transloco }}
                             </button>
                             }

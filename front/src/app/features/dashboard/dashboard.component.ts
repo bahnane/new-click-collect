@@ -3,21 +3,31 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { extractApiErrorCode } from '../../core/errors/api-error.util';
 import { OrderListItem, PaginatedOrders } from '../../core/models/order.model';
 import { AuthService } from '../../core/services/auth.service';
 import { OrdersService } from '../../core/services/orders.service';
 import { UiFeedbackService } from '../../core/services/ui-feedback.service';
+import { ConfirmationDialogComponent } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog.component';
+
+const CUSTOMER_CANCEL_CONTACT_MERCHANT_CODES = new Set([
+  'ORDER_CANCELLATION_NOT_ALLOWED_STATUS',
+  'ORDER_CANCELLATION_PICKUP_STARTED',
+  'ORDER_CANCELLATION_DEADLINE_PASSED',
+]);
 
 @Component({
   selector: 'app-dashboard',
   imports: [
     MatCardModule,
     MatButtonModule,
+    MatDialogModule,
     MatIconModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
@@ -31,6 +41,7 @@ import { UiFeedbackService } from '../../core/services/ui-feedback.service';
 export class DashboardComponent {
   private readonly authService = inject(AuthService);
   private readonly ordersService = inject(OrdersService);
+  private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly uiFeedback = inject(UiFeedbackService);
 
@@ -93,10 +104,49 @@ export class DashboardComponent {
   }
 
   canCancelOrder(order: OrderListItem): boolean {
-    return order.status === 'PENDING';
+    return (
+      order.status === 'PENDING' ||
+      order.status === 'CONFIRMED' ||
+      order.status === 'READY'
+    );
   }
 
-  cancelOrder(orderId: string): void {
+  cancelOrder(order: OrderListItem): void {
+    if (order.status === 'CONFIRMED') {
+      this.orderActionErrorKey.set(
+        'shell.dashboard.orders.errors.contactMerchantForCancellation',
+      );
+      return;
+    }
+
+    if (order.status === 'READY') {
+      this.orderActionErrorKey.set(
+        'shell.dashboard.orders.errors.readyNoCancel',
+      );
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'shell.dashboard.orders.cancelConfirmTitle',
+        message: 'shell.dashboard.orders.cancelConfirmMessage',
+        confirmLabel: 'shell.dashboard.orders.cancel',
+        confirmColor: 'warn',
+        icon: 'warning',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean | undefined) => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.executeCancelOrder(order.id);
+    });
+  }
+
+  private executeCancelOrder(orderId: string): void {
     this.currentActionOrderId.set(orderId);
     this.orderActionErrorKey.set(null);
 
@@ -105,10 +155,13 @@ export class DashboardComponent {
         this.currentActionOrderId.set(null);
         this.loadMyOrders();
       },
-      error: () => {
+      error: (error: unknown) => {
+        const code = extractApiErrorCode(error);
         this.currentActionOrderId.set(null);
         this.orderActionErrorKey.set(
-          'shell.dashboard.orders.errors.cancelFailed',
+          code && CUSTOMER_CANCEL_CONTACT_MERCHANT_CODES.has(code)
+            ? 'shell.dashboard.orders.errors.contactMerchantForCancellation'
+            : 'shell.dashboard.orders.errors.cancelFailed',
         );
       },
     });
