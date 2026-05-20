@@ -1532,6 +1532,7 @@ export class ProductsService {
     merchantSlug: string,
     page = 1,
     pageSize = 10,
+    query?: string,
   ) {
     const profile = await this.prisma.merchantProfile.findUnique({
       where: { slug: merchantSlug },
@@ -1560,44 +1561,126 @@ export class ProductsService {
       ],
     };
 
-    const [offers, total] = await this.prisma.$transaction([
-      this.prisma.storeOffer.findMany({
-        where,
-        orderBy: { product: { name: 'asc' } },
-        skip,
-        take,
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              subCategory: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                  parentId: true,
+    const normalizedQuery = query?.trim().toLowerCase() ?? '';
+
+    if (!normalizedQuery) {
+      const [offers, total] = await this.prisma.$transaction([
+        this.prisma.storeOffer.findMany({
+          where,
+          orderBy: { product: { name: 'asc' } },
+          skip,
+          take,
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                subCategory: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                    parentId: true,
+                  },
                 },
-              },
-              description: true,
-              saleUnit: true,
-              priceInCents: true,
-              category: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
+                description: true,
+                saleUnit: true,
+                priceInCents: true,
+                category: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
                 },
               },
             },
           },
+        }),
+        this.prisma.storeOffer.count({ where }),
+      ]);
+
+      return {
+        data: offers.map((offer) => ({
+          ...offer,
+          defaultPriceInCents: offer.product.priceInCents,
+          overridePriceInCents: offer.priceInCents,
+          effectivePriceInCents:
+            offer.priceInCents ?? offer.product.priceInCents,
+          isOverridden: offer.priceInCents != null,
+        })),
+        total,
+        page: safePage,
+        pageSize: safePageSize,
+      };
+    }
+
+    const offers = await this.prisma.storeOffer.findMany({
+      where,
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            subCategory: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                parentId: true,
+              },
+            },
+            description: true,
+            saleUnit: true,
+            priceInCents: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
         },
-      }),
-      this.prisma.storeOffer.count({ where }),
-    ]);
+      },
+    });
+
+    const MIN_SIMILARITY_THRESHOLD = 0.12;
+    const scored = offers
+      .map((offer) => {
+        const productNameLower = offer.product.name.toLowerCase();
+        const isStrictMatch = productNameLower.includes(normalizedQuery);
+        const similarityScore = this.calculateSimilarity(
+          normalizedQuery,
+          productNameLower,
+        );
+
+        return {
+          ...offer,
+          isStrictMatch,
+          similarityScore,
+        };
+      })
+      .filter(
+        (offer) =>
+          offer.isStrictMatch ||
+          offer.similarityScore >= MIN_SIMILARITY_THRESHOLD,
+      )
+      .sort((a, b) => {
+        if (a.isStrictMatch !== b.isStrictMatch) {
+          return a.isStrictMatch ? -1 : 1;
+        }
+        if (b.similarityScore !== a.similarityScore) {
+          return b.similarityScore - a.similarityScore;
+        }
+        return a.product.name.localeCompare(b.product.name);
+      });
+
+    const total = scored.length;
+    const paginated = scored.slice(skip, skip + take);
 
     return {
-      data: offers.map((offer) => ({
+      data: paginated.map((offer) => ({
         ...offer,
         defaultPriceInCents: offer.product.priceInCents,
         overridePriceInCents: offer.priceInCents,

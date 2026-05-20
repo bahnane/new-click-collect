@@ -316,11 +316,13 @@ export class ProductsController {
     @Param('merchantSlug') merchantSlug: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('q') query?: string,
   ) {
     return this.productsService.getPublicOffersForMerchant(
       merchantSlug,
       this.toPositiveInt(page, 1),
       this.toPositiveInt(pageSize, 10),
+      query?.trim(),
     );
   }
 
