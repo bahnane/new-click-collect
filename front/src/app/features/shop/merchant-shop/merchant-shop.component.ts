@@ -1,4 +1,5 @@
 import {
+  ElementRef,
   Component,
   OnDestroy,
   OnInit,
@@ -6,6 +7,7 @@ import {
   effect,
   inject,
   signal,
+  ViewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -15,7 +17,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
@@ -26,8 +27,9 @@ import { AuthService } from '../../../core/services/auth.service';
 import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 import {
   MerchantShopInfo,
+  PublicStoreOffersCursorResponse,
   Product,
-  StoreOffersPaginatedResponse,
+  StoreOffer,
 } from '../../../core/models/merchant-shop.model';
 
 const LAST_MERCHANT_STORAGE_KEY = 'shop.lastMerchantSlug';
@@ -42,7 +44,6 @@ const LAST_MERCHANT_STORAGE_KEY = 'shop.lastMerchantSlug';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatPaginatorModule,
     TranslocoPipe,
   ],
   templateUrl: './merchant-shop.component.html',
@@ -56,15 +57,23 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly uiFeedback = inject(UiFeedbackService);
   protected readonly languageService = inject(LanguageService);
+  private observer: IntersectionObserver | null = null;
+  private readonly pageSize = 24;
+  private readonly maxAutoLoadBatches = 2;
 
   readonly merchantInfo = signal<MerchantShopInfo | null>(null);
-  readonly products = signal<StoreOffersPaginatedResponse | null>(null);
+  readonly offers = signal<StoreOffer[]>([]);
+  readonly productsLoaded = signal(false);
+  readonly loadingMore = signal(false);
+  readonly nextCursor = signal<string | null>(null);
+  readonly hasMore = signal(false);
+  readonly manualLoadMode = signal(false);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly feedErrorKey = signal<string | null>(null);
   readonly addToCartErrorKey = signal<string | null>(null);
   readonly addToCartSuccessKey = signal<string | null>(null);
   readonly addingOfferId = signal<string | null>(null);
-  readonly currentPage = signal(1);
   readonly searchInputValue = signal('');
   readonly activeSearchQuery = signal('');
   readonly currentUser = this.authService.currentUser;
@@ -73,6 +82,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
   private searchDebounceHandle: ReturnType<typeof setTimeout> | null = null;
   private readonly searchDebounceMs = 350;
   private productsRequestSeq = 0;
+  private autoLoadedBatchCount = 0;
 
   readonly isMerchant = computed(() => this.currentUser()?.role === 'MERCHANT');
   readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
@@ -88,7 +98,8 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => {
-      const currentError = this.error() ?? this.addToCartErrorKey();
+      const currentError =
+        this.error() ?? this.feedErrorKey() ?? this.addToCartErrorKey();
       if (currentError) {
         this.uiFeedback.showError(currentError);
       } else {
@@ -124,13 +135,35 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
       clearTimeout(this.searchDebounceHandle);
       this.searchDebounceHandle = null;
     }
+
+    this.disconnectObserver();
+  }
+
+  @ViewChild('loadMoreSentinel')
+  set loadMoreSentinel(element: ElementRef<HTMLDivElement> | undefined) {
+    this.disconnectObserver();
+
+    if (!element || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          this.loadNextPage('auto');
+        }
+      },
+      { rootMargin: '320px 0px' },
+    );
+
+    this.observer.observe(element.nativeElement);
   }
 
   private loadMerchantAndProducts(merchantSlug: string): void {
     this.merchantShopService.getMerchantInfo(merchantSlug).subscribe({
       next: (info) => {
         this.merchantInfo.set(info);
-        this.loadProducts(merchantSlug);
+        this.loadProducts(merchantSlug, { reset: true });
       },
       error: () => {
         this.error.set('shop.merchantNotFound');
@@ -141,41 +174,91 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
 
   private loadProducts(
     merchantSlug: string,
-    page = 1,
-    query = this.activeSearchQuery(),
+    options: {
+      reset?: boolean;
+      query?: string;
+    } = {},
   ): void {
+    const reset = options.reset ?? false;
+    const query = options.query ?? this.activeSearchQuery();
+    const cursor = reset ? undefined : (this.nextCursor() ?? undefined);
+
+    if (!reset && (!this.hasMore() || this.loadingMore() || this.loading())) {
+      return;
+    }
+
+    if (reset) {
+      this.loading.set(true);
+      this.productsLoaded.set(false);
+      this.feedErrorKey.set(null);
+      this.error.set(null);
+      this.offers.set([]);
+      this.nextCursor.set(null);
+      this.hasMore.set(false);
+      this.manualLoadMode.set(false);
+      this.autoLoadedBatchCount = 0;
+    } else {
+      this.loadingMore.set(true);
+      this.feedErrorKey.set(null);
+    }
+
     const requestSeq = ++this.productsRequestSeq;
     this.merchantShopService
-      .getMerchantProducts(merchantSlug, page, 24, query)
+      .getMerchantProducts(merchantSlug, this.pageSize, cursor, query)
       .subscribe({
-        next: (response) => {
+        next: (response: PublicStoreOffersCursorResponse) => {
           if (requestSeq !== this.productsRequestSeq) {
             return;
           }
-          this.products.set(response);
-          this.currentPage.set(response.page);
+
+          const nextData = reset
+            ? response.data
+            : this.mergeOffers(this.offers(), response.data);
+
+          this.offers.set(nextData);
+          this.nextCursor.set(response.nextCursor);
+          this.hasMore.set(response.hasMore);
+          if (!reset && response.data.length > 0) {
+            this.autoLoadedBatchCount += 1;
+            if (this.autoLoadedBatchCount >= this.maxAutoLoadBatches) {
+              this.manualLoadMode.set(true);
+            }
+          }
+          this.productsLoaded.set(true);
           this.loading.set(false);
+          this.loadingMore.set(false);
         },
         error: () => {
           if (requestSeq !== this.productsRequestSeq) {
             return;
           }
-          this.error.set('shop.failedToLoadProducts');
-          this.loading.set(false);
+
+          if (reset) {
+            this.error.set('shop.failedToLoadProducts');
+            this.loading.set(false);
+            this.productsLoaded.set(true);
+          } else {
+            this.feedErrorKey.set('shop.failedToLoadProducts');
+            this.loadingMore.set(false);
+          }
         },
       });
   }
 
-  onPageChange(event: PageEvent): void {
+  loadNextPage(trigger: 'auto' | 'manual' = 'manual'): void {
     const merchantSlug = this.route.snapshot.paramMap.get('merchantSlug');
-    if (merchantSlug) {
-      this.loading.set(true);
-      this.loadProducts(
-        merchantSlug,
-        event.pageIndex + 1,
-        this.activeSearchQuery(),
-      );
+    if (!merchantSlug) {
+      return;
     }
+
+    if (trigger === 'auto' && this.manualLoadMode()) {
+      return;
+    }
+
+    this.loadProducts(merchantSlug, {
+      reset: false,
+      query: this.activeSearchQuery(),
+    });
   }
 
   onSearchInput(rawValue: string): void {
@@ -197,8 +280,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.loading.set(true);
-      this.loadProducts(merchantSlug, 1, normalized);
+      this.loadProducts(merchantSlug, { reset: true, query: normalized });
     }, this.searchDebounceMs);
   }
 
@@ -220,8 +302,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.loading.set(true);
-    this.loadProducts(merchantSlug, 1, '');
+    this.loadProducts(merchantSlug, { reset: true, query: '' });
   }
 
   getPrice(
@@ -390,5 +471,29 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
   private formatQuantity(value: number): string {
     const rounded = Math.round(value * 1000) / 1000;
     return rounded.toString();
+  }
+
+  private mergeOffers(
+    current: StoreOffer[],
+    incoming: StoreOffer[],
+  ): StoreOffer[] {
+    if (current.length === 0) {
+      return incoming;
+    }
+
+    const existingIds = new Set(current.map((offer) => offer.id));
+    const next = [...current];
+    for (const offer of incoming) {
+      if (!existingIds.has(offer.id)) {
+        next.push(offer);
+      }
+    }
+
+    return next;
+  }
+
+  private disconnectObserver(): void {
+    this.observer?.disconnect();
+    this.observer = null;
   }
 }

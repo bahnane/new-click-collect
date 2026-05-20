@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   MerchantShopInfo,
-  StoreOffersPaginatedResponse,
+  PublicStoreOffersCursorResponse,
 } from '../models/merchant-shop.model';
 
 @Injectable({ providedIn: 'root' })
@@ -19,21 +19,24 @@ export class MerchantShopService {
 
   getMerchantProducts(
     merchantSlug: string,
-    page: number = 1,
-    pageSize: number = 24,
+    limit: number = 24,
+    cursor?: string,
     query?: string,
-  ): Observable<StoreOffersPaginatedResponse> {
+  ): Observable<PublicStoreOffersCursorResponse> {
     const params: Record<string, string> = {
-      page: page.toString(),
-      pageSize: pageSize.toString(),
+      limit: limit.toString(),
     };
+
+    if (cursor) {
+      params['cursor'] = cursor;
+    }
 
     const normalizedQuery = query?.trim();
     if (normalizedQuery) {
       params['q'] = normalizedQuery;
     }
 
-    return this.http.get<StoreOffersPaginatedResponse>(
+    return this.http.get<PublicStoreOffersCursorResponse>(
       `${environment.apiUrl}/merchants/${merchantSlug}/products`,
       {
         params,

@@ -148,3 +148,9 @@ export interface StoreOffersPaginatedResponse {
   page: number;
   pageSize: number;
 }
+
+export interface PublicStoreOffersCursorResponse {
+  data: StoreOffer[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}

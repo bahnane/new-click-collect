@@ -64,7 +64,7 @@
         </div>
     </div>
 
-    @if (loading()) {
+    @if (loading() && !productsLoaded()) {
     <div class="loading-container">
         <mat-progress-spinner mode="indeterminate" diameter="48">
         </mat-progress-spinner>
@@ -82,7 +82,7 @@
     </div>
     }
 
-    @if (merchantInfo() && !loading() && !error()) {
+    @if (merchantInfo() && !error()) {
     <mat-card class="merchant-info-card">
         <mat-card-header>
             <mat-card-title>{{ merchantInfo()!.storeName }}</mat-card-title>
@@ -147,13 +147,12 @@
         </mat-card-content>
     </mat-card>
 
-    @if (products()) {
     <section class="products-section">
         <h2>{{ 'shop.products' | transloco }}</h2>
 
-        @if (products()!.data.length > 0) {
+        @if (offers().length > 0) {
         <div class="products-grid">
-            @for (offer of products()!.data; track offer.id) {
+            @for (offer of offers(); track offer.id) {
             <mat-card class="product-card">
                 <mat-card-header>
                     <mat-card-title>{{ offer.product.name }}</mat-card-title>
@@ -234,14 +233,26 @@
             }
         </div>
 
-        <div class="paginator-container">
-            <mat-paginator [length]="products()!.total" [pageSize]="products()!.pageSize"
-                [pageSizeOptions]="[12, 24, 48]" [pageIndex]="currentPage() - 1" (page)="onPageChange($event)">
-            </mat-paginator>
+        @if (loadingMore()) {
+        <div class="load-more-indicator" aria-live="polite">
+            <mat-progress-spinner mode="indeterminate" diameter="28"></mat-progress-spinner>
         </div>
         }
 
-        @if (products()!.data.length === 0) {
+        @if (hasMore() && !manualLoadMode()) {
+        <div #loadMoreSentinel class="load-more-sentinel" aria-hidden="true"></div>
+        }
+
+        @if (hasMore() && manualLoadMode() && !loadingMore()) {
+        <div class="load-more-actions">
+            <button mat-stroked-button type="button" color="primary" (click)="loadNextPage('manual')">
+                {{ 'shop.loadMore' | transloco }}
+            </button>
+        </div>
+        }
+        }
+
+        @if (productsLoaded() && offers().length === 0) {
         <div class="no-products">
             <mat-icon>inventory_2</mat-icon>
             @if (activeSearchQuery()) {
@@ -252,6 +263,5 @@
         </div>
         }
     </section>
-    }
     }
 </div>

@@ -363,12 +363,15 @@
   font-size: 0.9375rem;
 }
 
-.paginator-container {
+.load-more-indicator {
   display: flex;
   justify-content: center;
   padding-block: var(--space-sm);
   margin-block-start: var(--space-3xl);
-  margin-block-end: var(--space-lg);
+}
+
+.load-more-sentinel {
+  block-size: 1px;
 }
 
 /* Accessibility */

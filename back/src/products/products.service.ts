@@ -1530,8 +1530,8 @@ export class ProductsService {
 
   async getPublicOffersForMerchant(
     merchantSlug: string,
-    page = 1,
-    pageSize = 10,
+    limit = 24,
+    cursor?: string,
     query?: string,
   ) {
     const profile = await this.prisma.merchantProfile.findUnique({
@@ -1545,12 +1545,8 @@ export class ProductsService {
       });
     }
 
-    const {
-      skip,
-      take,
-      page: safePage,
-      pageSize: safePageSize,
-    } = this.normalizePagination(page, pageSize);
+    const safeLimit =
+      Number.isInteger(limit) && limit > 0 ? Math.min(limit, 48) : 24;
 
     const where = {
       merchantId: profile.id,
@@ -1564,44 +1560,48 @@ export class ProductsService {
     const normalizedQuery = query?.trim().toLowerCase() ?? '';
 
     if (!normalizedQuery) {
-      const [offers, total] = await this.prisma.$transaction([
-        this.prisma.storeOffer.findMany({
-          where,
-          orderBy: { product: { name: 'asc' } },
-          skip,
-          take,
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                subCategory: {
-                  select: {
-                    id: true,
-                    name: true,
-                    slug: true,
-                    parentId: true,
-                  },
+      const offers = await this.prisma.storeOffer.findMany({
+        where,
+        orderBy: { id: 'asc' },
+        take: safeLimit + 1,
+        ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              subCategory: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  parentId: true,
                 },
-                description: true,
-                saleUnit: true,
-                priceInCents: true,
-                category: {
-                  select: {
-                    id: true,
-                    name: true,
-                    slug: true,
-                  },
+              },
+              description: true,
+              saleUnit: true,
+              priceInCents: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
                 },
               },
             },
           },
-        }),
-        this.prisma.storeOffer.count({ where }),
-      ]);
+        },
+      });
+
+      const hasMore = offers.length > safeLimit;
+      const pageData = hasMore ? offers.slice(0, safeLimit) : offers;
+      const nextCursor =
+        hasMore && pageData.length > 0
+          ? pageData[pageData.length - 1].id
+          : null;
 
       return {
-        data: offers.map((offer) => ({
+        data: pageData.map((offer) => ({
           ...offer,
           defaultPriceInCents: offer.product.priceInCents,
           overridePriceInCents: offer.priceInCents,
@@ -1609,9 +1609,8 @@ export class ProductsService {
             offer.priceInCents ?? offer.product.priceInCents,
           isOverridden: offer.priceInCents != null,
         })),
-        total,
-        page: safePage,
-        pageSize: safePageSize,
+        nextCursor,
+        hasMore,
       };
     }
 
@@ -1676,20 +1675,27 @@ export class ProductsService {
         return a.product.name.localeCompare(b.product.name);
       });
 
-    const total = scored.length;
-    const paginated = scored.slice(skip, skip + take);
+    const startIndex = cursor
+      ? Math.max(scored.findIndex((offer) => offer.id === cursor) + 1, 0)
+      : 0;
+    const pageData = scored.slice(startIndex, startIndex + safeLimit + 1);
+    const hasMore = pageData.length > safeLimit;
+    const visibleData = hasMore ? pageData.slice(0, safeLimit) : pageData;
+    const nextCursor =
+      hasMore && visibleData.length > 0
+        ? visibleData[visibleData.length - 1].id
+        : null;
 
     return {
-      data: paginated.map((offer) => ({
+      data: visibleData.map((offer) => ({
         ...offer,
         defaultPriceInCents: offer.product.priceInCents,
         overridePriceInCents: offer.priceInCents,
         effectivePriceInCents: offer.priceInCents ?? offer.product.priceInCents,
         isOverridden: offer.priceInCents != null,
       })),
-      total,
-      page: safePage,
-      pageSize: safePageSize,
+      nextCursor,
+      hasMore,
     };
   }
 
