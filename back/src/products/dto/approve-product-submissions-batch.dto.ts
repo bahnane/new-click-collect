@@ -27,6 +27,11 @@ export class ApproveProductSubmissionBatchItemDto {
 
   @IsOptional()
   @IsString()
+  @MinLength(1)
+  subCategoryId?: string | null;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(2000)
   description?: string;
 

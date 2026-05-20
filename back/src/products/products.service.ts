@@ -28,9 +28,14 @@ export class ProductsService {
   // ── Categories ──────────────────────────────────────────────────────────
 
   async createCategory(dto: CreateProductCategoryDto) {
+    if (dto.parentId) {
+      await this.assertCategoryCanBeParent(dto.parentId);
+    }
+
     try {
       return await this.prisma.productCategory.create({
         data: {
+          parentId: dto.parentId,
           name: dto.name,
           slug: dto.slug,
           description: dto.description,
@@ -56,6 +61,7 @@ export class ProductsService {
       orderBy: { name: 'asc' },
       select: {
         id: true,
+        parentId: true,
         name: true,
         slug: true,
         description: true,
@@ -67,13 +73,41 @@ export class ProductsService {
     return this.prisma.productCategory.findMany({
       orderBy: { name: 'asc' },
       include: {
-        _count: { select: { products: true } },
+        parent: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            isActive: true,
+          },
+        },
+        _count: {
+          select: {
+            products: true,
+            productsAsSubCategory: true,
+            children: true,
+          },
+        },
       },
     });
   }
 
   async updateCategory(categoryId: string, dto: UpdateProductCategoryDto) {
     await this.findCategoryOrFail(categoryId);
+
+    if (dto.parentId !== undefined) {
+      if (dto.parentId === categoryId) {
+        throw new BadRequestException({
+          code: ErrorCodes.PRODUCT_CATEGORY_INVALID_PARENT,
+          message: 'Category cannot reference itself as parent',
+        });
+      }
+
+      if (dto.parentId) {
+        await this.assertCategoryCanBeParent(dto.parentId);
+      }
+    }
+
     try {
       return await this.prisma.productCategory.update({
         where: { id: categoryId },
@@ -104,11 +138,18 @@ export class ProductsService {
   // ── Catalogue global ─────────────────────────────────────────────────────
 
   async createCatalogProduct(dto: CreateProductDto) {
-    await this.findCategoryOrFail(dto.categoryId);
+    await this.assertCategoryIsRoot(dto.categoryId);
+    if (dto.subCategoryId) {
+      await this.assertSubCategoryBelongsToCategory(
+        dto.subCategoryId,
+        dto.categoryId,
+      );
+    }
     try {
       return await this.prisma.product.create({
         data: {
           name: dto.name,
+          subCategoryId: dto.subCategoryId,
           description: dto.description,
           saleUnit: dto.saleUnit,
           priceInCents: dto.priceInCents,
@@ -129,7 +170,13 @@ export class ProductsService {
 
   async createProductSubmission(userId: string, dto: CreateProductDto) {
     const profile = await this.resolveMerchantProfile(userId);
-    await this.findCategoryOrFail(dto.categoryId);
+    await this.assertCategoryIsRoot(dto.categoryId);
+    if (dto.subCategoryId) {
+      await this.assertSubCategoryBelongsToCategory(
+        dto.subCategoryId,
+        dto.categoryId,
+      );
+    }
 
     const existingPending = await this.prisma.productSubmission.findFirst({
       where: {
@@ -153,6 +200,7 @@ export class ProductsService {
         data: {
           merchantId: profile.id,
           name: dto.name,
+          subCategoryId: dto.subCategoryId,
           description: dto.description,
           saleUnit: dto.saleUnit,
           priceInCents: dto.priceInCents,
@@ -164,6 +212,14 @@ export class ProductsService {
               id: true,
               name: true,
               slug: true,
+            },
+          },
+          subCategory: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              parentId: true,
             },
           },
         },
@@ -219,10 +275,26 @@ export class ProductsService {
               slug: true,
             },
           },
+          subCategory: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              parentId: true,
+            },
+          },
           approvedProduct: {
             select: {
               id: true,
               name: true,
+              subCategory: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  parentId: true,
+                },
+              },
               description: true,
               saleUnit: true,
               priceInCents: true,
@@ -283,6 +355,14 @@ export class ProductsService {
               slug: true,
             },
           },
+          subCategory: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              parentId: true,
+            },
+          },
           reviewedByUser: {
             select: {
               id: true,
@@ -293,6 +373,14 @@ export class ProductsService {
             select: {
               id: true,
               name: true,
+              subCategory: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  parentId: true,
+                },
+              },
               description: true,
               saleUnit: true,
               priceInCents: true,
@@ -326,6 +414,7 @@ export class ProductsService {
     rejectionReason?: string,
     approvedProductOverrides?: {
       name?: string;
+      subCategoryId?: string | null;
       description?: string;
       saleUnit?: SaleUnit;
       priceInCents?: number | null;
@@ -365,7 +454,21 @@ export class ProductsService {
       status === ProductSubmissionStatus.APPROVED &&
       approvedProductOverrides?.categoryId
     ) {
-      await this.findCategoryOrFail(approvedProductOverrides.categoryId);
+      await this.assertCategoryIsRoot(approvedProductOverrides.categoryId);
+    }
+
+    const effectiveCategoryId =
+      approvedProductOverrides?.categoryId ?? submission.categoryId;
+    const effectiveSubCategoryId =
+      approvedProductOverrides?.subCategoryId === undefined
+        ? submission.subCategoryId
+        : approvedProductOverrides.subCategoryId;
+
+    if (effectiveSubCategoryId) {
+      await this.assertSubCategoryBelongsToCategory(
+        effectiveSubCategoryId,
+        effectiveCategoryId,
+      );
     }
 
     if (status === ProductSubmissionStatus.APPROVED) {
@@ -374,6 +477,9 @@ export class ProductsService {
           const product = await tx.product.create({
             data: {
               name: approvedProductOverrides?.name ?? submission.name,
+              subCategoryId:
+                approvedProductOverrides?.subCategoryId ??
+                submission.subCategoryId,
               description:
                 approvedProductOverrides?.description ?? submission.description,
               saleUnit:
@@ -411,10 +517,26 @@ export class ProductsService {
                   slug: true,
                 },
               },
+              subCategory: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  parentId: true,
+                },
+              },
               approvedProduct: {
                 select: {
                   id: true,
                   name: true,
+                  subCategory: {
+                    select: {
+                      id: true,
+                      name: true,
+                      slug: true,
+                      parentId: true,
+                    },
+                  },
                   isActive: true,
                 },
               },
@@ -455,6 +577,14 @@ export class ProductsService {
             id: true,
             name: true,
             slug: true,
+          },
+        },
+        subCategory: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            parentId: true,
           },
         },
       },
@@ -516,13 +646,50 @@ export class ProductsService {
         if (categoryIds.length > 0) {
           const categories = await tx.productCategory.findMany({
             where: { id: { in: categoryIds } },
-            select: { id: true },
+            select: { id: true, parentId: true },
           });
           if (categories.length !== categoryIds.length) {
             throw new NotFoundException({
               code: ErrorCodes.PRODUCT_CATEGORY_NOT_FOUND,
               message: 'One or more product categories were not found',
             });
+          }
+          const nonRoot = categories.find(
+            (category) => category.parentId !== null,
+          );
+          if (nonRoot) {
+            throw new BadRequestException({
+              code: ErrorCodes.PRODUCT_CATEGORY_MUST_BE_ROOT,
+              message: 'Product category must be a root category',
+            });
+          }
+        }
+
+        const subCategoryIds = Array.from(
+          new Set(
+            dto.items
+              .map((item) => item.subCategoryId)
+              .filter((id): id is string => !!id),
+          ),
+        );
+
+        const subCategoriesById = new Map<
+          string,
+          { id: string; parentId: string | null }
+        >();
+        if (subCategoryIds.length > 0) {
+          const subCategories = await tx.productCategory.findMany({
+            where: { id: { in: subCategoryIds } },
+            select: { id: true, parentId: true },
+          });
+          if (subCategories.length !== subCategoryIds.length) {
+            throw new NotFoundException({
+              code: ErrorCodes.PRODUCT_SUB_CATEGORY_NOT_FOUND,
+              message: 'One or more product sub-categories were not found',
+            });
+          }
+          for (const subCategory of subCategories) {
+            subCategoriesById.set(subCategory.id, subCategory);
           }
         }
 
@@ -535,9 +702,33 @@ export class ProductsService {
           const item = itemsById.get(submission.id);
           if (!item) continue;
 
+          const effectiveCategoryId = item.categoryId ?? submission.categoryId;
+          const effectiveSubCategoryId =
+            item.subCategoryId === undefined
+              ? submission.subCategoryId
+              : item.subCategoryId;
+
+          if (effectiveSubCategoryId) {
+            const subCategory = subCategoriesById.get(effectiveSubCategoryId);
+            if (!subCategory) {
+              throw new NotFoundException({
+                code: ErrorCodes.PRODUCT_SUB_CATEGORY_NOT_FOUND,
+                message: 'Product sub-category not found',
+              });
+            }
+            if (subCategory.parentId !== effectiveCategoryId) {
+              throw new BadRequestException({
+                code: ErrorCodes.PRODUCT_SUB_CATEGORY_CATEGORY_MISMATCH,
+                message:
+                  'Product sub-category does not belong to selected category',
+              });
+            }
+          }
+
           const created = await tx.product.create({
             data: {
               name: item.name ?? submission.name,
+              subCategoryId: item.subCategoryId ?? submission.subCategoryId,
               description: item.description ?? submission.description,
               saleUnit: item.saleUnit ?? submission.saleUnit,
               priceInCents: item.priceInCents ?? submission.priceInCents,
@@ -599,6 +790,14 @@ export class ProductsService {
         select: {
           id: true,
           name: true,
+          subCategory: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              parentId: true,
+            },
+          },
           description: true,
           saleUnit: true,
           priceInCents: true,
@@ -641,6 +840,14 @@ export class ProductsService {
       select: {
         id: true,
         name: true,
+        subCategory: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            parentId: true,
+          },
+        },
         saleUnit: true,
         priceInCents: true,
         category: {
@@ -662,6 +869,14 @@ export class ProductsService {
       select: {
         id: true,
         name: true,
+        subCategory: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            parentId: true,
+          },
+        },
         saleUnit: true,
         priceInCents: true,
         category: {
@@ -714,6 +929,7 @@ export class ProductsService {
     return filtered.map((p) => ({
       id: p.id,
       name: p.name,
+      subCategory: p.subCategory,
       saleUnit: p.saleUnit,
       priceInCents: p.priceInCents,
       category: p.category,
@@ -764,7 +980,18 @@ export class ProductsService {
     const name = dto.name ?? submission.name;
 
     if (dto.categoryId) {
-      await this.findCategoryOrFail(dto.categoryId);
+      await this.assertCategoryIsRoot(dto.categoryId);
+    }
+
+    const effectiveSubCategoryId =
+      dto.subCategoryId === undefined
+        ? submission.subCategoryId
+        : dto.subCategoryId;
+    if (effectiveSubCategoryId) {
+      await this.assertSubCategoryBelongsToCategory(
+        effectiveSubCategoryId,
+        categoryId,
+      );
     }
 
     const duplicatePending = await this.prisma.productSubmission.findFirst({
@@ -795,6 +1022,14 @@ export class ProductsService {
               id: true,
               name: true,
               slug: true,
+            },
+          },
+          subCategory: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              parentId: true,
             },
           },
           approvedProduct: {
@@ -888,9 +1123,22 @@ export class ProductsService {
   }
 
   async updateCatalogProduct(productId: string, dto: UpdateProductDto) {
-    await this.findProductOrFailAdmin(productId);
+    const product = await this.findProductOrFailAdmin(productId);
     if (dto.categoryId) {
-      await this.findCategoryOrFail(dto.categoryId);
+      await this.assertCategoryIsRoot(dto.categoryId);
+    }
+
+    const effectiveCategoryId = dto.categoryId ?? product.categoryId;
+    const effectiveSubCategoryId =
+      dto.subCategoryId === undefined
+        ? product.subCategoryId
+        : dto.subCategoryId;
+
+    if (effectiveSubCategoryId) {
+      await this.assertSubCategoryBelongsToCategory(
+        effectiveSubCategoryId,
+        effectiveCategoryId,
+      );
     }
     try {
       return await this.prisma.product.update({
@@ -960,6 +1208,14 @@ export class ProductsService {
             select: {
               id: true,
               name: true,
+              subCategory: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  parentId: true,
+                },
+              },
               description: true,
               saleUnit: true,
               priceInCents: true,
@@ -1006,6 +1262,14 @@ export class ProductsService {
           id: true,
           priceInCents: true,
           name: true,
+          subCategory: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              parentId: true,
+            },
+          },
           description: true,
           saleUnit: true,
           category: {
@@ -1080,6 +1344,14 @@ export class ProductsService {
               select: {
                 id: true,
                 name: true,
+                subCategory: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                    parentId: true,
+                  },
+                },
                 description: true,
                 saleUnit: true,
                 priceInCents: true,
@@ -1130,6 +1402,14 @@ export class ProductsService {
             select: {
               id: true,
               name: true,
+              subCategory: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  parentId: true,
+                },
+              },
               description: true,
               saleUnit: true,
               priceInCents: true,
@@ -1221,6 +1501,14 @@ export class ProductsService {
             select: {
               id: true,
               name: true,
+              subCategory: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  parentId: true,
+                },
+              },
               description: true,
               saleUnit: true,
               priceInCents: true,
@@ -1283,6 +1571,14 @@ export class ProductsService {
             select: {
               id: true,
               name: true,
+              subCategory: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  parentId: true,
+                },
+              },
               description: true,
               saleUnit: true,
               priceInCents: true,
@@ -1392,6 +1688,60 @@ export class ProductsService {
       });
     }
     return category;
+  }
+
+  private async assertCategoryCanBeParent(parentCategoryId: string) {
+    const parent = await this.findCategoryOrFail(parentCategoryId);
+    if (parent.parentId !== null) {
+      throw new BadRequestException({
+        code: ErrorCodes.PRODUCT_CATEGORY_PARENT_MUST_BE_ROOT,
+        message: 'Parent category must be a root category',
+      });
+    }
+    return parent;
+  }
+
+  private async assertCategoryIsRoot(categoryId: string) {
+    const category = await this.findCategoryOrFail(categoryId);
+    if (category.parentId !== null) {
+      throw new BadRequestException({
+        code: ErrorCodes.PRODUCT_CATEGORY_MUST_BE_ROOT,
+        message: 'Product category must be a root category',
+      });
+    }
+    return category;
+  }
+
+  private async findSubCategoryOrFail(subCategoryId: string) {
+    const subCategory = await this.prisma.productCategory.findUnique({
+      where: { id: subCategoryId },
+      select: {
+        id: true,
+        parentId: true,
+      },
+    });
+
+    if (!subCategory) {
+      throw new NotFoundException({
+        code: ErrorCodes.PRODUCT_SUB_CATEGORY_NOT_FOUND,
+        message: 'Product sub-category not found',
+      });
+    }
+
+    return subCategory;
+  }
+
+  private async assertSubCategoryBelongsToCategory(
+    subCategoryId: string,
+    categoryId: string,
+  ) {
+    const subCategory = await this.findSubCategoryOrFail(subCategoryId);
+    if (subCategory.parentId !== categoryId) {
+      throw new BadRequestException({
+        code: ErrorCodes.PRODUCT_SUB_CATEGORY_CATEGORY_MISMATCH,
+        message: 'Product sub-category does not belong to selected category',
+      });
+    }
   }
 
   private async findSubmissionOrFail(submissionId: string) {

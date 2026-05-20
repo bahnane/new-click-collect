@@ -235,6 +235,7 @@ export class ProductsController {
       dto.rejectionReason,
       {
         name: dto.name,
+        subCategoryId: dto.subCategoryId,
         description: dto.description,
         saleUnit: dto.saleUnit,
         priceInCents: dto.priceInCents,

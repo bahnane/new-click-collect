@@ -17,6 +17,11 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsString()
+  @MinLength(1)
+  subCategoryId?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(2000)
   description?: string;
 

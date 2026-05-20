@@ -56,6 +56,27 @@ const CATEGORY_SEEDS = [
   { name: 'Fixture Boulangerie', slug: 'fixture-boulangerie' },
 ];
 
+const SUB_CATEGORY_SEEDS_BY_ROOT: Array<
+  Array<{ name: string; slugSuffix: string }>
+> = [
+  [
+    { name: 'Fixture Huiles', slugSuffix: 'huiles' },
+    { name: 'Fixture Conserves', slugSuffix: 'conserves' },
+  ],
+  [
+    { name: 'Fixture Jus', slugSuffix: 'jus' },
+    { name: 'Fixture Eaux', slugSuffix: 'eaux' },
+  ],
+  [
+    { name: 'Fixture Biscuits', slugSuffix: 'biscuits' },
+    { name: 'Fixture Chips', slugSuffix: 'chips' },
+  ],
+  [
+    { name: 'Fixture Pains', slugSuffix: 'pains' },
+    { name: 'Fixture Viennoiseries', slugSuffix: 'viennoiseries' },
+  ],
+];
+
 const SUBMISSION_SEEDS: Array<{
   name: string;
   description?: string;
@@ -137,6 +158,24 @@ function saleUnitFor(i: number): SaleUnit {
     SaleUnit.PORTION,
   ];
   return units[i % units.length];
+}
+
+function pickSubCategoryId(
+  subCategoriesByCategoryId: Record<string, string[]>,
+  categoryId: string,
+  itemIndex: number,
+  frequency: number,
+): string | null {
+  const subCategoryIds = subCategoriesByCategoryId[categoryId] ?? [];
+  if (subCategoryIds.length === 0) {
+    return null;
+  }
+
+  if (itemIndex % frequency !== 0) {
+    return null;
+  }
+
+  return subCategoryIds[itemIndex % subCategoryIds.length] ?? null;
 }
 
 async function main() {
@@ -238,21 +277,72 @@ async function main() {
       categories.push(category);
     }
 
+    // 4.b) Sub-categories fixture (enfants des categories principales)
+    const subCategoriesByCategoryId: Record<string, string[]> = {};
+
+    for (let index = 0; index < categories.length; index++) {
+      const rootCategory = categories[index];
+      const subCategorySeeds = SUB_CATEGORY_SEEDS_BY_ROOT[index] ?? [];
+      const subCategoryIds: string[] = [];
+
+      for (const subCategorySeed of subCategorySeeds) {
+        const slug = `${rootCategory.slug}-${subCategorySeed.slugSuffix}`;
+
+        const subCategory = await prisma.productCategory.upsert({
+          where: { slug },
+          update: {
+            parentId: rootCategory.id,
+            name: subCategorySeed.name,
+            isActive: true,
+          },
+          create: {
+            parentId: rootCategory.id,
+            slug,
+            name: subCategorySeed.name,
+            description: 'Sous-categorie fixture pour tests pagination',
+            isActive: true,
+          },
+        });
+
+        subCategoryIds.push(subCategory.id);
+      }
+
+      subCategoriesByCategoryId[rootCategory.id] = subCategoryIds;
+    }
+
     // 5) Products fixture (pool avec offres)
     const offeredCandidateProductIds: string[] = [];
+    let offeredProductsLinkedToSubCategory = 0;
 
     for (let i = 1; i <= FIXTURE.productsCount; i++) {
       const number = pad4(i);
       const category = categories[i % categories.length];
+      const subCategoryId = pickSubCategoryId(
+        subCategoriesByCategoryId,
+        category.id,
+        i,
+        3,
+      );
       const name = `${FIXTURE.productPrefix} ${number}`;
 
       // Product.name n'est pas unique: on évite les doublons via findFirst + create.
       const existing = await prisma.product.findFirst({
         where: { name, categoryId: category.id },
-        select: { id: true },
+        select: { id: true, subCategoryId: true },
       });
 
       if (existing) {
+        if ((existing.subCategoryId ?? null) !== subCategoryId) {
+          await prisma.product.update({
+            where: { id: existing.id },
+            data: { subCategoryId },
+          });
+        }
+
+        if (subCategoryId) {
+          offeredProductsLinkedToSubCategory++;
+        }
+
         offeredCandidateProductIds.push(existing.id);
         continue;
       }
@@ -264,28 +354,51 @@ async function main() {
           saleUnit: saleUnitFor(i),
           priceInCents: priceInCentsFor(i),
           categoryId: category.id,
+          subCategoryId,
           isActive: true,
         },
         select: { id: true },
       });
+
+      if (subCategoryId) {
+        offeredProductsLinkedToSubCategory++;
+      }
 
       offeredCandidateProductIds.push(created.id);
     }
 
     // 5.b) Produits sans offre, facilement identifiables pour tester la creation
     const unofferedProductIds: string[] = [];
+    let unofferedProductsLinkedToSubCategory = 0;
 
     for (let i = 1; i <= FIXTURE.unofferedProductsCount; i++) {
       const number = pad4(i);
       const category = categories[i % categories.length];
+      const subCategoryId = pickSubCategoryId(
+        subCategoriesByCategoryId,
+        category.id,
+        i,
+        2,
+      );
       const name = `${FIXTURE.unofferedProductPrefix} ${number}`;
 
       const existing = await prisma.product.findFirst({
         where: { name, categoryId: category.id },
-        select: { id: true },
+        select: { id: true, subCategoryId: true },
       });
 
       if (existing) {
+        if ((existing.subCategoryId ?? null) !== subCategoryId) {
+          await prisma.product.update({
+            where: { id: existing.id },
+            data: { subCategoryId },
+          });
+        }
+
+        if (subCategoryId) {
+          unofferedProductsLinkedToSubCategory++;
+        }
+
         unofferedProductIds.push(existing.id);
         continue;
       }
@@ -298,10 +411,15 @@ async function main() {
           saleUnit: saleUnitFor(i),
           priceInCents: priceInCentsFor(i + FIXTURE.productsCount),
           categoryId: category.id,
+          subCategoryId,
           isActive: true,
         },
         select: { id: true },
       });
+
+      if (subCategoryId) {
+        unofferedProductsLinkedToSubCategory++;
+      }
 
       unofferedProductIds.push(created.id);
     }
@@ -394,7 +512,13 @@ async function main() {
     console.log(`  Merchant slug: ${FIXTURE.merchantSlug}`);
     console.log(`  Products target (offer pool): ${FIXTURE.productsCount}`);
     console.log(
+      `  Products linked to sub-categories (offer pool): ${offeredProductsLinkedToSubCategory}`,
+    );
+    console.log(
       `  Products target (no-offer pool): ${FIXTURE.unofferedProductsCount}`,
+    );
+    console.log(
+      `  Products linked to sub-categories (no-offer pool): ${unofferedProductsLinkedToSubCategory}`,
     );
     console.log(`  Offers target: ${offerCount}`);
     console.log(`  No-offer product prefix: ${FIXTURE.unofferedProductPrefix}`);
