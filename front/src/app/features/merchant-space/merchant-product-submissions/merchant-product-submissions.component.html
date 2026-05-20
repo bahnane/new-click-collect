@@ -34,7 +34,7 @@
             <mat-card class="submission-card">
                 <mat-card-header>
                     <mat-card-title>{{ submission.name }}</mat-card-title>
-                    <mat-card-subtitle>{{ submission.category.name }}</mat-card-subtitle>
+                    <mat-card-subtitle>{{ getCategoryDisplayLabel(submission) }}</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
                     <dl>
@@ -100,7 +100,7 @@
                     <ng-container matColumnDef="category">
                         <th mat-header-cell *matHeaderCellDef>{{ 'shell.merchant.productSubmissions.columns.category' |
                             transloco }}</th>
-                        <td mat-cell *matCellDef="let row">{{ row.category.name }}</td>
+                        <td mat-cell *matCellDef="let row">{{ getCategoryDisplayLabel(row) }}</td>
                     </ng-container>
 
                     <ng-container matColumnDef="saleUnit">

@@ -264,8 +264,17 @@ export class MerchantProductSubmissionsComponent {
       p.description !== submission.description ||
       p.saleUnit !== submission.saleUnit ||
       p.priceInCents !== submission.priceInCents ||
-      p.category.id !== submission.category.id
+      p.category.id !== submission.category.id ||
+      (p.subCategory?.id ?? null) !== (submission.subCategory?.id ?? null)
     );
+  }
+
+  getCategoryDisplayLabel(submission: ProductSubmission): string {
+    if (!submission.subCategory?.name) {
+      return submission.category.name;
+    }
+
+    return `${submission.category.name} / ${submission.subCategory.name}`;
   }
 
   onViewDiff(submission: ProductSubmission): void {

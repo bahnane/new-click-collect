@@ -231,6 +231,14 @@ export class AdminProductsComponent {
       : 'shell.adminSpace.products.status.inactive';
   }
 
+  getCategoryDisplayLabel(product: AdminCatalogProduct): string {
+    if (!product.subCategory?.name) {
+      return product.category.name;
+    }
+
+    return `${product.category.name} / ${product.subCategory.name}`;
+  }
+
   formatPrice(priceInCents: number | null): string {
     if (priceInCents == null) {
       return '-';

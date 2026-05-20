@@ -139,7 +139,22 @@ export interface SubmissionEditorDialogResult {
             'shell.merchant.productSubmissions.fields.category' | transloco
           }}</mat-label>
           <mat-select formControlName="categoryId">
-            @for (category of data.categories; track category.id) {
+            @for (category of rootCategories; track category.id) {
+              <mat-option [value]="category.id">{{ category.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{
+            'shell.merchant.productSubmissions.fields.subCategory' | transloco
+          }}</mat-label>
+          <mat-select formControlName="subCategoryId">
+            <mat-option value="">{{
+              'shell.merchant.productSubmissions.fields.subCategoryOptional'
+                | transloco
+            }}</mat-option>
+            @for (category of availableSubCategories; track category.id) {
               <mat-option [value]="category.id">{{ category.name }}</mat-option>
             }
           </mat-select>
@@ -329,6 +344,7 @@ export class SubmissionEditorDialogComponent implements OnInit {
       nonNullable: true,
       validators: [Validators.required],
     }),
+    subCategoryId: new FormControl('', { nonNullable: true }),
     saleUnit: new FormControl<Product['saleUnit']>('UNIT', {
       nonNullable: true,
       validators: [Validators.required],
@@ -345,18 +361,33 @@ export class SubmissionEditorDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.form.controls.categoryId.valueChanges.subscribe(() => {
+      const subCategoryId = this.form.controls.subCategoryId.value;
+      if (!subCategoryId) {
+        return;
+      }
+
+      const stillValid = this.availableSubCategories.some(
+        (category) => category.id === subCategoryId,
+      );
+      if (!stillValid) {
+        this.form.controls.subCategoryId.setValue('');
+      }
+    });
+
     if (this.isEditMode && this.data.submission) {
       const s = this.data.submission;
       this.form.patchValue({
         name: s.name,
         categoryId: s.category.id,
+        subCategoryId: s.subCategory?.id ?? '',
         saleUnit: s.saleUnit,
         price: s.priceInCents == null ? '' : (s.priceInCents / 100).toFixed(2),
         description: s.description ?? '',
       });
-    } else if (this.data.categories.length > 0) {
+    } else if (this.rootCategories.length > 0) {
       this.form.patchValue({
-        categoryId: this.data.categories[0].id,
+        categoryId: this.rootCategories[0].id,
       });
     }
 
@@ -377,6 +408,9 @@ export class SubmissionEditorDialogComponent implements OnInit {
     const payload = {
       name: this.form.controls.name.value.trim(),
       categoryId: this.form.controls.categoryId.value,
+      ...(this.form.controls.subCategoryId.value
+        ? { subCategoryId: this.form.controls.subCategoryId.value }
+        : {}),
       saleUnit: this.form.controls.saleUnit.value,
       description: this.form.controls.description.value.trim() || undefined,
       priceInCents: priceInCents ?? undefined,
@@ -419,6 +453,21 @@ export class SubmissionEditorDialogComponent implements OnInit {
 
   cancel(): void {
     this.dialogRef.close();
+  }
+
+  get rootCategories(): ProductCategory[] {
+    return this.data.categories.filter((category) => category.parentId == null);
+  }
+
+  get availableSubCategories(): ProductCategory[] {
+    const rootId = this.form.controls.categoryId.value;
+    if (!rootId) {
+      return [];
+    }
+
+    return this.data.categories.filter(
+      (category) => category.parentId === rootId,
+    );
   }
 
   onCreateOfferFromSuggestion(product: SimilarCatalogProduct): void {

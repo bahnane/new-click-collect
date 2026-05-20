@@ -425,8 +425,47 @@ export class AdminProductSubmissionsComponent {
       p.description !== submission.description ||
       p.saleUnit !== submission.saleUnit ||
       p.priceInCents !== submission.priceInCents ||
-      p.category.id !== submission.category.id
+      p.category.id !== submission.category.id ||
+      (p.subCategory?.id ?? null) !== (submission.subCategory?.id ?? null)
     );
+  }
+
+  getRootCategories(): AdminProductCategory[] {
+    return this.categories().filter((category) => category.parentId == null);
+  }
+
+  getSubCategoriesFor(categoryId: string): AdminProductCategory[] {
+    if (!categoryId) {
+      return [];
+    }
+
+    return this.categories().filter(
+      (category) => category.parentId === categoryId,
+    );
+  }
+
+  onDraftCategoryChange(
+    submission: AdminProductSubmission,
+    categoryId: string,
+  ): void {
+    const current = this.getDraft(submission);
+    const subCategories = this.getSubCategoriesFor(categoryId);
+    const shouldKeepSubCategory = subCategories.some(
+      (category) => category.id === current.subCategoryId,
+    );
+
+    this.updateDraft(submission, {
+      categoryId,
+      ...(shouldKeepSubCategory ? {} : { subCategoryId: '' }),
+    });
+  }
+
+  getCategoryDisplayLabel(submission: AdminProductSubmission): string {
+    if (!submission.subCategory?.name) {
+      return submission.category.name;
+    }
+
+    return `${submission.category.name} / ${submission.subCategory.name}`;
   }
 
   onViewDiff(submission: AdminProductSubmission): void {
@@ -513,6 +552,7 @@ export class AdminProductSubmissionsComponent {
     return {
       name: submission.name,
       categoryId: submission.category.id,
+      subCategoryId: submission.subCategory?.id ?? '',
       saleUnit: submission.saleUnit,
       price: this.formatDraftPrice(submission.priceInCents),
       description: submission.description ?? '',
@@ -564,6 +604,11 @@ export class AdminProductSubmissionsComponent {
     if (draft.categoryId !== submission.category.id) {
       payload.categoryId = draft.categoryId;
     }
+    if (
+      (draft.subCategoryId || null) !== (submission.subCategory?.id ?? null)
+    ) {
+      payload.subCategoryId = draft.subCategoryId || null;
+    }
     if (draft.saleUnit !== submission.saleUnit) {
       payload.saleUnit = draft.saleUnit;
     }
@@ -593,6 +638,9 @@ export class AdminProductSubmissionsComponent {
       id: submission.id,
       ...(payload.name ? { name: payload.name } : {}),
       ...(payload.categoryId ? { categoryId: payload.categoryId } : {}),
+      ...(payload.subCategoryId !== undefined
+        ? { subCategoryId: payload.subCategoryId }
+        : {}),
       ...(payload.saleUnit ? { saleUnit: payload.saleUnit } : {}),
       ...(payload.description ? { description: payload.description } : {}),
       ...(payload.priceInCents !== undefined
@@ -627,6 +675,7 @@ export class AdminProductSubmissionsComponent {
 interface InlineSubmissionDraft {
   name: string;
   categoryId: string;
+  subCategoryId: string;
   saleUnit: Product['saleUnit'];
   price: string;
   description: string;

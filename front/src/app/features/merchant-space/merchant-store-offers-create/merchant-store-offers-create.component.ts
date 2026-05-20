@@ -104,7 +104,9 @@ export class MerchantStoreOffersCreateComponent {
           response.data.map((product) => ({
             productId: product.id,
             productName: product.name,
-            categoryName: product.category.name,
+            categoryName: product.subCategory
+              ? `${product.category.name} / ${product.subCategory.name}`
+              : product.category.name,
             saleUnit: product.saleUnit,
             defaultPriceInCents: product.priceInCents,
             selected: false,

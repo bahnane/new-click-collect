@@ -120,6 +120,11 @@
       "PRODUCT_DUPLICATE": "يوجد منتج بنفس الاسم في هذه الفئة بالفعل.",
       "PRODUCT_CATEGORY_NOT_FOUND": "فئة المنتج غير موجودة.",
       "PRODUCT_CATEGORY_DUPLICATE": "اسم الفئة أو الرابط المختصر مستخدم بالفعل.",
+      "PRODUCT_CATEGORY_MUST_BE_ROOT": "يجب أن تكون الفئة المحددة فئة رئيسية.",
+      "PRODUCT_CATEGORY_INVALID_PARENT": "الفئة الرئيسية المحددة غير صالحة.",
+      "PRODUCT_CATEGORY_PARENT_MUST_BE_ROOT": "يجب أن تكون الفئة الرئيسية من المستوى الرئيسي.",
+      "PRODUCT_SUB_CATEGORY_NOT_FOUND": "الفئة الفرعية غير موجودة.",
+      "PRODUCT_SUB_CATEGORY_CATEGORY_MISMATCH": "الفئة الفرعية لا تتطابق مع الفئة المحددة.",
       "PRODUCT_SUBMISSION_NOT_FOUND": "طلب إضافة المنتج غير موجود.",
       "PRODUCT_SUBMISSION_ALREADY_PENDING": "يوجد طلب مشابه قيد المراجعة بالفعل.",
       "PRODUCT_SUBMISSION_INVALID_STATUS": "حالة طلب المنتج غير صالحة.",
@@ -489,6 +494,8 @@
         "fields": {
           "name": "اسم المنتج",
           "category": "الفئة",
+          "subCategory": "الفئة الفرعية",
+          "subCategoryOptional": "بدون فئة فرعية",
           "saleUnit": "وحدة البيع",
           "price": "السعر (اختياري)",
           "priceHint": "اتركه فارغاً إذا لم يتم تحديد السعر.",
@@ -624,6 +631,8 @@
         "fields": {
           "name": "اسم المنتج",
           "category": "الفئة",
+          "subCategory": "الفئة الفرعية",
+          "subCategoryOptional": "بدون فئة فرعية",
           "saleUnit": "وحدة البيع",
           "price": "السعر (دج)",
           "priceHint": "اتركه فارغًا لإنشاء منتج بدون سعر افتراضي.",
@@ -679,6 +688,8 @@
         "fields": {
           "name": "اسم المنتج",
           "category": "الفئة",
+          "subCategory": "الفئة الفرعية",
+          "subCategoryOptional": "بدون فئة فرعية",
           "saleUnit": "وحدة البيع",
           "price": "السعر (دج)",
           "description": "الوصف",

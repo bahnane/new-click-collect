@@ -38,6 +38,7 @@ export interface AdminProductEditorDialogData {
 export interface AdminProductEditorPayload {
   name: string;
   categoryId: string;
+  subCategoryId?: string;
   saleUnit: Product['saleUnit'];
   description?: string;
   priceInCents: number | undefined;
@@ -86,7 +87,21 @@ export interface AdminProductEditorDialogResult {
             'shell.adminSpace.products.fields.category' | transloco
           }}</mat-label>
           <mat-select formControlName="categoryId">
-            @for (category of data.categories; track category.id) {
+            @for (category of rootCategories; track category.id) {
+              <mat-option [value]="category.id">{{ category.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{
+            'shell.adminSpace.products.fields.subCategory' | transloco
+          }}</mat-label>
+          <mat-select formControlName="subCategoryId">
+            <mat-option value="">{{
+              'shell.adminSpace.products.fields.subCategoryOptional' | transloco
+            }}</mat-option>
+            @for (category of availableSubCategories; track category.id) {
               <mat-option [value]="category.id">{{ category.name }}</mat-option>
             }
           </mat-select>
@@ -232,6 +247,7 @@ export class AdminProductEditorDialogComponent implements OnInit {
       nonNullable: true,
       validators: [Validators.required],
     }),
+    subCategoryId: new FormControl('', { nonNullable: true }),
     saleUnit: new FormControl<Product['saleUnit']>('UNIT', {
       nonNullable: true,
       validators: [Validators.required],
@@ -251,18 +267,34 @@ export class AdminProductEditorDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.form.controls.categoryId.valueChanges.subscribe((categoryId) => {
+      const subCategoryId = this.form.controls.subCategoryId.value;
+      if (!subCategoryId) {
+        return;
+      }
+
+      const stillValid = this.availableSubCategories.some(
+        (category) => category.id === subCategoryId,
+      );
+
+      if (!stillValid) {
+        this.form.controls.subCategoryId.setValue('');
+      }
+    });
+
     if (this.isEditMode && this.data.product) {
       const p = this.data.product;
       this.form.patchValue({
         name: p.name,
         categoryId: p.category.id,
+        subCategoryId: p.subCategory?.id ?? '',
         saleUnit: p.saleUnit,
         price: p.priceInCents == null ? '' : (p.priceInCents / 100).toFixed(2),
         description: p.description ?? '',
       });
-    } else if (this.data.categories.length > 0) {
+    } else if (this.rootCategories.length > 0) {
       this.form.patchValue({
-        categoryId: this.data.categories[0].id,
+        categoryId: this.rootCategories[0].id,
       });
     }
   }
@@ -281,6 +313,9 @@ export class AdminProductEditorDialogComponent implements OnInit {
     const payload: AdminProductEditorPayload = {
       name: this.form.controls.name.value.trim(),
       categoryId: this.form.controls.categoryId.value,
+      ...(this.form.controls.subCategoryId.value
+        ? { subCategoryId: this.form.controls.subCategoryId.value }
+        : {}),
       saleUnit: this.form.controls.saleUnit.value,
       description: this.form.controls.description.value.trim() || undefined,
       priceInCents: priceInCents ?? undefined,
@@ -325,6 +360,23 @@ export class AdminProductEditorDialogComponent implements OnInit {
 
   cancel(): void {
     this.dialogRef.close();
+  }
+
+  get rootCategories(): AdminProductCategory[] {
+    return this.data.categories.filter(
+      (category) => category.parentId === null,
+    );
+  }
+
+  get availableSubCategories(): AdminProductCategory[] {
+    const categoryId = this.form.controls.categoryId.value;
+    if (!categoryId) {
+      return [];
+    }
+
+    return this.data.categories.filter(
+      (category) => category.parentId === categoryId,
+    );
   }
 
   private parsePriceToCents(value: string): number | undefined | null {

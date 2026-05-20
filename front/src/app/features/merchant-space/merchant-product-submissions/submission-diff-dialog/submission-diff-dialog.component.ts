@@ -16,12 +16,14 @@ export interface SubmissionDiffDialogData {
   saleUnit: Product['saleUnit'];
   priceInCents: number | null;
   category: { id: string; name: string };
+  subCategory: { id: string; name: string } | null;
   approvedProduct: {
     name: string;
     description: string | null;
     saleUnit: Product['saleUnit'];
     priceInCents: number | null;
     category: { id: string; name: string };
+    subCategory: { id: string; name: string } | null;
   };
 }
 
@@ -195,6 +197,12 @@ export class SubmissionDiffDialogComponent {
         submitted: s.category.name,
         approved: p.category.name,
         changed: p.category.id !== s.category.id,
+      },
+      {
+        labelKey: 'shell.merchant.productSubmissions.fields.subCategory',
+        submitted: s.subCategory?.name || '—',
+        approved: p.subCategory?.name || '—',
+        changed: (p.subCategory?.id ?? null) !== (s.subCategory?.id ?? null),
       },
       {
         labelKey: 'shell.merchant.productSubmissions.fields.saleUnit',

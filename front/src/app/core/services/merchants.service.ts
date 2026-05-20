@@ -28,6 +28,7 @@ export interface ProductSubmission {
   createdAt: string;
   updatedAt: string;
   category: ProductCategory;
+  subCategory: ProductCategory | null;
   approvedProduct: {
     id: string;
     name: string;
@@ -35,6 +36,7 @@ export interface ProductSubmission {
     saleUnit: Product['saleUnit'];
     priceInCents: number | null;
     category: { id: string; name: string; slug: string };
+    subCategory: ProductCategory | null;
   } | null;
 }
 
@@ -65,6 +67,7 @@ export interface AdminProductSubmission {
     slug: string;
   };
   category: ProductCategory;
+  subCategory: ProductCategory | null;
   reviewedByUser: {
     id: string;
     email: string;
@@ -77,6 +80,7 @@ export interface AdminProductSubmission {
     priceInCents: number | null;
     isActive: boolean;
     category: { id: string; name: string; slug: string };
+    subCategory: ProductCategory | null;
   } | null;
 }
 
@@ -95,6 +99,7 @@ export interface ReviewAdminProductSubmissionPayload {
   saleUnit?: Product['saleUnit'];
   priceInCents?: number | null;
   categoryId?: string;
+  subCategoryId?: string | null;
 }
 
 export interface ApproveAdminProductSubmissionBatchItem {
@@ -104,6 +109,7 @@ export interface ApproveAdminProductSubmissionBatchItem {
   saleUnit?: Product['saleUnit'];
   priceInCents?: number | null;
   categoryId?: string;
+  subCategoryId?: string | null;
 }
 
 export interface ApproveAdminProductSubmissionsBatchResponse {
@@ -120,6 +126,7 @@ export interface CreateProductSubmissionPayload {
   saleUnit: Product['saleUnit'];
   priceInCents?: number;
   categoryId: string;
+  subCategoryId?: string;
 }
 
 export interface UpdateProductSubmissionPayload {
@@ -128,6 +135,7 @@ export interface UpdateProductSubmissionPayload {
   saleUnit?: Product['saleUnit'];
   priceInCents?: number | null;
   categoryId?: string;
+  subCategoryId?: string | null;
 }
 
 export interface SimilarCatalogProduct {
@@ -136,6 +144,7 @@ export interface SimilarCatalogProduct {
   saleUnit: Product['saleUnit'];
   priceInCents: number | null;
   category: ProductCategory;
+  subCategory?: ProductCategory | null;
 }
 
 export interface UpdateStoreOfferPayload {
@@ -165,11 +174,20 @@ export interface CatalogProductsPaginatedResponse {
 
 export interface AdminProductCategory {
   id: string;
+  parentId: string | null;
   name: string;
   slug: string;
   isActive: boolean;
+  parent?: {
+    id: string;
+    name: string;
+    slug: string;
+    isActive: boolean;
+  } | null;
   _count?: {
     products: number;
+    productsAsSubCategory?: number;
+    children?: number;
   };
 }
 
@@ -186,6 +204,7 @@ export interface AdminCatalogProduct {
     slug: string;
     isActive: boolean;
   };
+  subCategory: ProductCategory | null;
   _count: {
     storeOffers: number;
   };
@@ -204,6 +223,7 @@ export interface CreateAdminCatalogProductPayload {
   saleUnit: Product['saleUnit'];
   priceInCents?: number;
   categoryId: string;
+  subCategoryId?: string;
 }
 
 export interface UpdateAdminCatalogProductPayload {
@@ -212,6 +232,7 @@ export interface UpdateAdminCatalogProductPayload {
   saleUnit?: Product['saleUnit'];
   priceInCents?: number;
   categoryId?: string;
+  subCategoryId?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

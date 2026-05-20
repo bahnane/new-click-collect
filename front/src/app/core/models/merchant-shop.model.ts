@@ -64,8 +64,10 @@ export interface MerchantHours {
 
 export interface ProductCategory {
   id: string;
+  parentId?: string | null;
   name: string;
   slug: string;
+  isActive?: boolean;
 }
 
 export interface Product {
@@ -75,6 +77,7 @@ export interface Product {
   saleUnit: 'KG' | 'G' | 'LITER' | 'UNIT' | 'PORTION';
   priceInCents: number | null;
   category: ProductCategory;
+  subCategory?: ProductCategory | null;
 }
 
 export interface StoreOffer {

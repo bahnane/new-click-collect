@@ -25,6 +25,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 import {
   MerchantShopInfo,
+  Product,
   StoreOffersPaginatedResponse,
 } from '../../../core/models/merchant-shop.model';
 
@@ -157,6 +158,14 @@ export class MerchantShopComponent implements OnInit {
 
   getSaleUnit(unit: string): string {
     return `shop.saleUnit.${unit.toLowerCase()}`;
+  }
+
+  getProductCategoryLabel(product: Product): string {
+    if (!product.subCategory?.name) {
+      return product.category.name;
+    }
+
+    return `${product.category.name} / ${product.subCategory.name}`;
   }
 
   decreaseQuantityInput(

@@ -72,7 +72,7 @@
                     <mat-checkbox [checked]="isSelected(submission.id)" [disabled]="!canReview(submission)"
                         (change)="onToggleSelectOne(submission, $event.checked)"></mat-checkbox>
                     <mat-card-title>{{ submission.name }}</mat-card-title>
-                    <mat-card-subtitle>{{ submission.merchant.storeName }} • {{ submission.category.name
+                    <mat-card-subtitle>{{ submission.merchant.storeName }} • {{ getCategoryDisplayLabel(submission)
                         }}</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
@@ -94,16 +94,33 @@
                             <dt>{{ 'shell.adminSpace.productSubmissions.columns.category' | transloco }}</dt>
                             <dd>
                                 @if (canReview(submission)) {
-                                <mat-form-field appearance="outline" class="inline-field">
-                                    <mat-select [value]="getDraft(submission).categoryId"
-                                        (valueChange)="updateDraft(submission, { categoryId: $event })">
-                                        @for (category of categories(); track category.id) {
-                                        <mat-option [value]="category.id">{{ category.name }}</mat-option>
-                                        }
-                                    </mat-select>
-                                </mat-form-field>
+                                <div class="inline-field">
+                                    <mat-form-field appearance="outline" class="inline-field compact-field">
+                                        <mat-select [value]="getDraft(submission).categoryId"
+                                            (valueChange)="onDraftCategoryChange(submission, $event)">
+                                            @for (category of getRootCategories(); track category.id) {
+                                            <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                                            }
+                                        </mat-select>
+                                    </mat-form-field>
+
+                                    <mat-form-field appearance="outline" class="inline-field compact-field">
+                                        <mat-select [value]="getDraft(submission).subCategoryId"
+                                            (valueChange)="updateDraft(submission, { subCategoryId: $event })"
+                                            [placeholder]="'shell.adminSpace.productSubmissions.fields.subCategory' | transloco">
+                                            <mat-option value="">{{
+                                                'shell.adminSpace.productSubmissions.fields.subCategoryOptional' |
+                                                transloco
+                                                }}</mat-option>
+                                            @for (subCategory of getSubCategoriesFor(getDraft(submission).categoryId);
+                                            track subCategory.id) {
+                                            <mat-option [value]="subCategory.id">{{ subCategory.name }}</mat-option>
+                                            }
+                                        </mat-select>
+                                    </mat-form-field>
+                                </div>
                                 } @else {
-                                {{ submission.category.name }}
+                                {{ getCategoryDisplayLabel(submission) }}
                                 }
                             </dd>
                         </div>
@@ -250,16 +267,32 @@
                             | transloco }}</th>
                         <td mat-cell *matCellDef="let row">
                             @if (canReview(row)) {
-                            <mat-form-field appearance="outline" class="inline-field">
-                                <mat-select [value]="getDraft(row).categoryId"
-                                    (valueChange)="updateDraft(row, { categoryId: $event })">
-                                    @for (category of categories(); track category.id) {
-                                    <mat-option [value]="category.id">{{ category.name }}</mat-option>
-                                    }
-                                </mat-select>
-                            </mat-form-field>
+                            <div class="inline-field">
+                                <mat-form-field appearance="outline" class="inline-field compact-field">
+                                    <mat-select [value]="getDraft(row).categoryId"
+                                        (valueChange)="onDraftCategoryChange(row, $event)">
+                                        @for (category of getRootCategories(); track category.id) {
+                                        <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                                        }
+                                    </mat-select>
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline" class="inline-field compact-field">
+                                    <mat-select [value]="getDraft(row).subCategoryId"
+                                        (valueChange)="updateDraft(row, { subCategoryId: $event })"
+                                        [placeholder]="'shell.adminSpace.productSubmissions.fields.subCategory' | transloco">
+                                        <mat-option value="">{{
+                                            'shell.adminSpace.productSubmissions.fields.subCategoryOptional' | transloco
+                                            }}</mat-option>
+                                        @for (subCategory of getSubCategoriesFor(getDraft(row).categoryId); track
+                                        subCategory.id) {
+                                        <mat-option [value]="subCategory.id">{{ subCategory.name }}</mat-option>
+                                        }
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
                             } @else {
-                            {{ row.category.name }}
+                            {{ getCategoryDisplayLabel(row) }}
                             }
                         </td>
                     </ng-container>
