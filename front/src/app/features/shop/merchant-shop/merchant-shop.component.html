@@ -49,6 +49,19 @@
             </button>
             }
         </div>
+
+        <div class="shop-search-bar" role="search">
+            <mat-icon aria-hidden="true">search</mat-icon>
+            <input type="search" class="shop-search-input" [value]="searchInputValue()"
+                (input)="onSearchInput($any($event.target).value)" [placeholder]="'shop.searchPlaceholder' | transloco"
+                [attr.aria-label]="'shop.searchAriaLabel' | transloco" />
+            @if (searchInputValue()) {
+            <button type="button" mat-icon-button (click)="clearSearch()"
+                [attr.aria-label]="'shop.searchClear' | transloco">
+                <mat-icon aria-hidden="true">close</mat-icon>
+            </button>
+            }
+        </div>
     </div>
 
     @if (loading()) {
@@ -231,7 +244,11 @@
         @if (products()!.data.length === 0) {
         <div class="no-products">
             <mat-icon>inventory_2</mat-icon>
+            @if (activeSearchQuery()) {
+            <p>{{ 'shop.noProductsForSearch' | transloco }}</p>
+            } @else {
             <p>{{ 'shop.noProducts' | transloco }}</p>
+            }
         </div>
         }
     </section>

@@ -757,6 +757,10 @@
     },
     "products": "المنتجات",
     "noProducts": "لا توجد منتجات متاحة في الوقت الحالي.",
+    "noProductsForSearch": "لا توجد منتجات مطابقة لبحثك.",
+    "searchPlaceholder": "ابحث عن منتج...",
+    "searchAriaLabel": "ابحث عن منتج في المتجر",
+    "searchClear": "مسح البحث",
     "currency": "دج",
     "saleUnit": {
       "kg": "كغ",

@@ -55,6 +55,25 @@
   white-space: nowrap;
 }
 
+.shop-search-bar {
+  inline-size: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding-inline: var(--space-md);
+  block-size: var(--size-button-height-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-bg-primary);
+}
+
+.shop-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
 @media (max-width: 959px) {
   .shop-header {
     align-items: flex-start;

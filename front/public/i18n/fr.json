@@ -757,6 +757,10 @@
     },
     "products": "Produits",
     "noProducts": "Aucun produit disponible pour le moment.",
+    "noProductsForSearch": "Aucun produit ne correspond a votre recherche.",
+    "searchPlaceholder": "Rechercher un produit...",
+    "searchAriaLabel": "Rechercher un produit dans la boutique",
+    "searchClear": "Effacer la recherche",
     "currency": "DA",
     "saleUnit": {
       "kg": "kg",

@@ -1,5 +1,6 @@
 import {
   Component,
+  OnDestroy,
   OnInit,
   computed,
   effect,
@@ -47,7 +48,7 @@ const LAST_MERCHANT_STORAGE_KEY = 'shop.lastMerchantSlug';
   templateUrl: './merchant-shop.component.html',
   styleUrl: './merchant-shop.component.scss',
 })
-export class MerchantShopComponent implements OnInit {
+export class MerchantShopComponent implements OnInit, OnDestroy {
   private readonly merchantShopService = inject(MerchantShopService);
   private readonly cartService = inject(CartService);
   private readonly route = inject(ActivatedRoute);
@@ -64,8 +65,14 @@ export class MerchantShopComponent implements OnInit {
   readonly addToCartSuccessKey = signal<string | null>(null);
   readonly addingOfferId = signal<string | null>(null);
   readonly currentPage = signal(1);
+  readonly searchInputValue = signal('');
+  readonly activeSearchQuery = signal('');
   readonly currentUser = this.authService.currentUser;
   readonly isAuthenticated = this.authService.isAuthenticated;
+
+  private searchDebounceHandle: ReturnType<typeof setTimeout> | null = null;
+  private readonly searchDebounceMs = 350;
+  private productsRequestSeq = 0;
 
   readonly isMerchant = computed(() => this.currentUser()?.role === 'MERCHANT');
   readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
@@ -112,6 +119,13 @@ export class MerchantShopComponent implements OnInit {
     this.loadMerchantAndProducts(merchantSlug);
   }
 
+  ngOnDestroy(): void {
+    if (this.searchDebounceHandle) {
+      clearTimeout(this.searchDebounceHandle);
+      this.searchDebounceHandle = null;
+    }
+  }
+
   private loadMerchantAndProducts(merchantSlug: string): void {
     this.merchantShopService.getMerchantInfo(merchantSlug).subscribe({
       next: (info) => {
@@ -125,26 +139,89 @@ export class MerchantShopComponent implements OnInit {
     });
   }
 
-  private loadProducts(merchantSlug: string, page = 1): void {
-    this.merchantShopService.getMerchantProducts(merchantSlug, page).subscribe({
-      next: (response) => {
-        this.products.set(response);
-        this.currentPage.set(page);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.error.set('shop.failedToLoadProducts');
-        this.loading.set(false);
-      },
-    });
+  private loadProducts(
+    merchantSlug: string,
+    page = 1,
+    query = this.activeSearchQuery(),
+  ): void {
+    const requestSeq = ++this.productsRequestSeq;
+    this.merchantShopService
+      .getMerchantProducts(merchantSlug, page, 24, query)
+      .subscribe({
+        next: (response) => {
+          if (requestSeq !== this.productsRequestSeq) {
+            return;
+          }
+          this.products.set(response);
+          this.currentPage.set(response.page);
+          this.loading.set(false);
+        },
+        error: () => {
+          if (requestSeq !== this.productsRequestSeq) {
+            return;
+          }
+          this.error.set('shop.failedToLoadProducts');
+          this.loading.set(false);
+        },
+      });
   }
 
   onPageChange(event: PageEvent): void {
     const merchantSlug = this.route.snapshot.paramMap.get('merchantSlug');
     if (merchantSlug) {
       this.loading.set(true);
-      this.loadProducts(merchantSlug, event.pageIndex + 1);
+      this.loadProducts(
+        merchantSlug,
+        event.pageIndex + 1,
+        this.activeSearchQuery(),
+      );
     }
+  }
+
+  onSearchInput(rawValue: string): void {
+    this.searchInputValue.set(rawValue);
+
+    if (this.searchDebounceHandle) {
+      clearTimeout(this.searchDebounceHandle);
+    }
+
+    this.searchDebounceHandle = setTimeout(() => {
+      const normalized = this.searchInputValue().trim();
+      if (normalized === this.activeSearchQuery()) {
+        return;
+      }
+
+      this.activeSearchQuery.set(normalized);
+      const merchantSlug = this.route.snapshot.paramMap.get('merchantSlug');
+      if (!merchantSlug) {
+        return;
+      }
+
+      this.loading.set(true);
+      this.loadProducts(merchantSlug, 1, normalized);
+    }, this.searchDebounceMs);
+  }
+
+  clearSearch(): void {
+    if (this.searchInputValue() === '' && this.activeSearchQuery() === '') {
+      return;
+    }
+
+    if (this.searchDebounceHandle) {
+      clearTimeout(this.searchDebounceHandle);
+      this.searchDebounceHandle = null;
+    }
+
+    this.searchInputValue.set('');
+    this.activeSearchQuery.set('');
+
+    const merchantSlug = this.route.snapshot.paramMap.get('merchantSlug');
+    if (!merchantSlug) {
+      return;
+    }
+
+    this.loading.set(true);
+    this.loadProducts(merchantSlug, 1, '');
   }
 
   getPrice(
