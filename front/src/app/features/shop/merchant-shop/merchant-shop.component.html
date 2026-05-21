@@ -1,5 +1,5 @@
 <div [dir]="currentDirection()" class="merchant-shop">
-    <div class="shop-header">
+    <div #shopHeader class="shop-header">
         <button class="back-button" mat-icon-button (click)="goBack()" [attr.aria-label]="'shop.goBack' | transloco">
             <mat-icon>{{ isRtl() ? 'arrow_forward' : 'arrow_back' }}</mat-icon>
         </button>
@@ -63,6 +63,71 @@
             }
         </div>
     </div>
+
+    @if (rootCategoryGroups().length > 0) {
+    <section class="shop-catalog-nav" [style.--shop-header-height]="shopHeaderHeight() + 'px'">
+        <div class="catalog-row-shell" [class.is-hidden]="!categoryBarsVisible()">
+            <button mat-icon-button type="button" class="catalog-scroll-button catalog-scroll-button-start"
+                [attr.aria-label]="'shop.scrollLeft' | transloco"
+                (click)="scrollCategoryRow('root', 'previous')">
+                <mat-icon aria-hidden="true">chevron_left</mat-icon>
+            </button>
+
+            <div #rootCategoriesRow class="catalog-row is-root-row" role="tablist"
+                [attr.aria-label]="'shop.categoriesLabel' | transloco">
+                @for (category of rootCategoryGroups(); track category.id) {
+                <button mat-stroked-button type="button" class="catalog-chip"
+                    [class.is-active]="isRootCategorySelected(category.id)"
+                    [attr.aria-selected]="isRootCategorySelected(category.id)" role="tab"
+                    (click)="selectRootCategory(category.id)">
+                    {{ category.name }}
+                </button>
+                }
+            </div>
+
+            <button mat-icon-button type="button" class="catalog-scroll-button catalog-scroll-button-end"
+                [attr.aria-label]="'shop.scrollRight' | transloco"
+                (click)="scrollCategoryRow('root', 'next')">
+                <mat-icon aria-hidden="true">chevron_right</mat-icon>
+            </button>
+        </div>
+
+        <div class="catalog-row-shell is-sub-shell">
+            <button mat-icon-button type="button" class="catalog-scroll-button catalog-scroll-button-start"
+                [attr.aria-label]="'shop.scrollLeft' | transloco"
+                (click)="scrollCategoryRow('sub', 'previous')">
+                <mat-icon aria-hidden="true">chevron_left</mat-icon>
+            </button>
+
+            <div #subCategoriesRow class="catalog-row is-sub-row" role="tablist"
+                [attr.aria-label]="'shop.subCategoriesLabel' | transloco">
+                <button mat-stroked-button type="button" class="catalog-chip"
+                    [class.is-active]="isSubCategorySelected('all')"
+                    [attr.aria-selected]="isSubCategorySelected('all')" role="tab"
+                    (click)="selectSubCategory('all')">
+                    {{ 'shop.allSubCategories' | transloco }}
+                </button>
+
+                @if (activeRootCategory()?.subCategories?.length) {
+                @for (subCategory of activeRootCategory()!.subCategories; track subCategory.id) {
+                <button mat-stroked-button type="button" class="catalog-chip is-sub-chip"
+                    [class.is-active]="isSubCategorySelected(subCategory.id)"
+                    [attr.aria-selected]="isSubCategorySelected(subCategory.id)" role="tab"
+                    (click)="selectSubCategory(subCategory.id)">
+                    {{ subCategory.name }}
+                </button>
+                }
+                }
+            </div>
+
+            <button mat-icon-button type="button" class="catalog-scroll-button catalog-scroll-button-end"
+                [attr.aria-label]="'shop.scrollRight' | transloco"
+                (click)="scrollCategoryRow('sub', 'next')">
+                <mat-icon aria-hidden="true">chevron_right</mat-icon>
+            </button>
+        </div>
+    </section>
+    }
 
     @if (loading() && !productsLoaded()) {
     <div class="loading-container">
@@ -151,8 +216,20 @@
         <h2>{{ 'shop.products' | transloco }}</h2>
 
         @if (offers().length > 0) {
+        @if (activeRootCategory()) {
+        <p class="active-category-summary">
+            {{ activeRootCategory()!.name }}
+            @if (activeSubCategoryName()) {
+            <span>
+                / {{ activeSubCategoryName() }}
+            </span>
+            }
+        </p>
+        }
+
+        @if (filteredOffers().length > 0) {
         <div class="products-grid">
-            @for (offer of offers(); track offer.id) {
+            @for (offer of filteredOffers(); track offer.id) {
             <mat-card class="product-card">
                 <mat-card-header>
                     <mat-card-title>{{ offer.product.name }}</mat-card-title>
@@ -232,6 +309,12 @@
             </mat-card>
             }
         </div>
+        } @else {
+        <div class="no-products by-filter">
+            <mat-icon>filter_alt_off</mat-icon>
+            <p>{{ 'shop.noProductsInSelection' | transloco }}</p>
+        </div>
+        }
 
         @if (loadingMore()) {
         <div class="load-more-indicator" aria-live="polite">

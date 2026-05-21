@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   ElementRef,
   Component,
   OnDestroy,
@@ -34,6 +35,19 @@ import {
 
 const LAST_MERCHANT_STORAGE_KEY = 'shop.lastMerchantSlug';
 
+interface SubCategoryGroup {
+  id: string;
+  name: string;
+  offers: StoreOffer[];
+}
+
+interface RootCategoryGroup {
+  id: string;
+  name: string;
+  offers: StoreOffer[];
+  subCategories: SubCategoryGroup[];
+}
+
 @Component({
   selector: 'app-merchant-shop',
   standalone: true,
@@ -49,7 +63,7 @@ const LAST_MERCHANT_STORAGE_KEY = 'shop.lastMerchantSlug';
   templateUrl: './merchant-shop.component.html',
   styleUrl: './merchant-shop.component.scss',
 })
-export class MerchantShopComponent implements OnInit, OnDestroy {
+export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly merchantShopService = inject(MerchantShopService);
   private readonly cartService = inject(CartService);
   private readonly route = inject(ActivatedRoute);
@@ -76,6 +90,10 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
   readonly addingOfferId = signal<string | null>(null);
   readonly searchInputValue = signal('');
   readonly activeSearchQuery = signal('');
+  readonly selectedRootCategoryId = signal<string | null>(null);
+  readonly selectedSubCategoryId = signal<string>('all');
+  readonly categoryBarsVisible = signal(true);
+  readonly shopHeaderHeight = signal(0);
   readonly currentUser = this.authService.currentUser;
   readonly isAuthenticated = this.authService.isAuthenticated;
 
@@ -83,6 +101,17 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
   private readonly searchDebounceMs = 350;
   private productsRequestSeq = 0;
   private autoLoadedBatchCount = 0;
+  private previousScrollY = 0;
+  private rootCategoriesRowElement: HTMLElement | null = null;
+  private subCategoriesRowElement: HTMLElement | null = null;
+
+  private readonly onWindowScroll = (): void => {
+    this.handleWindowScroll();
+  };
+
+  private readonly onWindowResize = (): void => {
+    this.updateShopHeaderHeight();
+  };
 
   readonly isMerchant = computed(() => this.currentUser()?.role === 'MERCHANT');
   readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
@@ -95,6 +124,94 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
 
   readonly isRtl = this.languageService.isRtl;
   readonly currentDirection = this.languageService.currentDirection;
+
+  readonly rootCategoryGroups = computed<RootCategoryGroup[]>(() => {
+    const groups = new Map<
+      string,
+      {
+        id: string;
+        name: string;
+        offers: StoreOffer[];
+        subCategoriesMap: Map<string, SubCategoryGroup>;
+      }
+    >();
+
+    for (const offer of this.offers()) {
+      const rootCategory = offer.product.category;
+      const rootEntry = groups.get(rootCategory.id) ?? {
+        id: rootCategory.id,
+        name: rootCategory.name,
+        offers: [],
+        subCategoriesMap: new Map<string, SubCategoryGroup>(),
+      };
+
+      rootEntry.offers.push(offer);
+
+      const subCategory = offer.product.subCategory;
+      if (subCategory) {
+        const subEntry = rootEntry.subCategoriesMap.get(subCategory.id) ?? {
+          id: subCategory.id,
+          name: subCategory.name,
+          offers: [],
+        };
+        subEntry.offers.push(offer);
+        rootEntry.subCategoriesMap.set(subCategory.id, subEntry);
+      }
+
+      groups.set(rootCategory.id, rootEntry);
+    }
+
+    return Array.from(groups.values()).map((entry) => ({
+      id: entry.id,
+      name: entry.name,
+      offers: entry.offers,
+      subCategories: Array.from(entry.subCategoriesMap.values()),
+    }));
+  });
+
+  readonly activeRootCategory = computed<RootCategoryGroup | null>(() => {
+    const selectedRootCategoryId = this.selectedRootCategoryId();
+    if (!selectedRootCategoryId) {
+      return this.rootCategoryGroups()[0] ?? null;
+    }
+
+    return (
+      this.rootCategoryGroups().find(
+        (category) => category.id === selectedRootCategoryId,
+      ) ?? null
+    );
+  });
+
+  readonly filteredOffers = computed<StoreOffer[]>(() => {
+    const activeRootCategory = this.activeRootCategory();
+    if (!activeRootCategory) {
+      return [];
+    }
+
+    const selectedSubCategoryId = this.selectedSubCategoryId();
+    if (selectedSubCategoryId === 'all') {
+      return activeRootCategory.offers;
+    }
+
+    return (
+      activeRootCategory.subCategories.find(
+        (subCategory) => subCategory.id === selectedSubCategoryId,
+      )?.offers ?? []
+    );
+  });
+
+  readonly activeSubCategoryName = computed<string | null>(() => {
+    const selectedSubCategoryId = this.selectedSubCategoryId();
+    if (selectedSubCategoryId === 'all') {
+      return null;
+    }
+
+    return (
+      this.activeRootCategory()?.subCategories.find(
+        (subCategory) => subCategory.id === selectedSubCategoryId,
+      )?.name ?? null
+    );
+  });
 
   constructor() {
     effect(() => {
@@ -113,6 +230,41 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
         this.addToCartSuccessKey.set(null);
       }
     });
+    effect(() => {
+      const rootCategoryGroups = this.rootCategoryGroups();
+      if (rootCategoryGroups.length === 0) {
+        this.selectedRootCategoryId.set(null);
+        this.selectedSubCategoryId.set('all');
+        return;
+      }
+
+      const selectedRootCategoryId = this.selectedRootCategoryId();
+      const hasSelectedRoot = rootCategoryGroups.some(
+        (category) => category.id === selectedRootCategoryId,
+      );
+      if (!selectedRootCategoryId || !hasSelectedRoot) {
+        this.selectedRootCategoryId.set(rootCategoryGroups[0]!.id);
+        this.selectedSubCategoryId.set('all');
+        return;
+      }
+
+      const activeRootCategory = rootCategoryGroups.find(
+        (category) => category.id === selectedRootCategoryId,
+      );
+      if (!activeRootCategory) {
+        return;
+      }
+
+      const selectedSubCategoryId = this.selectedSubCategoryId();
+      const hasSelectedSubCategory =
+        selectedSubCategoryId === 'all' ||
+        activeRootCategory.subCategories.some(
+          (subCategory) => subCategory.id === selectedSubCategoryId,
+        );
+      if (!hasSelectedSubCategory) {
+        this.selectedSubCategoryId.set('all');
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -128,6 +280,21 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
     }
 
     this.loadMerchantAndProducts(merchantSlug);
+
+    if (typeof window !== 'undefined') {
+      this.previousScrollY = window.scrollY;
+    }
+  }
+
+  ngAfterViewInit(): void {
+    this.updateShopHeaderHeight();
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.addEventListener('scroll', this.onWindowScroll, { passive: true });
+    window.addEventListener('resize', this.onWindowResize);
   }
 
   ngOnDestroy(): void {
@@ -137,6 +304,31 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
     }
 
     this.disconnectObserver();
+
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('scroll', this.onWindowScroll);
+      window.removeEventListener('resize', this.onWindowResize);
+    }
+  }
+
+  @ViewChild('shopHeader')
+  set shopHeader(element: ElementRef<HTMLElement> | undefined) {
+    if (!element) {
+      this.shopHeaderHeight.set(0);
+      return;
+    }
+
+    this.shopHeaderHeight.set(element.nativeElement.offsetHeight);
+  }
+
+  @ViewChild('rootCategoriesRow')
+  set rootCategoriesRow(element: ElementRef<HTMLElement> | undefined) {
+    this.rootCategoriesRowElement = element?.nativeElement ?? null;
+  }
+
+  @ViewChild('subCategoriesRow')
+  set subCategoriesRow(element: ElementRef<HTMLElement> | undefined) {
+    this.subCategoriesRowElement = element?.nativeElement ?? null;
   }
 
   @ViewChild('loadMoreSentinel')
@@ -303,6 +495,47 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
     }
 
     this.loadProducts(merchantSlug, { reset: true, query: '' });
+  }
+
+  selectRootCategory(rootCategoryId: string): void {
+    if (this.selectedRootCategoryId() === rootCategoryId) {
+      return;
+    }
+
+    this.selectedRootCategoryId.set(rootCategoryId);
+    this.selectedSubCategoryId.set('all');
+  }
+
+  selectSubCategory(subCategoryId: string): void {
+    this.selectedSubCategoryId.set(subCategoryId);
+  }
+
+  scrollCategoryRow(
+    row: 'root' | 'sub',
+    direction: 'previous' | 'next',
+  ): void {
+    const element =
+      row === 'root'
+        ? this.rootCategoriesRowElement
+        : this.subCategoriesRowElement;
+
+    if (!element) {
+      return;
+    }
+
+    const distance = 220;
+    element.scrollBy({
+      left: direction === 'previous' ? -distance : distance,
+      behavior: 'smooth',
+    });
+  }
+
+  isRootCategorySelected(rootCategoryId: string): boolean {
+    return this.selectedRootCategoryId() === rootCategoryId;
+  }
+
+  isSubCategorySelected(subCategoryId: string): boolean {
+    return this.selectedSubCategoryId() === subCategoryId;
   }
 
   getPrice(
@@ -495,5 +728,35 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
   private disconnectObserver(): void {
     this.observer?.disconnect();
     this.observer = null;
+  }
+
+  private handleWindowScroll(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const currentScrollY = window.scrollY;
+    const delta = currentScrollY - this.previousScrollY;
+    this.previousScrollY = currentScrollY;
+
+    if (currentScrollY <= 0) {
+      this.categoryBarsVisible.set(true);
+      return;
+    }
+
+    if (delta === 0) {
+      return;
+    }
+
+    this.categoryBarsVisible.set(delta < 0);
+  }
+
+  private updateShopHeaderHeight(): void {
+    const headerElement =
+      typeof document !== 'undefined'
+        ? document.querySelector<HTMLElement>('.shop-header')
+        : null;
+
+    this.shopHeaderHeight.set(headerElement?.offsetHeight ?? 0);
   }
 }

@@ -756,12 +756,18 @@
       "SATURDAY": "Samedi"
     },
     "products": "Produits",
+    "categoriesLabel": "Catégories",
+    "subCategoriesLabel": "Sous-catégories",
+    "allSubCategories": "Tout",
     "noProducts": "Aucun produit disponible pour le moment.",
     "noProductsForSearch": "Aucun produit ne correspond a votre recherche.",
+    "noProductsInSelection": "Aucun produit dans cette sélection.",
     "loadMore": "Charger plus",
     "searchPlaceholder": "Rechercher un produit...",
     "searchAriaLabel": "Rechercher un produit dans la boutique",
     "searchClear": "Effacer la recherche",
+    "scrollLeft": "Faire défiler vers la gauche",
+    "scrollRight": "Faire défiler vers la droite",
     "currency": "DA",
     "saleUnit": {
       "kg": "kg",

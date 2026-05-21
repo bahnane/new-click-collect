@@ -4,6 +4,7 @@
   min-height: var(--size-page-min-height);
   background-color: var(--color-bg-primary);
   padding: 0;
+  overflow-anchor: none;
 }
 
 /* Header */
@@ -72,6 +73,74 @@
   border: none;
   outline: none;
   background: transparent;
+}
+
+.shop-catalog-nav {
+  position: sticky;
+  inset-block-start: var(--shop-header-height, 0px);
+  z-index: calc(var(--z-sticky) - 1);
+  background-color: var(--color-bg-secondary);
+  border-block-end: 1px solid var(--color-divider);
+  overflow-anchor: none;
+}
+
+.catalog-row-shell {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.catalog-row-shell.is-hidden {
+  display: none;
+}
+
+.catalog-row {
+  display: flex;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  padding: var(--space-sm) var(--space-lg);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.catalog-row::-webkit-scrollbar {
+  display: none;
+}
+
+.catalog-row.is-root-row.is-hidden {
+  display: none;
+}
+
+.catalog-row.is-sub-row {
+  border-block-start: 1px solid var(--color-divider);
+}
+
+.catalog-chip {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.catalog-chip.is-active {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.catalog-scroll-button {
+  flex-shrink: 0;
+}
+
+.catalog-scroll-button mat-icon {
+  font-size: var(--size-icon-md);
+  width: var(--size-icon-md);
+  height: var(--size-icon-md);
+}
+
+.active-category-summary {
+  margin: 0;
+  margin-block-end: var(--space-md);
+  color: var(--color-text-secondary);
+  font: var(--font-body-small);
 }
 
 @media (max-width: 959px) {
@@ -344,11 +413,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-lg);
-  min-height: var(--size-empty-state-min-height);
-  color: var(--color-text-secondary);
   text-align: center;
+}
+
+.no-products.by-filter {
+  min-height: 12rem;
 }
 
 .no-products mat-icon {
@@ -372,11 +441,4 @@
 
 .load-more-sentinel {
   block-size: 1px;
-}
-
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) {
-  .merchant-shop {
-    scroll-behavior: auto;
-  }
 }
