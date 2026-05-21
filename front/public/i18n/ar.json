@@ -732,6 +732,9 @@
     },
     "merchantShop": {
       "title": "المتجر"
+    },
+    "shopCategories": {
+      "title": "فئات المتجر"
     }
   },
   "shop": {
@@ -756,6 +759,12 @@
       "SATURDAY": "السبت"
     },
     "products": "المنتجات",
+    "categoriesPageLink": "الفئات",
+    "categoriesPageTitle": "كل الفئات",
+    "categoriesPageSubtitle": "اختر فئة لفتح المتجر مع هذا الفلتر.",
+    "categoriesPageCta": "عرض المنتجات",
+    "categoriesLoadFailed": "تعذر تحميل الفئات.",
+    "noCategories": "لا توجد فئات متاحة حاليا.",
     "categoriesLabel": "الفئات",
     "subCategoriesLabel": "الفئات الفرعية",
     "allSubCategories": "الكل",

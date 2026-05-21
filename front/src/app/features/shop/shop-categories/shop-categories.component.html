@@ -1,0 +1,56 @@
+<div [dir]="currentDirection()" class="shop-categories-page">
+  <header class="shop-categories-header">
+    <button
+      mat-icon-button
+      type="button"
+      [attr.aria-label]="'shop.goBack' | transloco"
+      [routerLink]="['/shop', merchantSlug()]"
+    >
+      <mat-icon>{{ isRtl() ? 'arrow_forward' : 'arrow_back' }}</mat-icon>
+    </button>
+
+    <div>
+      <h1>{{ 'shop.categoriesPageTitle' | transloco }}</h1>
+      <p>{{ 'shop.categoriesPageSubtitle' | transloco }}</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+  <div class="state-container">
+    <mat-progress-spinner mode="indeterminate" diameter="44"></mat-progress-spinner>
+    <p>{{ 'shop.loading' | transloco }}</p>
+  </div>
+  }
+
+  @if (error() && !loading()) {
+  <div class="state-container is-error">
+    <mat-icon>error_outline</mat-icon>
+    <p>{{ error() | transloco }}</p>
+    <button mat-raised-button color="primary" type="button" [routerLink]="['/shop', merchantSlug()]">
+      {{ 'shop.goBack' | transloco }}
+    </button>
+  </div>
+  }
+
+  @if (!loading() && !error() && sortedRootCategories().length > 0) {
+  <section class="categories-grid" [attr.aria-label]="'shop.categoriesLabel' | transloco">
+    @for (category of sortedRootCategories(); track category.id) {
+    <mat-card class="category-card" role="button" tabindex="0" (click)="selectCategory(category)"
+      (keydown.enter)="selectCategory(category)" (keydown.space)="selectCategory(category); $event.preventDefault()">
+      <mat-card-content>
+        <h2>{{ category.name }}</h2>
+        <p>{{ 'shop.categoriesPageCta' | transloco }}</p>
+      </mat-card-content>
+      <mat-icon aria-hidden="true">chevron_right</mat-icon>
+    </mat-card>
+    }
+  </section>
+  }
+
+  @if (!loading() && !error() && sortedRootCategories().length === 0) {
+  <div class="state-container">
+    <mat-icon>inventory_2</mat-icon>
+    <p>{{ 'shop.noCategories' | transloco }}</p>
+  </div>
+  }
+</div>

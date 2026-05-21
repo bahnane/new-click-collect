@@ -225,6 +225,14 @@ export const routes: Routes = [
     title: 'routes.login.title',
   },
   {
+    path: 'shop/:merchantSlug/categories',
+    loadComponent: () =>
+      import('./features/shop/shop-categories/shop-categories.component').then(
+        (m) => m.ShopCategoriesComponent,
+      ),
+    title: 'routes.shopCategories.title',
+  },
+  {
     path: 'shop/:merchantSlug',
     loadComponent: () =>
       import('./features/shop/merchant-shop/merchant-shop.component').then(

@@ -32,6 +32,12 @@
             }
             }
 
+            @if (merchantSlug()) {
+            <a [routerLink]="['/shop', merchantSlug(), 'categories']" mat-stroked-button type="button">
+                {{ 'shop.categoriesPageLink' | transloco }}
+            </a>
+            }
+
             <div class="language-switcher" [attr.aria-label]="'common.languages.label' | transloco" role="group">
                 @for (language of languageService.availableLanguages; track language.code) {
                 <button mat-stroked-button type="button" class="language-button"

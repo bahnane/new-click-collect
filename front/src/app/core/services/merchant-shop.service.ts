@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   MerchantShopInfo,
+  ProductCategory,
   PublicStoreOffersCursorResponse,
 } from '../models/merchant-shop.model';
 
@@ -41,6 +42,14 @@ export class MerchantShopService {
       {
         params,
       },
+    );
+  }
+
+  getMerchantRootCategories(
+    merchantSlug: string,
+  ): Observable<ProductCategory[]> {
+    return this.http.get<ProductCategory[]>(
+      `${environment.apiUrl}/merchants/${merchantSlug}/categories`,
     );
   }
 }

@@ -732,6 +732,9 @@
     },
     "merchantShop": {
       "title": "Boutique"
+    },
+    "shopCategories": {
+      "title": "Catégories boutique"
     }
   },
   "shop": {
@@ -756,6 +759,12 @@
       "SATURDAY": "Samedi"
     },
     "products": "Produits",
+    "categoriesPageLink": "Catégories",
+    "categoriesPageTitle": "Toutes les catégories",
+    "categoriesPageSubtitle": "Choisissez une catégorie pour ouvrir la boutique avec ce filtre.",
+    "categoriesPageCta": "Voir les produits",
+    "categoriesLoadFailed": "Impossible de charger les catégories.",
+    "noCategories": "Aucune catégorie disponible pour le moment.",
     "categoriesLabel": "Catégories",
     "subCategoriesLabel": "Sous-catégories",
     "allSubCategories": "Tout",

@@ -14,6 +14,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -43,6 +44,7 @@ interface SubCategoryGroup {
 
 interface RootCategoryGroup {
   id: string;
+  slug: string;
   name: string;
   offers: StoreOffer[];
   subCategories: SubCategoryGroup[];
@@ -92,12 +94,15 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly activeSearchQuery = signal('');
   readonly selectedRootCategoryId = signal<string | null>(null);
   readonly selectedSubCategoryId = signal<string>('all');
+  readonly requestedRootCategory = signal<string | null>(null);
   readonly categoryBarsVisible = signal(true);
   readonly shopHeaderHeight = signal(0);
+  readonly merchantSlug = signal('');
   readonly currentUser = this.authService.currentUser;
   readonly isAuthenticated = this.authService.isAuthenticated;
 
   private searchDebounceHandle: ReturnType<typeof setTimeout> | null = null;
+  private queryParamsSubscription: Subscription | null = null;
   private readonly searchDebounceMs = 350;
   private productsRequestSeq = 0;
   private autoLoadedBatchCount = 0;
@@ -130,6 +135,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
       string,
       {
         id: string;
+        slug: string;
         name: string;
         offers: StoreOffer[];
         subCategoriesMap: Map<string, SubCategoryGroup>;
@@ -140,6 +146,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
       const rootCategory = offer.product.category;
       const rootEntry = groups.get(rootCategory.id) ?? {
         id: rootCategory.id,
+        slug: rootCategory.slug,
         name: rootCategory.name,
         offers: [],
         subCategoriesMap: new Map<string, SubCategoryGroup>(),
@@ -163,6 +170,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
 
     return Array.from(groups.values()).map((entry) => ({
       id: entry.id,
+      slug: entry.slug,
       name: entry.name,
       offers: entry.offers,
       subCategories: Array.from(entry.subCategoriesMap.values()),
@@ -238,6 +246,25 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
         return;
       }
 
+      const requestedRootCategory = this.requestedRootCategory();
+      if (requestedRootCategory) {
+        const normalizedRequestedRootCategory =
+          requestedRootCategory.toLowerCase();
+        const requestedCategory = rootCategoryGroups.find(
+          (category) =>
+            category.id === requestedRootCategory ||
+            category.slug.toLowerCase() === normalizedRequestedRootCategory ||
+            category.name.toLowerCase() === normalizedRequestedRootCategory,
+        );
+
+        if (requestedCategory) {
+          this.selectedRootCategoryId.set(requestedCategory.id);
+          this.selectedSubCategoryId.set('all');
+          this.requestedRootCategory.set(null);
+          return;
+        }
+      }
+
       const selectedRootCategoryId = this.selectedRootCategoryId();
       const hasSelectedRoot = rootCategoryGroups.some(
         (category) => category.id === selectedRootCategoryId,
@@ -275,6 +302,15 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
+    this.merchantSlug.set(merchantSlug);
+
+    this.queryParamsSubscription = this.route.queryParamMap.subscribe(
+      (queryParams) => {
+        const requestedRootCategory = queryParams.get('categorie')?.trim();
+        this.requestedRootCategory.set(requestedRootCategory || null);
+      },
+    );
+
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(LAST_MERCHANT_STORAGE_KEY, merchantSlug);
     }
@@ -302,6 +338,9 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
       clearTimeout(this.searchDebounceHandle);
       this.searchDebounceHandle = null;
     }
+
+    this.queryParamsSubscription?.unsubscribe();
+    this.queryParamsSubscription = null;
 
     this.disconnectObserver();
 
@@ -729,6 +768,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
     this.observer?.disconnect();
     this.observer = null;
   }
+
 
   private handleWindowScroll(): void {
     if (typeof window === 'undefined') {
