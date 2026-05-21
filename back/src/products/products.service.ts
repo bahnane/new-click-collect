@@ -1534,28 +1534,12 @@ export class ProductsService {
     cursor?: string,
     query?: string,
   ) {
-    const profile = await this.prisma.merchantProfile.findUnique({
-      where: { slug: merchantSlug },
-    });
-
-    if (!profile || !profile.isActive) {
-      throw new NotFoundException({
-        code: ErrorCodes.MERCHANT_NOT_FOUND,
-        message: 'Merchant not found',
-      });
-    }
+    const profile = await this.findActiveMerchantProfileBySlug(merchantSlug);
 
     const safeLimit =
       Number.isInteger(limit) && limit > 0 ? Math.min(limit, 48) : 24;
 
-    const where = {
-      merchantId: profile.id,
-      isActive: true,
-      OR: [
-        { priceInCents: { not: null } },
-        { product: { priceInCents: { not: null } } },
-      ],
-    };
+    const where = this.buildPublicMerchantOffersWhere(profile.id);
 
     const normalizedQuery = query?.trim().toLowerCase() ?? '';
 
@@ -1699,6 +1683,49 @@ export class ProductsService {
     };
   }
 
+  async listPublicRootCategoriesForMerchant(merchantSlug: string) {
+    const profile = await this.findActiveMerchantProfileBySlug(merchantSlug);
+
+    const offers = await this.prisma.storeOffer.findMany({
+      where: this.buildPublicMerchantOffersWhere(profile.id),
+      select: {
+        product: {
+          select: {
+            category: {
+              select: {
+                id: true,
+                parentId: true,
+                name: true,
+                slug: true,
+                description: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        product: {
+          category: {
+            name: 'asc',
+          },
+        },
+      },
+    });
+
+    const categoriesById = new Map<
+      string,
+      (typeof offers)[number]['product']['category']
+    >();
+    for (const offer of offers) {
+      const category = offer.product.category;
+      if (!category.parentId && !categoriesById.has(category.id)) {
+        categoriesById.set(category.id, category);
+      }
+    }
+
+    return Array.from(categoriesById.values());
+  }
+
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   private isUniqueConstraintError(error: unknown, fields?: string[]) {
@@ -1721,6 +1748,37 @@ export class ProductsService {
     }
 
     return fields.every((field) => target.includes(field));
+  }
+
+  private async findActiveMerchantProfileBySlug(merchantSlug: string) {
+    const profile = await this.prisma.merchantProfile.findUnique({
+      where: { slug: merchantSlug },
+    });
+
+    if (!profile || !profile.isActive) {
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_NOT_FOUND,
+        message: 'Merchant not found',
+      });
+    }
+
+    return profile;
+  }
+
+  private buildPublicMerchantOffersWhere(
+    merchantId: string,
+  ): Prisma.StoreOfferWhereInput {
+    return {
+      merchantId,
+      isActive: true,
+      product: {
+        isActive: true,
+      },
+      OR: [
+        { priceInCents: { not: null } },
+        { product: { priceInCents: { not: null } } },
+      ],
+    };
   }
 
   private async resolveMerchantProfile(userId: string) {

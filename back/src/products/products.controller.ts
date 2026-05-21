@@ -326,6 +326,15 @@ export class ProductsController {
     );
   }
 
+  @Get('merchants/:merchantSlug/categories')
+  listPublicRootCategoriesForMerchant(
+    @Param('merchantSlug') merchantSlug: string,
+  ) {
+    return this.productsService.listPublicRootCategoriesForMerchant(
+      merchantSlug,
+    );
+  }
+
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   private assertMerchant(user: JwtPayload): void {
