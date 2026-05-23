@@ -1,0 +1,5 @@
+ALTER TABLE `image_assets`
+  ADD COLUMN `altText` VARCHAR(500) NULL,
+  ADD COLUMN `focalPointX` DOUBLE NULL,
+  ADD COLUMN `focalPointY` DOUBLE NULL,
+  ADD COLUMN `dominantColor` VARCHAR(20) NULL;

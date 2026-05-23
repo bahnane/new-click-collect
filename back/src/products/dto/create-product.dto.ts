@@ -18,6 +18,11 @@ export class CreateProductDto {
   @IsOptional()
   @IsString()
   @MinLength(1)
+  imageAssetId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
   subCategoryId?: string;
 
   @IsOptional()

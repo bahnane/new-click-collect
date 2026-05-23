@@ -19,6 +19,11 @@ export class UpdateProductDto {
   @IsOptional()
   @IsString()
   @MinLength(1)
+  imageAssetId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
   subCategoryId?: string | null;
 
   @IsOptional()

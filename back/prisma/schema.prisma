@@ -148,6 +148,7 @@ enum ProductSubmissionStatus {
 model ProductCategory {
   id          String   @id @default(cuid())
   parentId    String?
+  imageAssetId String?
   name        String   @unique @db.VarChar(80)
   slug        String   @unique @db.VarChar(80)
   description String?  @db.VarChar(191)
@@ -156,6 +157,7 @@ model ProductCategory {
   updatedAt   DateTime @updatedAt
 
   parent                 ProductCategory?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  imageAsset             ImageAsset?       @relation("CategoryImageAsset", fields: [imageAssetId], references: [id], onDelete: SetNull)
   children               ProductCategory[] @relation("CategoryTree")
   products               Product[]         @relation("ProductMainCategory")
   submissions            ProductSubmission[] @relation("SubmissionMainCategory")
@@ -164,6 +166,7 @@ model ProductCategory {
 
   @@index([isActive])
   @@index([parentId])
+  @@index([imageAssetId])
   @@map("product_categories")
 }
 
@@ -172,6 +175,7 @@ model Product {
   id           String   @id @default(cuid())
   name         String   @db.VarChar(191)
   subCategoryId String?
+  imageAssetId String?
   description  String?  @db.Text
   saleUnit     SaleUnit @default(UNIT)
   priceInCents Int?
@@ -182,6 +186,7 @@ model Product {
 
   category   ProductCategory @relation("ProductMainCategory", fields: [categoryId], references: [id], onDelete: Restrict)
   subCategory ProductCategory? @relation("ProductSubCategory", fields: [subCategoryId], references: [id], onDelete: SetNull)
+  imageAsset ImageAsset? @relation("ProductImageAsset", fields: [imageAssetId], references: [id], onDelete: SetNull)
   storeOffers StoreOffer[]
   submissions ProductSubmission[]
   orderItems  OrderItem[]
@@ -190,7 +195,55 @@ model Product {
   @@index([name])
   @@index([categoryId])
   @@index([subCategoryId])
+  @@index([imageAssetId])
   @@map("products")
+}
+
+model ImageAsset {
+  id             String   @id @default(cuid())
+  storageProvider String  @db.VarChar(40)
+  storageBucket  String?  @db.VarChar(120)
+  storageKey     String   @unique @db.VarChar(500)
+  cdnUrl         String   @db.VarChar(2048)
+  altText        String?  @db.VarChar(500)
+  focalPointX    Float?   @db.Double
+  focalPointY    Float?   @db.Double
+  dominantColor  String?  @db.VarChar(20)
+  mimeType       String?  @db.VarChar(120)
+  width          Int?
+  height         Int?
+  sizeBytes      Int?
+  checksumSha256 String?  @db.VarChar(128)
+  blurDataUrl    String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  variants         ImageAssetVariant[]
+  productCategories ProductCategory[] @relation("CategoryImageAsset")
+  products         Product[]          @relation("ProductImageAsset")
+
+  @@index([storageProvider])
+  @@map("image_assets")
+}
+
+model ImageAssetVariant {
+  id         String   @id @default(cuid())
+  assetId    String
+  variantKey String   @db.VarChar(80)
+  storageKey String   @db.VarChar(500)
+  cdnUrl     String   @db.VarChar(2048)
+  format     String?  @db.VarChar(20)
+  width      Int?
+  height     Int?
+  sizeBytes  Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  asset ImageAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, variantKey])
+  @@index([assetId])
+  @@map("image_asset_variants")
 }
 
 // Proposition de produit soumise par un marchand pour validation admin

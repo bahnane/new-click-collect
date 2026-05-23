@@ -3,12 +3,26 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import {
+  DeleteObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Prisma, ProductSubmissionStatus, SaleUnit } from '@prisma/client';
+import { randomUUID } from 'crypto';
+import { extname } from 'path';
 import { compareTwoStrings } from 'string-similarity';
 import { ErrorCodes } from '../common/errors/api-error-codes';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateImageAssetDto } from './dto/create-image-asset.dto';
+import { FinalizeImageUploadDto } from './dto/finalize-image-upload.dto';
+import { GenerateImageUploadUrlDto } from './dto/generate-image-upload-url.dto';
 import { CreateProductCategoryDto } from './dto/create-product-category.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
@@ -23,13 +37,345 @@ import {
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(ProductsService.name);
+  private readonly objectStorageBucket: string;
+  private readonly objectStorageProvider: string;
+  private readonly objectStorageCdnBaseUrl: string;
+  private readonly presignedUploadExpiresSeconds: number;
+  private readonly maxUploadBytes: number;
+  private readonly allowedMimeTypes: Set<string>;
+  private readonly orphanRetentionHours: number;
+  private readonly orphanCleanupBatchSize: number;
+  private readonly orphanCleanupEnabled: boolean;
+  private readonly s3Client: S3Client;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+  ) {
+    this.objectStorageProvider =
+      this.configService.get<string>('OBJECT_STORAGE_PROVIDER') ?? 's3';
+    this.objectStorageBucket =
+      this.configService.get<string>('OBJECT_STORAGE_BUCKET') ?? '';
+    this.objectStorageCdnBaseUrl = this.normalizeBaseUrl(
+      this.configService.get<string>('OBJECT_STORAGE_CDN_BASE_URL') ?? '',
+    );
+    this.presignedUploadExpiresSeconds = Number.parseInt(
+      this.configService.get<string>(
+        'OBJECT_STORAGE_PRESIGN_EXPIRES_SECONDS',
+      ) ?? '900',
+      10,
+    );
+    this.maxUploadBytes = Number.parseInt(
+      this.configService.get<string>('IMAGE_MAX_UPLOAD_BYTES') ?? '8388608',
+      10,
+    );
+    this.orphanRetentionHours = Number.parseInt(
+      this.configService.get<string>('IMAGE_ORPHAN_RETENTION_HOURS') ?? '48',
+      10,
+    );
+    this.orphanCleanupBatchSize = Number.parseInt(
+      this.configService.get<string>('IMAGE_ORPHAN_CLEANUP_BATCH_SIZE') ??
+        '100',
+      10,
+    );
+    this.orphanCleanupEnabled =
+      (this.configService.get<string>('IMAGE_ORPHAN_CLEANUP_ENABLED') ??
+        'true') === 'true';
+
+    const allowedMimeTypesRaw =
+      this.configService.get<string>('IMAGE_ALLOWED_MIME_TYPES') ??
+      'image/jpeg,image/png,image/webp,image/avif';
+    this.allowedMimeTypes = new Set(
+      allowedMimeTypesRaw
+        .split(',')
+        .map((mime) => mime.trim().toLowerCase())
+        .filter((mime) => mime.length > 0),
+    );
+
+    this.s3Client = new S3Client({
+      region: this.configService.get<string>('OBJECT_STORAGE_REGION') ?? 'auto',
+      endpoint: this.configService.get<string>('OBJECT_STORAGE_ENDPOINT'),
+      credentials:
+        this.configService.get<string>('OBJECT_STORAGE_ACCESS_KEY_ID') &&
+        this.configService.get<string>('OBJECT_STORAGE_SECRET_ACCESS_KEY')
+          ? {
+              accessKeyId: this.configService.getOrThrow<string>(
+                'OBJECT_STORAGE_ACCESS_KEY_ID',
+              ),
+              secretAccessKey: this.configService.getOrThrow<string>(
+                'OBJECT_STORAGE_SECRET_ACCESS_KEY',
+              ),
+            }
+          : undefined,
+      forcePathStyle:
+        (this.configService.get<string>('OBJECT_STORAGE_FORCE_PATH_STYLE') ??
+          'false') === 'true',
+    });
+  }
+
+  async createImageAsset(dto: CreateImageAssetDto) {
+    try {
+      return await this.prisma.imageAsset.create({
+        data: {
+          storageProvider: dto.storageProvider,
+          storageBucket: dto.storageBucket,
+          storageKey: dto.storageKey,
+          cdnUrl: dto.cdnUrl,
+          mimeType: dto.mimeType,
+          width: dto.width,
+          height: dto.height,
+          sizeBytes: dto.sizeBytes,
+          checksumSha256: dto.checksumSha256,
+          blurDataUrl: dto.blurDataUrl,
+          altText: dto.altText,
+          focalPointX: dto.focalPointX,
+          focalPointY: dto.focalPointY,
+          dominantColor: this.normalizeHexColor(dto.dominantColor),
+          variants:
+            dto.variants && dto.variants.length > 0
+              ? {
+                  create: dto.variants.map((variant) => ({
+                    variantKey: variant.variantKey,
+                    storageKey: variant.storageKey,
+                    cdnUrl: variant.cdnUrl,
+                    format: variant.format,
+                    width: variant.width,
+                    height: variant.height,
+                    sizeBytes: variant.sizeBytes,
+                  })),
+                }
+              : undefined,
+        },
+        include: {
+          variants: {
+            orderBy: { variantKey: 'asc' },
+          },
+        },
+      });
+    } catch (error) {
+      if (this.isUniqueConstraintError(error, ['storageKey'])) {
+        throw new ConflictException({
+          code: ErrorCodes.IMAGE_ASSET_DUPLICATE,
+          message: 'An image asset already exists for this storageKey',
+        });
+      }
+      throw error;
+    }
+  }
+
+  async generateImageUploadUrl(dto: GenerateImageUploadUrlDto) {
+    this.assertStorageConfigured();
+
+    const normalizedMimeType = dto.mimeType.trim().toLowerCase();
+    this.assertMimeTypeAllowed(normalizedMimeType);
+
+    if (dto.sizeBytes > this.maxUploadBytes) {
+      throw new BadRequestException({
+        code: ErrorCodes.IMAGE_UPLOAD_SIZE_EXCEEDED,
+        message: `Image size exceeds allowed limit of ${this.maxUploadBytes} bytes`,
+      });
+    }
+
+    const fileExtension = this.resolveFileExtension(
+      dto.fileName,
+      normalizedMimeType,
+    );
+    const safeFolder = dto.targetFolder?.trim() || 'catalog';
+    const objectKey = `images/${safeFolder}/${new Date().getUTCFullYear()}/${new Date().getUTCMonth() + 1}/${randomUUID()}${fileExtension}`;
+
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.objectStorageBucket,
+        Key: objectKey,
+        ContentType: normalizedMimeType,
+      });
+
+      const uploadUrl = await getSignedUrl(this.s3Client, command, {
+        expiresIn: this.presignedUploadExpiresSeconds,
+      });
+
+      return {
+        storageKey: objectKey,
+        uploadUrl,
+        expiresInSeconds: this.presignedUploadExpiresSeconds,
+        method: 'PUT',
+        headers: {
+          'Content-Type': normalizedMimeType,
+        },
+        cdnUrl: this.buildCdnUrl(objectKey),
+      };
+    } catch (error) {
+      this.logger.error('Failed to generate presigned upload URL', error);
+      throw new BadRequestException({
+        code: ErrorCodes.IMAGE_UPLOAD_STORAGE_UNAVAILABLE,
+        message: 'Unable to generate upload URL at the moment',
+      });
+    }
+  }
+
+  async finalizeImageUpload(dto: FinalizeImageUploadDto) {
+    this.assertStorageConfigured();
+
+    const storageKey = dto.storageKey.trim();
+    let headResult;
+
+    try {
+      headResult = await this.s3Client.send(
+        new HeadObjectCommand({
+          Bucket: this.objectStorageBucket,
+          Key: storageKey,
+        }),
+      );
+    } catch {
+      this.logger.warn(
+        `Failed to verify object in storage for key ${storageKey}`,
+      );
+      throw new NotFoundException({
+        code: ErrorCodes.IMAGE_UPLOAD_OBJECT_NOT_FOUND,
+        message: 'Uploaded object not found in object storage',
+      });
+    }
+
+    const mimeType = (headResult.ContentType || '').toLowerCase();
+    this.assertMimeTypeAllowed(mimeType);
+
+    const sizeBytes =
+      typeof headResult.ContentLength === 'number'
+        ? headResult.ContentLength
+        : null;
+
+    if (sizeBytes != null && sizeBytes > this.maxUploadBytes) {
+      throw new BadRequestException({
+        code: ErrorCodes.IMAGE_UPLOAD_SIZE_EXCEEDED,
+        message: `Image size exceeds allowed limit of ${this.maxUploadBytes} bytes`,
+      });
+    }
+
+    try {
+      return await this.prisma.imageAsset.create({
+        data: {
+          storageProvider: this.objectStorageProvider,
+          storageBucket: this.objectStorageBucket,
+          storageKey,
+          cdnUrl: this.buildCdnUrl(storageKey),
+          mimeType: mimeType || null,
+          sizeBytes,
+          width: dto.width,
+          height: dto.height,
+          altText: dto.altText,
+          focalPointX: dto.focalPointX,
+          focalPointY: dto.focalPointY,
+          dominantColor: this.normalizeHexColor(dto.dominantColor),
+        },
+        include: {
+          variants: {
+            orderBy: { variantKey: 'asc' },
+          },
+        },
+      });
+    } catch (error) {
+      if (this.isUniqueConstraintError(error, ['storageKey'])) {
+        throw new ConflictException({
+          code: ErrorCodes.IMAGE_ASSET_DUPLICATE,
+          message: 'An image asset already exists for this storageKey',
+        });
+      }
+      throw error;
+    }
+  }
+
+  async cleanupOrphanImageAssetsCron(): Promise<
+    | {
+        deletedCount: number;
+        deletedStorageObjects?: number;
+        cutoffDate?: Date;
+      }
+    | undefined
+  > {
+    if (!this.orphanCleanupEnabled) {
+      return;
+    }
+
+    return this.cleanupOrphanImageAssets();
+  }
+
+  async cleanupOrphanImageAssets() {
+    this.assertStorageConfigured();
+
+    const cutoffDate = new Date(
+      Date.now() - this.orphanRetentionHours * 60 * 60 * 1000,
+    );
+
+    const orphanAssets = await this.prisma.imageAsset.findMany({
+      where: {
+        createdAt: { lt: cutoffDate },
+        products: { none: {} },
+        productCategories: { none: {} },
+      },
+      include: {
+        variants: {
+          select: {
+            id: true,
+            storageKey: true,
+          },
+        },
+      },
+      take: this.orphanCleanupBatchSize,
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (orphanAssets.length === 0) {
+      return {
+        deletedCount: 0,
+      };
+    }
+
+    let deletedStorageObjects = 0;
+    for (const asset of orphanAssets) {
+      const keysToDelete = [
+        asset.storageKey,
+        ...asset.variants.map((variant) => variant.storageKey),
+      ];
+
+      for (const key of keysToDelete) {
+        try {
+          await this.s3Client.send(
+            new DeleteObjectCommand({
+              Bucket: this.objectStorageBucket,
+              Key: key,
+            }),
+          );
+          deletedStorageObjects += 1;
+        } catch {
+          this.logger.warn(`Unable to delete orphan storage object: ${key}`);
+        }
+      }
+    }
+
+    const deleted = await this.prisma.imageAsset.deleteMany({
+      where: {
+        id: {
+          in: orphanAssets.map((asset) => asset.id),
+        },
+      },
+    });
+
+    return {
+      deletedCount: deleted.count,
+      deletedStorageObjects,
+      cutoffDate,
+    };
+  }
 
   // ── Categories ──────────────────────────────────────────────────────────
 
   async createCategory(dto: CreateProductCategoryDto) {
     if (dto.parentId) {
       await this.assertCategoryCanBeParent(dto.parentId);
+    }
+    if (dto.imageAssetId) {
+      await this.assertImageAssetExists(dto.imageAssetId);
     }
 
     try {
@@ -39,6 +385,7 @@ export class ProductsService {
           name: dto.name,
           slug: dto.slug,
           description: dto.description,
+          imageAssetId: dto.imageAssetId,
         },
       });
     } catch (error) {
@@ -65,6 +412,29 @@ export class ProductsService {
         name: true,
         slug: true,
         description: true,
+        imageAsset: {
+          select: {
+            id: true,
+            cdnUrl: true,
+            blurDataUrl: true,
+            altText: true,
+            focalPointX: true,
+            focalPointY: true,
+            dominantColor: true,
+            width: true,
+            height: true,
+            variants: {
+              select: {
+                variantKey: true,
+                cdnUrl: true,
+                width: true,
+                height: true,
+                format: true,
+              },
+              orderBy: { variantKey: 'asc' },
+            },
+          },
+        },
       },
     });
   }
@@ -88,6 +458,29 @@ export class ProductsService {
             children: true,
           },
         },
+        imageAsset: {
+          select: {
+            id: true,
+            cdnUrl: true,
+            blurDataUrl: true,
+            altText: true,
+            focalPointX: true,
+            focalPointY: true,
+            dominantColor: true,
+            width: true,
+            height: true,
+            variants: {
+              select: {
+                variantKey: true,
+                cdnUrl: true,
+                width: true,
+                height: true,
+                format: true,
+              },
+              orderBy: { variantKey: 'asc' },
+            },
+          },
+        },
       },
     });
   }
@@ -106,6 +499,10 @@ export class ProductsService {
       if (dto.parentId) {
         await this.assertCategoryCanBeParent(dto.parentId);
       }
+    }
+
+    if (dto.imageAssetId !== undefined && dto.imageAssetId !== null) {
+      await this.assertImageAssetExists(dto.imageAssetId);
     }
 
     try {
@@ -139,6 +536,9 @@ export class ProductsService {
 
   async createCatalogProduct(dto: CreateProductDto) {
     await this.assertCategoryIsRoot(dto.categoryId);
+    if (dto.imageAssetId) {
+      await this.assertImageAssetExists(dto.imageAssetId);
+    }
     if (dto.subCategoryId) {
       await this.assertSubCategoryBelongsToCategory(
         dto.subCategoryId,
@@ -154,6 +554,7 @@ export class ProductsService {
           saleUnit: dto.saleUnit,
           priceInCents: dto.priceInCents,
           categoryId: dto.categoryId,
+          imageAssetId: dto.imageAssetId,
         },
       });
     } catch (error) {
@@ -419,6 +820,7 @@ export class ProductsService {
       saleUnit?: SaleUnit;
       priceInCents?: number | null;
       categoryId?: string;
+      imageAssetId?: string | null;
     },
   ) {
     if (
@@ -457,6 +859,16 @@ export class ProductsService {
       await this.assertCategoryIsRoot(approvedProductOverrides.categoryId);
     }
 
+    if (
+      status === ProductSubmissionStatus.APPROVED &&
+      !approvedProductOverrides?.imageAssetId
+    ) {
+      throw new BadRequestException({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'imageAssetId is required when approving a product submission',
+      });
+    }
+
     const effectiveCategoryId =
       approvedProductOverrides?.categoryId ?? submission.categoryId;
     const effectiveSubCategoryId =
@@ -469,6 +881,13 @@ export class ProductsService {
         effectiveSubCategoryId,
         effectiveCategoryId,
       );
+    }
+
+    if (
+      status === ProductSubmissionStatus.APPROVED &&
+      approvedProductOverrides?.imageAssetId
+    ) {
+      await this.assertImageAssetExists(approvedProductOverrides.imageAssetId);
     }
 
     if (status === ProductSubmissionStatus.APPROVED) {
@@ -489,6 +908,7 @@ export class ProductsService {
                 submission.priceInCents,
               categoryId:
                 approvedProductOverrides?.categoryId ?? submission.categoryId,
+              imageAssetId: approvedProductOverrides.imageAssetId,
               isActive: true,
             },
           });
@@ -693,6 +1113,28 @@ export class ProductsService {
           }
         }
 
+        const imageAssetIds = Array.from(
+          new Set(
+            dto.items
+              .map((item) => item.imageAssetId)
+              .filter((id): id is string => !!id),
+          ),
+        );
+
+        if (imageAssetIds.length > 0) {
+          const imageAssets = await tx.imageAsset.findMany({
+            where: { id: { in: imageAssetIds } },
+            select: { id: true },
+          });
+
+          if (imageAssets.length !== imageAssetIds.length) {
+            throw new NotFoundException({
+              code: ErrorCodes.IMAGE_ASSET_NOT_FOUND,
+              message: 'One or more image assets were not found',
+            });
+          }
+        }
+
         const approvedEntries: Array<{
           submissionId: string;
           productId: string;
@@ -701,6 +1143,14 @@ export class ProductsService {
         for (const submission of submissions) {
           const item = itemsById.get(submission.id);
           if (!item) continue;
+
+          if (!item.imageAssetId) {
+            throw new BadRequestException({
+              code: ErrorCodes.BAD_REQUEST,
+              message:
+                'imageAssetId is required for each approved submission item',
+            });
+          }
 
           const effectiveCategoryId = item.categoryId ?? submission.categoryId;
           const effectiveSubCategoryId =
@@ -733,6 +1183,7 @@ export class ProductsService {
               saleUnit: item.saleUnit ?? submission.saleUnit,
               priceInCents: item.priceInCents ?? submission.priceInCents,
               categoryId: item.categoryId ?? submission.categoryId,
+              imageAssetId: item.imageAssetId,
               isActive: true,
             },
             select: { id: true },
@@ -801,11 +1252,47 @@ export class ProductsService {
           description: true,
           saleUnit: true,
           priceInCents: true,
+          imageAsset: {
+            select: {
+              id: true,
+              cdnUrl: true,
+              blurDataUrl: true,
+              altText: true,
+              focalPointX: true,
+              focalPointY: true,
+              dominantColor: true,
+              width: true,
+              height: true,
+              variants: {
+                select: {
+                  variantKey: true,
+                  cdnUrl: true,
+                  width: true,
+                  height: true,
+                  format: true,
+                },
+                orderBy: { variantKey: 'asc' },
+              },
+            },
+          },
           category: {
             select: {
               id: true,
               name: true,
               slug: true,
+              imageAsset: {
+                select: {
+                  id: true,
+                  cdnUrl: true,
+                  blurDataUrl: true,
+                  altText: true,
+                  focalPointX: true,
+                  focalPointY: true,
+                  dominantColor: true,
+                  width: true,
+                  height: true,
+                },
+              },
             },
           },
         },
@@ -850,11 +1337,47 @@ export class ProductsService {
         },
         saleUnit: true,
         priceInCents: true,
+        imageAsset: {
+          select: {
+            id: true,
+            cdnUrl: true,
+            blurDataUrl: true,
+            altText: true,
+            focalPointX: true,
+            focalPointY: true,
+            dominantColor: true,
+            width: true,
+            height: true,
+            variants: {
+              select: {
+                variantKey: true,
+                cdnUrl: true,
+                width: true,
+                height: true,
+                format: true,
+              },
+              orderBy: { variantKey: 'asc' },
+            },
+          },
+        },
         category: {
           select: {
             id: true,
             name: true,
             slug: true,
+            imageAsset: {
+              select: {
+                id: true,
+                cdnUrl: true,
+                blurDataUrl: true,
+                altText: true,
+                focalPointX: true,
+                focalPointY: true,
+                dominantColor: true,
+                width: true,
+                height: true,
+              },
+            },
           },
         },
       },
@@ -879,11 +1402,47 @@ export class ProductsService {
         },
         saleUnit: true,
         priceInCents: true,
+        imageAsset: {
+          select: {
+            id: true,
+            cdnUrl: true,
+            blurDataUrl: true,
+            altText: true,
+            focalPointX: true,
+            focalPointY: true,
+            dominantColor: true,
+            width: true,
+            height: true,
+            variants: {
+              select: {
+                variantKey: true,
+                cdnUrl: true,
+                width: true,
+                height: true,
+                format: true,
+              },
+              orderBy: { variantKey: 'asc' },
+            },
+          },
+        },
         category: {
           select: {
             id: true,
             name: true,
             slug: true,
+            imageAsset: {
+              select: {
+                id: true,
+                cdnUrl: true,
+                blurDataUrl: true,
+                altText: true,
+                focalPointX: true,
+                focalPointY: true,
+                dominantColor: true,
+                width: true,
+                height: true,
+              },
+            },
           },
         },
       },
@@ -1126,6 +1685,9 @@ export class ProductsService {
     const product = await this.findProductOrFailAdmin(productId);
     if (dto.categoryId) {
       await this.assertCategoryIsRoot(dto.categoryId);
+    }
+    if (dto.imageAssetId !== undefined && dto.imageAssetId !== null) {
+      await this.assertImageAssetExists(dto.imageAssetId);
     }
 
     const effectiveCategoryId = dto.categoryId ?? product.categoryId;
@@ -1729,6 +2291,29 @@ export class ProductsService {
                 name: true,
                 slug: true,
                 description: true,
+                imageAsset: {
+                  select: {
+                    id: true,
+                    cdnUrl: true,
+                    blurDataUrl: true,
+                    altText: true,
+                    focalPointX: true,
+                    focalPointY: true,
+                    dominantColor: true,
+                    width: true,
+                    height: true,
+                    variants: {
+                      select: {
+                        variantKey: true,
+                        cdnUrl: true,
+                        width: true,
+                        height: true,
+                        format: true,
+                      },
+                      orderBy: { variantKey: 'asc' },
+                    },
+                  },
+                },
               },
             },
           },
@@ -1758,6 +2343,58 @@ export class ProductsService {
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
+
+  private assertMimeTypeAllowed(mimeType: string): void {
+    if (!mimeType || !this.allowedMimeTypes.has(mimeType.toLowerCase())) {
+      throw new BadRequestException({
+        code: ErrorCodes.IMAGE_UPLOAD_INVALID_MIME,
+        message: `Unsupported image mime type: ${mimeType || 'unknown'}`,
+      });
+    }
+  }
+
+  private assertStorageConfigured(): void {
+    if (!this.objectStorageBucket || !this.objectStorageCdnBaseUrl) {
+      throw new BadRequestException({
+        code: ErrorCodes.IMAGE_UPLOAD_STORAGE_UNAVAILABLE,
+        message:
+          'Object storage is not configured. Set OBJECT_STORAGE_BUCKET and OBJECT_STORAGE_CDN_BASE_URL',
+      });
+    }
+  }
+
+  private resolveFileExtension(fileName: string, mimeType: string): string {
+    const fromName = extname(fileName.trim()).toLowerCase();
+    if (fromName) {
+      return fromName;
+    }
+
+    const fallbackByMime: Record<string, string> = {
+      'image/jpeg': '.jpg',
+      'image/png': '.png',
+      'image/webp': '.webp',
+      'image/avif': '.avif',
+    };
+
+    return fallbackByMime[mimeType] ?? '.bin';
+  }
+
+  private buildCdnUrl(storageKey: string): string {
+    return `${this.objectStorageCdnBaseUrl}/${storageKey}`;
+  }
+
+  private normalizeBaseUrl(value: string): string {
+    return value.replace(/\/+$/, '');
+  }
+
+  private normalizeHexColor(value: string | undefined): string | undefined {
+    if (!value) {
+      return undefined;
+    }
+
+    const normalized = value.startsWith('#') ? value : `#${value}`;
+    return normalized.toUpperCase();
+  }
 
   private isUniqueConstraintError(error: unknown, fields?: string[]) {
     if (
@@ -1933,6 +2570,20 @@ export class ProductsService {
       });
     }
     return submission;
+  }
+
+  private async assertImageAssetExists(imageAssetId: string) {
+    const imageAsset = await this.prisma.imageAsset.findUnique({
+      where: { id: imageAssetId },
+      select: { id: true },
+    });
+
+    if (!imageAsset) {
+      throw new NotFoundException({
+        code: ErrorCodes.IMAGE_ASSET_NOT_FOUND,
+        message: 'Image asset not found',
+      });
+    }
   }
 
   private async assertOfferOwnership(offerId: string, merchantId: string) {

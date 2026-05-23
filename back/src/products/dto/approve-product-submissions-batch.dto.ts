@@ -49,6 +49,11 @@ export class ApproveProductSubmissionBatchItemDto {
   @IsString()
   @MinLength(1)
   categoryId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  imageAssetId?: string | null;
 }
 
 export class ApproveProductSubmissionsBatchDto {

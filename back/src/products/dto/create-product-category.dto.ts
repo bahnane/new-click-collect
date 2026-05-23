@@ -6,6 +6,11 @@ export class CreateProductCategoryDto {
   @MinLength(1)
   parentId?: string;
 
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  imageAssetId?: string;
+
   @IsString()
   @MinLength(2)
   @MaxLength(80)

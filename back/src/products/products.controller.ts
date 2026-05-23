@@ -26,6 +26,9 @@ import { UpdateStoreOfferDto } from './dto/update-store-offer.dto';
 import { ReviewProductSubmissionDto } from './dto/review-product-submission.dto';
 import { UpdateProductSubmissionDto } from './dto/update-product-submission.dto';
 import { ApproveProductSubmissionsBatchDto } from './dto/approve-product-submissions-batch.dto';
+import { CreateImageAssetDto } from './dto/create-image-asset.dto';
+import { GenerateImageUploadUrlDto } from './dto/generate-image-upload-url.dto';
+import { FinalizeImageUploadDto } from './dto/finalize-image-upload.dto';
 import { ProductsService } from './products.service';
 
 @Controller()
@@ -49,6 +52,36 @@ export class ProductsController {
   ) {
     this.assertAdmin(user);
     return this.productsService.createCategory(dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('admin/image-assets')
+  createImageAsset(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: CreateImageAssetDto,
+  ) {
+    this.assertAdmin(user);
+    return this.productsService.createImageAsset(dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('admin/image-assets/upload-url')
+  generateImageUploadUrl(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: GenerateImageUploadUrlDto,
+  ) {
+    this.assertAdmin(user);
+    return this.productsService.generateImageUploadUrl(dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('admin/image-assets/finalize')
+  finalizeImageUpload(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: FinalizeImageUploadDto,
+  ) {
+    this.assertAdmin(user);
+    return this.productsService.finalizeImageUpload(dto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -123,6 +156,12 @@ export class ProductsController {
     }
 
     if (user.role === Role.MERCHANT) {
+      if (dto.imageAssetId) {
+        throw new ForbiddenException({
+          code: ErrorCodes.AUTH_FORBIDDEN,
+          message: 'Only admins can attach images during product approval',
+        });
+      }
       return this.productsService.createProductSubmission(user.sub, dto);
     }
 
@@ -240,6 +279,7 @@ export class ProductsController {
         saleUnit: dto.saleUnit,
         priceInCents: dto.priceInCents,
         categoryId: dto.categoryId,
+        imageAssetId: dto.imageAssetId,
       },
     );
   }
