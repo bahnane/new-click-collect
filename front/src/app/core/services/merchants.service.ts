@@ -151,9 +151,11 @@ export interface UpdateStoreOfferPayload {
   priceInCents?: number | null;
   minOrderQty?: number;
   stepQty?: number;
+  maxOrderQty?: number | null;
 }
 
 export interface CreateStoreOfferPayload {
+  maxOrderQty?: number;
   productId: string;
   priceInCents?: number;
   minOrderQty?: number;

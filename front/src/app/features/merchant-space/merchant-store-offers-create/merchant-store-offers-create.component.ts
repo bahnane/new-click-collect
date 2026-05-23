@@ -28,6 +28,7 @@ interface OfferDraftRow {
   price: string;
   minOrderQty: string;
   stepQty: string;
+  maxOrderQty: string;
 }
 
 @Component({
@@ -65,6 +66,7 @@ export class MerchantStoreOffersCreateComponent {
     'price',
     'minOrderQty',
     'stepQty',
+    'maxOrderQty',
   ];
 
   readonly isEmpty = computed(() => {
@@ -113,6 +115,7 @@ export class MerchantStoreOffersCreateComponent {
             price: '',
             minOrderQty: '1',
             stepQty: '1',
+            maxOrderQty: '',
           })),
         );
         this.loading.set(false);
@@ -142,7 +145,7 @@ export class MerchantStoreOffersCreateComponent {
 
   onDraftInputChange(
     productId: string,
-    field: 'price' | 'minOrderQty' | 'stepQty',
+    field: 'price' | 'minOrderQty' | 'stepQty' | 'maxOrderQty',
     value: string,
   ): void {
     this.draftRows.update((rows) =>
@@ -169,9 +172,17 @@ export class MerchantStoreOffersCreateComponent {
     for (const row of selectedRows) {
       const minOrderQty = this.parsePositiveDecimal(row.minOrderQty);
       const stepQty = this.parsePositiveDecimal(row.stepQty);
+      const maxOrderQty = row.maxOrderQty.trim()
+        ? this.parsePositiveDecimal(row.maxOrderQty)
+        : undefined;
       const priceInCents = this.parsePriceToCents(row.price);
 
-      if (minOrderQty == null || stepQty == null || priceInCents === null) {
+      if (
+        minOrderQty == null ||
+        stepQty == null ||
+        priceInCents === null ||
+        (row.maxOrderQty.trim().length > 0 && maxOrderQty == null)
+      ) {
         this.errorKey.set(
           'shell.merchant.storeOffers.create.validation.invalidValues',
         );
@@ -183,6 +194,7 @@ export class MerchantStoreOffersCreateComponent {
         minOrderQty,
         stepQty,
         ...(priceInCents !== undefined ? { priceInCents } : {}),
+        ...(maxOrderQty != null ? { maxOrderQty } : {}),
       });
     }
 

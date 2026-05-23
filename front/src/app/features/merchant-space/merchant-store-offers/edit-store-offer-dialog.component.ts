@@ -80,6 +80,18 @@ interface EditStoreOfferDialogData {
           </mat-label>
           <input matInput type="text" [formControl]="stepQtyControl" />
         </mat-form-field>
+
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>
+            {{ 'shell.merchant.storeOffers.create.fields.maxQty' | transloco }}
+          </mat-label>
+          <input matInput type="text" [formControl]="maxOrderQtyControl" />
+          <mat-hint>
+            {{
+              'shell.merchant.storeOffers.create.fields.maxQtyHint' | transloco
+            }}
+          </mat-hint>
+        </mat-form-field>
       </form>
     </mat-dialog-content>
 
@@ -161,6 +173,7 @@ export class EditStoreOfferDialogComponent {
   readonly priceControl: FormControl<string>;
   readonly minOrderQtyControl: FormControl<string>;
   readonly stepQtyControl: FormControl<string>;
+  readonly maxOrderQtyControl: FormControl<string>;
 
   saving = false;
   validationErrorKey: string | null = null;
@@ -193,6 +206,10 @@ export class EditStoreOfferDialogComponent {
         nonNullable: true,
       },
     );
+    this.maxOrderQtyControl = new FormControl<string>(
+      this.data.offer.maxOrderQty?.toString() ?? '',
+      { nonNullable: true },
+    );
   }
 
   onSubmit(event: Event): void {
@@ -213,6 +230,9 @@ export class EditStoreOfferDialogComponent {
       this.minOrderQtyControl.value,
     );
     const stepQty = this.parsePositiveDecimal(this.stepQtyControl.value);
+    const maxOrderQty = this.maxOrderQtyControl.value.trim()
+      ? this.parsePositiveDecimal(this.maxOrderQtyControl.value)
+      : null;
     const priceInCents = this.parsePriceToCents(this.priceControl.value);
 
     if (minOrderQty == null || stepQty == null || priceInCents === undefined) {
@@ -229,6 +249,7 @@ export class EditStoreOfferDialogComponent {
       minOrderQty,
       stepQty,
       priceInCents,
+      maxOrderQty,
     };
 
     this.merchantsService.updateOffer(this.data.offer.id, payload).subscribe({

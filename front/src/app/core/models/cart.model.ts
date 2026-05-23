@@ -7,7 +7,7 @@ export interface CartItemProduct {
   id: string;
   name: string;
   description: string | null;
-  saleUnit: 'KG' | 'G' | 'LITER' | 'UNIT' | 'PORTION';
+  saleUnit: 'KG' | 'LITER' | 'UNIT' | 'PORTION';
 }
 
 export interface CartItem {

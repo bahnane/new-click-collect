@@ -142,6 +142,8 @@
       "CART_MERCHANT_MISMATCH": "Le panier ne peut contenir qu'un seul marchand.",
       "CART_QUANTITY_BELOW_MIN": "La quantité est inférieure au minimum autorisé.",
       "CART_QUANTITY_INVALID_STEP": "La quantité ne respecte pas le pas autorisé.",
+        "CART_QUANTITY_ABOVE_MAX": "La quantité dépasse le maximum autorisé.",
+        "OFFER_MAX_QTY_BELOW_MIN": "La quantité maximale doit être supérieure ou égale à la quantité minimale.",
       "PICKUP_SLOT_NOT_FOUND": "Créneau de retrait introuvable.",
       "PICKUP_SLOT_OVERLAP": "Le créneau chevauche un créneau existant.",
       "PICKUP_SLOT_INVALID_DATES": "Les dates du créneau sont invalides.",
@@ -461,6 +463,10 @@
             "priceHint": "Laissez vide pour utiliser le prix catalogue.",
             "minQty": "Quantité minimale",
             "stepQty": "Pas de quantité"
+                      ,
+                      "maxQty": "Quantité maximale (optionnel)",
+                      "maxQtyHint": "Laissez vide pour ne pas limiter la quantité."
+                    "maxQty": "Quantité maximale"
           }
         },
         "statusConfirm": {
@@ -780,13 +786,13 @@
     "currency": "DA",
     "saleUnit": {
       "kg": "kg",
-      "g": "g",
       "liter": "L",
       "unit": "pcs",
       "portion": "portion"
     },
     "minOrder": "Commande minimale :",
     "stepQty": "Pas de :",
+      "maxOrderQty": "Max :",
     "addToCart": "Ajouter au panier",
     "addingToCart": "Ajout en cours...",
     "addedToCart": "Produit ajouté au panier.",

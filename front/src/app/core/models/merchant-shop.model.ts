@@ -74,7 +74,7 @@ export interface Product {
   id: string;
   name: string;
   description: string | null;
-  saleUnit: 'KG' | 'G' | 'LITER' | 'UNIT' | 'PORTION';
+  saleUnit: 'KG' | 'LITER' | 'UNIT' | 'PORTION';
   priceInCents: number | null;
   category: ProductCategory;
   subCategory?: ProductCategory | null;
@@ -87,6 +87,7 @@ export interface StoreOffer {
   priceInCents: number | null;
   minOrderQty: number;
   stepQty: number;
+  maxOrderQty: number | null;
   isActive: boolean;
   product: Product;
   defaultPriceInCents: number | null;

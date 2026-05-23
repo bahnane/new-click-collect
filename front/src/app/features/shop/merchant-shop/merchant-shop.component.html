@@ -74,8 +74,7 @@
     <section class="shop-catalog-nav" [style.--shop-header-height]="shopHeaderHeight() + 'px'">
         <div class="catalog-row-shell" [class.is-hidden]="!categoryBarsVisible()">
             <button mat-icon-button type="button" class="catalog-scroll-button catalog-scroll-button-start"
-                [attr.aria-label]="'shop.scrollLeft' | transloco"
-                (click)="scrollCategoryRow('root', 'previous')">
+                [attr.aria-label]="'shop.scrollLeft' | transloco" (click)="scrollCategoryRow('root', 'previous')">
                 <mat-icon aria-hidden="true">chevron_left</mat-icon>
             </button>
 
@@ -92,25 +91,22 @@
             </div>
 
             <button mat-icon-button type="button" class="catalog-scroll-button catalog-scroll-button-end"
-                [attr.aria-label]="'shop.scrollRight' | transloco"
-                (click)="scrollCategoryRow('root', 'next')">
+                [attr.aria-label]="'shop.scrollRight' | transloco" (click)="scrollCategoryRow('root', 'next')">
                 <mat-icon aria-hidden="true">chevron_right</mat-icon>
             </button>
         </div>
 
         <div class="catalog-row-shell is-sub-shell">
             <button mat-icon-button type="button" class="catalog-scroll-button catalog-scroll-button-start"
-                [attr.aria-label]="'shop.scrollLeft' | transloco"
-                (click)="scrollCategoryRow('sub', 'previous')">
+                [attr.aria-label]="'shop.scrollLeft' | transloco" (click)="scrollCategoryRow('sub', 'previous')">
                 <mat-icon aria-hidden="true">chevron_left</mat-icon>
             </button>
 
             <div #subCategoriesRow class="catalog-row is-sub-row" role="tablist"
                 [attr.aria-label]="'shop.subCategoriesLabel' | transloco">
                 <button mat-stroked-button type="button" class="catalog-chip"
-                    [class.is-active]="isSubCategorySelected('all')"
-                    [attr.aria-selected]="isSubCategorySelected('all')" role="tab"
-                    (click)="selectSubCategory('all')">
+                    [class.is-active]="isSubCategorySelected('all')" [attr.aria-selected]="isSubCategorySelected('all')"
+                    role="tab" (click)="selectSubCategory('all')">
                     {{ 'shop.allSubCategories' | transloco }}
                 </button>
 
@@ -127,8 +123,7 @@
             </div>
 
             <button mat-icon-button type="button" class="catalog-scroll-button catalog-scroll-button-end"
-                [attr.aria-label]="'shop.scrollRight' | transloco"
-                (click)="scrollCategoryRow('sub', 'next')">
+                [attr.aria-label]="'shop.scrollRight' | transloco" (click)="scrollCategoryRow('sub', 'next')">
                 <mat-icon aria-hidden="true">chevron_right</mat-icon>
             </button>
         </div>
@@ -276,6 +271,20 @@
                             {{ offer.stepQty }}
                         </small>
                         }
+                        @if (offer.maxOrderQty) {
+                        <small>
+                            {{ 'shop.maxOrderQty' | transloco }}
+                            {{ offer.maxOrderQty }}
+                        </small>
+                        }
+                    </div>
+                    }
+                    @if (offer.maxOrderQty && !(offer.minOrderQty > 1 || offer.stepQty > 1)) {
+                    <div class="quantity-info">
+                        <small>
+                            {{ 'shop.maxOrderQty' | transloco }}
+                            {{ offer.maxOrderQty }}
+                        </small>
                     </div>
                     }
                 </mat-card-content>
@@ -286,24 +295,24 @@
                         <div class="quantity-control">
                             <button mat-icon-button type="button"
                                 [attr.aria-label]="'common.quantity.decrease' | transloco"
-                                (click)="decreaseQuantityInput(quantityInput, offer.minOrderQty, offer.stepQty)">
+                                (click)="decreaseQuantityInput(quantityInput, offer.minOrderQty, offer.stepQty, offer.maxOrderQty)">
                                 <mat-icon>remove</mat-icon>
                             </button>
 
                             <input [id]="'quantity-' + offer.id" class="quantity-input" type="number"
                                 [min]="offer.minOrderQty" [step]="offer.stepQty" [value]="offer.minOrderQty"
-                                inputmode="decimal" #quantityInput />
+                                [max]="offer.maxOrderQty ?? null" inputmode="decimal" #quantityInput />
 
                             <button mat-icon-button type="button"
                                 [attr.aria-label]="'common.quantity.increase' | transloco"
-                                (click)="increaseQuantityInput(quantityInput, offer.minOrderQty, offer.stepQty)">
+                                (click)="increaseQuantityInput(quantityInput, offer.minOrderQty, offer.stepQty, offer.maxOrderQty)">
                                 <mat-icon>add</mat-icon>
                             </button>
                         </div>
                     </label>
 
                     <button mat-stroked-button color="primary" type="button"
-                        (click)="addToCart(offer.id, offer.minOrderQty, offer.stepQty, quantityInput.value)"
+                        (click)="addToCart(offer.id, offer.minOrderQty, offer.stepQty, quantityInput.value, offer.maxOrderQty)"
                         [disabled]="addingOfferId() === offer.id">
                         @if (addingOfferId() === offer.id) {
                         {{ 'shop.addingToCart' | transloco }}

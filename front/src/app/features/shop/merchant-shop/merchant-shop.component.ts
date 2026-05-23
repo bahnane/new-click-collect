@@ -549,10 +549,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
     this.selectedSubCategoryId.set(subCategoryId);
   }
 
-  scrollCategoryRow(
-    row: 'root' | 'sub',
-    direction: 'previous' | 'next',
-  ): void {
+  scrollCategoryRow(row: 'root' | 'sub', direction: 'previous' | 'next'): void {
     const element =
       row === 'root'
         ? this.rootCategoriesRowElement
@@ -602,6 +599,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
     input: HTMLInputElement,
     minOrderQty: number,
     stepQty: number,
+    _maxOrderQty: number | null = null,
   ): void {
     const safeMinOrderQty = this.toPositiveNumber(minOrderQty, 1);
     const safeStepQty = this.toPositiveNumber(stepQty, 1);
@@ -616,13 +614,19 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
     input: HTMLInputElement,
     minOrderQty: number,
     stepQty: number,
+    maxOrderQty: number | null = null,
   ): void {
     const safeMinOrderQty = this.toPositiveNumber(minOrderQty, 1);
     const safeStepQty = this.toPositiveNumber(stepQty, 1);
     const current =
       this.resolveQuantity(input.value, safeMinOrderQty, safeStepQty) ??
       safeMinOrderQty;
-    input.value = this.formatQuantity(current + safeStepQty);
+    const next = current + safeStepQty;
+    input.value = this.formatQuantity(
+      maxOrderQty != null && maxOrderQty > 0
+        ? Math.min(next, maxOrderQty)
+        : next,
+    );
   }
 
   addToCart(
@@ -630,6 +634,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
     minOrderQty: number,
     stepQty: number,
     quantityValue?: string,
+    maxOrderQty: number | null = null,
   ): void {
     this.addToCartErrorKey.set(null);
     this.addToCartSuccessKey.set(null);
@@ -651,6 +656,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
       quantityValue,
       minOrderQty,
       stepQty,
+      maxOrderQty,
     );
     if (safeQuantity == null) {
       this.addToCartErrorKey.set('shop.quantityInvalid');
@@ -708,6 +714,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
     quantityValue: string | undefined,
     minOrderQty: number,
     stepQty: number,
+    maxOrderQty: number | null = null,
   ): number | null {
     const safeMinOrderQty =
       Number.isFinite(minOrderQty) && minOrderQty > 0 ? minOrderQty : 1;
@@ -724,6 +731,14 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     if (parsedQuantity < safeMinOrderQty) {
+      return null;
+    }
+
+    if (
+      maxOrderQty != null &&
+      maxOrderQty > 0 &&
+      parsedQuantity > maxOrderQty
+    ) {
       return null;
     }
 
@@ -768,7 +783,6 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
     this.observer?.disconnect();
     this.observer = null;
   }
-
 
   private handleWindowScroll(): void {
     if (typeof window === 'undefined') {

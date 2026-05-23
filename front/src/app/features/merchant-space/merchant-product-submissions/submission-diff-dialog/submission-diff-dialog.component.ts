@@ -232,7 +232,6 @@ export class SubmissionDiffDialogComponent {
   private saleUnitLabel(unit: Product['saleUnit']): string {
     const labels: Record<Product['saleUnit'], string> = {
       KG: 'kg',
-      G: 'g',
       LITER: 'L',
       UNIT: 'Unité',
       PORTION: 'Portion',

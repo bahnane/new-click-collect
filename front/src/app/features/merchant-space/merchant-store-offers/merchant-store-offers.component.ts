@@ -62,6 +62,7 @@ export class MerchantStoreOffersComponent {
     'effectivePrice',
     'minOrderQty',
     'stepQty',
+    'maxOrderQty',
     'status',
     'actions',
   ];

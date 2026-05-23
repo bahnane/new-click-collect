@@ -60,6 +60,12 @@
                         <div class="offer-meta-item">
                             <dt>{{ 'shell.merchant.storeOffers.columns.stepQty' | transloco }}</dt>
                             <dd>{{ offer.stepQty }}</dd>
+
+                            <div class="offer-meta-item">
+                                <dt>{{ 'shell.merchant.storeOffers.columns.maxQty' | transloco }}</dt>
+                                <dd>{{ offer.maxOrderQty ?? '—' }}</dd>
+                            </div>
+
                         </div>
 
                         <div class="offer-meta-item">
