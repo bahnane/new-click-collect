@@ -17,4 +17,10 @@ export class UpdateStoreOfferDto {
   @Min(0.001)
   @Max(99999)
   stepQty?: number;
+
+  @IsOptional()
+  @IsNumber({ allowNaN: false, allowInfinity: false })
+  @Min(0.001)
+  @Max(99999)
+  maxOrderQty?: number | null;
 }

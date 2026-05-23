@@ -72,7 +72,14 @@ export class CartService {
 
     const minOrderQty = Number(offer.minOrderQty);
     const stepQty = Number(offer.stepQty);
-    this.assertQuantityConstraints(dto.quantity, minOrderQty, stepQty);
+    const maxOrderQty =
+      offer.maxOrderQty != null ? Number(offer.maxOrderQty) : null;
+    this.assertQuantityConstraints(
+      dto.quantity,
+      minOrderQty,
+      stepQty,
+      maxOrderQty,
+    );
 
     let cart = await this.prisma.cart.findUnique({
       where: { customerId: userId },
@@ -169,11 +176,19 @@ export class CartService {
     quantity: number,
     minOrderQty: number,
     stepQty: number,
+    maxOrderQty: number | null = null,
   ) {
     if (quantity < minOrderQty) {
       throw new BadRequestException({
         code: ErrorCodes.CART_QUANTITY_BELOW_MIN,
         message: `Quantity must be >= ${minOrderQty.toString()}`,
+      });
+    }
+
+    if (maxOrderQty != null && quantity > maxOrderQty) {
+      throw new BadRequestException({
+        code: ErrorCodes.CART_QUANTITY_ABOVE_MAX,
+        message: `Quantity must be <= ${maxOrderQty.toString()}`,
       });
     }
 

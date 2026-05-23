@@ -27,4 +27,10 @@ export class CreateStoreOfferDto {
   @Min(0.001)
   @Max(99999)
   stepQty?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0.001)
+  @Max(99999)
+  maxOrderQty?: number;
 }

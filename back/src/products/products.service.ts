@@ -1194,6 +1194,14 @@ export class ProductsService {
       });
     }
 
+    const effectiveMin = dto.minOrderQty ?? 1;
+    if (dto.maxOrderQty != null && dto.maxOrderQty < effectiveMin) {
+      throw new BadRequestException({
+        code: ErrorCodes.OFFER_MAX_QTY_BELOW_MIN,
+        message: 'maxOrderQty must be >= minOrderQty',
+      });
+    }
+
     return this.prisma.storeOffer
       .create({
         data: {
@@ -1202,6 +1210,7 @@ export class ProductsService {
           priceInCents: dto.priceInCents,
           minOrderQty: dto.minOrderQty ?? 1,
           stepQty: dto.stepQty ?? 1,
+          maxOrderQty: dto.maxOrderQty ?? null,
         },
         include: {
           product: {
@@ -1327,6 +1336,14 @@ export class ProductsService {
           message: `Price required for product ${offer.productId}`,
         });
       }
+
+      const effectiveMin = offer.minOrderQty ?? 1;
+      if (offer.maxOrderQty != null && offer.maxOrderQty < effectiveMin) {
+        throw new BadRequestException({
+          code: ErrorCodes.OFFER_MAX_QTY_BELOW_MIN,
+          message: `maxOrderQty must be >= minOrderQty for product ${offer.productId}`,
+        });
+      }
     }
 
     const createdOffers = await this.prisma.$transaction(
@@ -1338,6 +1355,7 @@ export class ProductsService {
             priceInCents: offer.priceInCents,
             minOrderQty: offer.minOrderQty ?? 1,
             stepQty: offer.stepQty ?? 1,
+            maxOrderQty: offer.maxOrderQty ?? null,
           },
           include: {
             product: {
@@ -1452,6 +1470,19 @@ export class ProductsService {
           code: ErrorCodes.OFFER_PRICE_CLEAR_NOT_ALLOWED,
           message:
             'Cannot clear offer override when product has no default price',
+        });
+      }
+    }
+
+    if (dto.maxOrderQty != null) {
+      const effectiveMin =
+        dto.minOrderQty != null
+          ? dto.minOrderQty
+          : Number(existingOffer.minOrderQty);
+      if (dto.maxOrderQty < effectiveMin) {
+        throw new BadRequestException({
+          code: ErrorCodes.OFFER_MAX_QTY_BELOW_MIN,
+          message: 'maxOrderQty must be >= minOrderQty',
         });
       }
     }

@@ -104,7 +104,7 @@ const SUBMISSION_SEEDS: Array<{
   {
     name: '[FIXTURE] Proposition biscuits sésame',
     description: 'Biscuits artisanaux au sésame grillé, sachet 200g.',
-    saleUnit: SaleUnit.G,
+    saleUnit: SaleUnit.KG,
     priceInCents: 220,
     categoryIndex: 2,
     status: ProductSubmissionStatus.APPROVED,
@@ -135,7 +135,7 @@ const SUBMISSION_SEEDS: Array<{
   {
     name: '[FIXTURE] Proposition chips artisanales',
     description: 'Chips de pomme de terre nature, sachet 150g.',
-    saleUnit: SaleUnit.G,
+    saleUnit: SaleUnit.KG,
     categoryIndex: 2,
     status: ProductSubmissionStatus.PENDING,
   },
@@ -153,7 +153,6 @@ function saleUnitFor(i: number): SaleUnit {
   const units: SaleUnit[] = [
     SaleUnit.UNIT,
     SaleUnit.KG,
-    SaleUnit.G,
     SaleUnit.LITER,
     SaleUnit.PORTION,
   ];
