@@ -187,6 +187,24 @@
                                     </div>
 
                                     <div class="image-upload-content">
+                                        <mat-form-field appearance="outline" class="inline-field">
+                                            <mat-label>{{
+                                                'shell.adminSpace.productSubmissions.fields.imageAltText' | transloco
+                                                }}</mat-label>
+                                            <input matInput type="text" maxlength="500"
+                                                [value]="getDraft(submission).imageAltText"
+                                                (input)="onDraftImageAltTextChange(submission, $any($event.target).value)" />
+                                        </mat-form-field>
+
+                                        <mat-form-field appearance="outline" class="inline-field">
+                                            <mat-label>{{
+                                                'shell.adminSpace.productSubmissions.fields.imageDominantColor' |
+                                                transloco }}</mat-label>
+                                            <input matInput type="text" maxlength="7"
+                                                [value]="getDraft(submission).imageDominantColor"
+                                                (input)="onDraftImageDominantColorChange(submission, $any($event.target).value)" />
+                                        </mat-form-field>
+
                                         <p class="image-upload-hint">{{
                                             'shell.adminSpace.productSubmissions.fields.imageHint' | transloco }}</p>
 
@@ -391,6 +409,23 @@
                                 </div>
 
                                 <div class="image-upload-content">
+                                    <mat-form-field appearance="outline" class="inline-field">
+                                        <mat-label>{{
+                                            'shell.adminSpace.productSubmissions.fields.imageAltText' | transloco
+                                            }}</mat-label>
+                                        <input matInput type="text" maxlength="500" [value]="getDraft(row).imageAltText"
+                                            (input)="onDraftImageAltTextChange(row, $any($event.target).value)" />
+                                    </mat-form-field>
+
+                                    <mat-form-field appearance="outline" class="inline-field">
+                                        <mat-label>{{
+                                            'shell.adminSpace.productSubmissions.fields.imageDominantColor' | transloco
+                                            }}</mat-label>
+                                        <input matInput type="text" maxlength="7"
+                                            [value]="getDraft(row).imageDominantColor"
+                                            (input)="onDraftImageDominantColorChange(row, $any($event.target).value)" />
+                                    </mat-form-field>
+
                                     <input #desktopImageInput type="file" accept="image/*" class="visually-hidden"
                                         (change)="onSubmissionImageSelected(row, $event)" />
 

@@ -13,7 +13,10 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { forkJoin } from 'rxjs';
-import { AdminImageUploadService } from '../../../core/services/admin-image-upload.service';
+import {
+  AdminImageMetadataDraft,
+  AdminImageUploadService,
+} from '../../../core/services/admin-image-upload.service';
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import { Product } from '../../../core/models/merchant-shop.model';
@@ -277,22 +280,66 @@ export class AdminProductSubmissionsComponent {
       imageErrorKey: null,
     });
 
-    this.adminImageUploadService.uploadProductImage(file).subscribe({
-      next: (imageAsset) => {
+    const draft = this.getDraft(submission);
+    this.adminImageUploadService
+      .inferMetadata(file, draft.imageAltText || submission.name)
+      .then((autoMeta) => {
+        const mergedDraft = this.buildMergedDraftMetadata(draft, autoMeta);
+        const uploadOptions = this.validateAndBuildUploadOptions(mergedDraft);
+
+        if (!uploadOptions) {
+          this.updateDraft(submission, {
+            ...mergedDraft,
+            imageUploading: false,
+            imageErrorKey: 'auth.apiErrors.VALIDATION_ERROR',
+          });
+          return;
+        }
+
+        this.updateDraft(submission, mergedDraft);
+
+        this.adminImageUploadService
+          .uploadProductImage(file, uploadOptions)
+          .subscribe({
+            next: (imageAsset) => {
+              this.updateDraft(submission, {
+                imageUploading: false,
+                imageAssetId: imageAsset.id,
+                imagePreviewUrl: imageAsset.cdnUrl,
+                imageErrorKey: null,
+                imageAltText: imageAsset.altText ?? uploadOptions.altText,
+                imageDominantColor:
+                  imageAsset.dominantColor ?? uploadOptions.dominantColor,
+              });
+            },
+            error: (error) => {
+              this.updateDraft(submission, {
+                imageUploading: false,
+                imageErrorKey: this.mapApiError(error),
+              });
+            },
+          });
+      })
+      .catch(() => {
         this.updateDraft(submission, {
           imageUploading: false,
-          imageAssetId: imageAsset.id,
-          imagePreviewUrl: imageAsset.cdnUrl,
-          imageErrorKey: null,
+          imageErrorKey: 'auth.apiErrors.VALIDATION_ERROR',
         });
-      },
-      error: (error) => {
-        this.updateDraft(submission, {
-          imageUploading: false,
-          imageErrorKey: this.mapApiError(error),
-        });
-      },
-    });
+      });
+  }
+
+  onDraftImageAltTextChange(
+    submission: AdminProductSubmission,
+    value: string,
+  ): void {
+    this.updateDraft(submission, { imageAltText: value });
+  }
+
+  onDraftImageDominantColorChange(
+    submission: AdminProductSubmission,
+    value: string,
+  ): void {
+    this.updateDraft(submission, { imageDominantColor: value });
   }
 
   onToggleSelectOne(
@@ -612,7 +659,46 @@ export class AdminProductSubmissionsComponent {
       imagePreviewUrl: '',
       imageUploading: false,
       imageErrorKey: null,
+      imageAltText: submission.name,
+      imageDominantColor: '',
     };
+  }
+
+  private buildMergedDraftMetadata(
+    draft: InlineSubmissionDraft,
+    autoMeta: AdminImageMetadataDraft,
+  ): InlineSubmissionDraft {
+    return {
+      ...draft,
+      imageAltText: draft.imageAltText.trim() || autoMeta.altText,
+      imageDominantColor:
+        this.normalizeDominantColor(draft.imageDominantColor) ||
+        autoMeta.dominantColor,
+      imageUploading: true,
+      imageErrorKey: null,
+    };
+  }
+
+  private validateAndBuildUploadOptions(draft: InlineSubmissionDraft): {
+    targetFolder: string;
+    altText: string;
+    dominantColor: string;
+  } | null {
+    return {
+      targetFolder: 'product-submissions',
+      altText: draft.imageAltText.trim() || draft.name.trim(),
+      dominantColor: this.normalizeDominantColor(draft.imageDominantColor),
+    };
+  }
+
+  private normalizeDominantColor(value: string): string {
+    const normalized = value.trim();
+    if (!normalized) {
+      return '';
+    }
+
+    const withHash = normalized.startsWith('#') ? normalized : `#${normalized}`;
+    return /^#[0-9a-fA-F]{6}$/.test(withHash) ? withHash.toUpperCase() : '';
   }
 
   private formatDraftPrice(priceInCents: number | null): string {
@@ -755,4 +841,6 @@ interface InlineSubmissionDraft {
   imagePreviewUrl: string;
   imageUploading: boolean;
   imageErrorKey: string | null;
+  imageAltText: string;
+  imageDominantColor: string;
 }

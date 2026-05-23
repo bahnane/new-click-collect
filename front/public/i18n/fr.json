@@ -650,7 +650,9 @@
           "priceHint": "Laissez vide pour créer un produit sans prix par défaut.",
           "description": "Description",
           "image": "Image produit",
-          "imageHint": "Téléversez une image pour illustrer ce produit."
+          "imageHint": "Les champs SEO/accessibilité sont préremplis automatiquement mais restent modifiables avant l'upload.",
+          "imageAltText": "Texte alternatif",
+          "imageDominantColor": "Couleur dominante (hex)"
         },
         "status": {
           "active": "Actif",
@@ -712,7 +714,9 @@
           "saleUnit": "Unité de vente",
           "price": "Prix (DZD)",
           "description": "Description",
-          "imageHint": "Une image est obligatoire avant l'approbation.",
+          "imageHint": "Une image est obligatoire avant l'approbation. Les champs SEO/accessibilité sont préremplis automatiquement et modifiables.",
+          "imageAltText": "Texte alternatif",
+          "imageDominantColor": "Couleur dominante (hex)",
           "rejectionReason": "Motif de refus",
           "rejectionHint": "Minimum 3 caractères pour refuser une soumission."
         },

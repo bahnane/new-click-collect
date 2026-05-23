@@ -18,6 +18,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { AdminImageMetadataDraft } from '../../../../core/services/admin-image-upload.service';
 import { extractApiErrorCode } from '../../../../core/errors/api-error.util';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../../core/errors/auth-error-i18n-map';
 import { Product } from '../../../../core/models/merchant-shop.model';
@@ -172,6 +173,35 @@ export interface AdminProductEditorDialogResult {
             </div>
 
             <div class="image-actions">
+              <mat-form-field appearance="outline" class="full-inline">
+                <mat-label>{{
+                  'shell.adminSpace.products.fields.imageAltText' | transloco
+                }}</mat-label>
+                <input
+                  matInput
+                  type="text"
+                  maxlength="500"
+                  [value]="imageMeta.altText"
+                  (input)="onImageMetaAltTextChange($any($event.target).value)"
+                />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-inline">
+                <mat-label>{{
+                  'shell.adminSpace.products.fields.imageDominantColor'
+                    | transloco
+                }}</mat-label>
+                <input
+                  matInput
+                  type="text"
+                  maxlength="7"
+                  [value]="imageMeta.dominantColor"
+                  (input)="
+                    onImageMetaDominantColorChange($any($event.target).value)
+                  "
+                />
+              </mat-form-field>
+
               <p class="image-hint">
                 {{ 'shell.adminSpace.products.fields.imageHint' | transloco }}
               </p>
@@ -318,6 +348,11 @@ export interface AdminProductEditorDialogResult {
         display: grid;
         gap: 0.5rem;
         justify-items: start;
+        inline-size: 100%;
+      }
+
+      .full-inline {
+        inline-size: 100%;
       }
 
       .image-hint {
@@ -401,6 +436,12 @@ export class AdminProductEditorDialogComponent implements OnInit {
   imageUploading = false;
   imageAssetId: string | null = null;
   imagePreviewUrl: string | null = null;
+  imageMeta: AdminImageMetadataDraft = {
+    altText: '',
+    focalPointX: 0.5,
+    focalPointY: 0.5,
+    dominantColor: '',
+  };
 
   form = new FormGroup({
     name: new FormControl('', {
@@ -450,10 +491,25 @@ export class AdminProductEditorDialogComponent implements OnInit {
       }
     });
 
+    this.form.controls.name.valueChanges.subscribe((name) => {
+      if (!this.imageMeta.altText.trim()) {
+        this.imageMeta = {
+          ...this.imageMeta,
+          altText: name.trim(),
+        };
+      }
+    });
+
     if (this.isEditMode && this.data.product) {
       const p = this.data.product;
       this.imageAssetId = p.imageAsset?.id ?? null;
       this.imagePreviewUrl = p.imageAsset?.cdnUrl ?? null;
+      this.imageMeta = {
+        altText: p.imageAsset?.altText ?? p.name,
+        focalPointX: p.imageAsset?.focalPointX ?? 0.5,
+        focalPointY: p.imageAsset?.focalPointY ?? 0.5,
+        dominantColor: p.imageAsset?.dominantColor ?? '',
+      };
       this.form.patchValue({
         name: p.name,
         categoryId: p.category.id,
@@ -463,6 +519,10 @@ export class AdminProductEditorDialogComponent implements OnInit {
         description: p.description ?? '',
       });
     } else if (this.rootCategories.length > 0) {
+      this.imageMeta = {
+        ...this.imageMeta,
+        altText: this.form.controls.name.value.trim(),
+      };
       this.form.patchValue({
         categoryId: this.rootCategories[0].id,
       });
@@ -582,17 +642,123 @@ export class AdminProductEditorDialogComponent implements OnInit {
     this.imageUploading = true;
     this.imageErrorKey = null;
 
-    this.adminImageUploadService.uploadProductImage(file).subscribe({
-      next: (imageAsset) => {
+    this.adminImageUploadService
+      .inferMetadata(
+        file,
+        this.imageMeta.altText || this.form.controls.name.value.trim(),
+      )
+      .then((autoMeta) => {
+        this.imageMeta = {
+          altText: this.imageMeta.altText || autoMeta.altText,
+          focalPointX:
+            this.normalizeFocalPoint(this.imageMeta.focalPointX) ??
+            autoMeta.focalPointX,
+          focalPointY:
+            this.normalizeFocalPoint(this.imageMeta.focalPointY) ??
+            autoMeta.focalPointY,
+          dominantColor:
+            this.normalizeDominantColor(this.imageMeta.dominantColor) ||
+            autoMeta.dominantColor,
+        };
+
+        const metadata = this.validateAndBuildMetadata();
+        if (!metadata) {
+          this.imageUploading = false;
+          return;
+        }
+
+        this.adminImageUploadService
+          .uploadProductImage(file, metadata)
+          .subscribe({
+            next: (imageAsset) => {
+              this.imageUploading = false;
+              this.imageAssetId = imageAsset.id;
+              this.imagePreviewUrl = imageAsset.cdnUrl;
+              this.imageMeta = {
+                altText: imageAsset.altText ?? metadata.altText,
+                focalPointX: imageAsset.focalPointX ?? metadata.focalPointX,
+                focalPointY: imageAsset.focalPointY ?? metadata.focalPointY,
+                dominantColor:
+                  imageAsset.dominantColor ?? metadata.dominantColor,
+              };
+            },
+            error: (error) => {
+              this.imageUploading = false;
+              this.imageErrorKey = this.mapApiError(error);
+            },
+          });
+      })
+      .catch(() => {
         this.imageUploading = false;
-        this.imageAssetId = imageAsset.id;
-        this.imagePreviewUrl = imageAsset.cdnUrl;
-      },
-      error: (error) => {
-        this.imageUploading = false;
-        this.imageErrorKey = this.mapApiError(error);
-      },
-    });
+        this.imageErrorKey = 'auth.apiErrors.VALIDATION_ERROR';
+      });
+  }
+
+  onImageMetaAltTextChange(value: string): void {
+    this.imageMeta = {
+      ...this.imageMeta,
+      altText: value,
+    };
+  }
+
+  onImageMetaDominantColorChange(value: string): void {
+    this.imageMeta = {
+      ...this.imageMeta,
+      dominantColor: value,
+    };
+  }
+
+  private validateAndBuildMetadata(): {
+    targetFolder: string;
+    altText: string;
+    focalPointX: number;
+    focalPointY: number;
+    dominantColor: string;
+  } | null {
+    const focalPointX = this.normalizeFocalPoint(this.imageMeta.focalPointX);
+    const focalPointY = this.normalizeFocalPoint(this.imageMeta.focalPointY);
+    const dominantColor = this.normalizeDominantColor(
+      this.imageMeta.dominantColor,
+    );
+
+    if (focalPointX === null || focalPointY === null) {
+      this.imageErrorKey = 'auth.apiErrors.VALIDATION_ERROR';
+      return null;
+    }
+
+    this.imageMeta = {
+      ...this.imageMeta,
+      focalPointX,
+      focalPointY,
+      dominantColor,
+    };
+
+    return {
+      targetFolder: 'products',
+      altText:
+        this.imageMeta.altText.trim() || this.form.controls.name.value.trim(),
+      focalPointX,
+      focalPointY,
+      dominantColor,
+    };
+  }
+
+  private normalizeFocalPoint(value: number): number | null {
+    if (!Number.isFinite(value) || value < 0 || value > 1) {
+      return null;
+    }
+
+    return Math.round(value * 100) / 100;
+  }
+
+  private normalizeDominantColor(value: string): string {
+    const normalized = value.trim();
+    if (!normalized) {
+      return '';
+    }
+
+    const withHash = normalized.startsWith('#') ? normalized : `#${normalized}`;
+    return /^#[0-9a-fA-F]{6}$/.test(withHash) ? withHash.toUpperCase() : '';
   }
 
   get imagePreviewAlt(): string {
