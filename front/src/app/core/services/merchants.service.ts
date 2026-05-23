@@ -1,7 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { SKIP_AUTH_INTERCEPTOR } from '../http/auth-context';
 import {
   ImageAsset,
   MerchantProfile,
@@ -99,7 +100,7 @@ export interface GenerateAdminImageUploadUrlResponse {
   uploadUrl: string;
   expiresInSeconds: number;
   method: 'PUT';
-  requiredHeaders: Record<string, string>;
+  headers: Record<string, string>;
   cdnUrl: string;
 }
 
@@ -579,6 +580,7 @@ export class MerchantsService {
     return this.http
       .put(uploadUrl, file, {
         headers: requiredHeaders,
+        context: new HttpContext().set(SKIP_AUTH_INTERCEPTOR, true),
         responseType: 'text',
       })
       .pipe(map(() => undefined));

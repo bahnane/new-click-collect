@@ -39,11 +39,7 @@ export class AdminImageUploadService {
           .pipe(
             switchMap((upload) =>
               this.merchantsService
-                .uploadImageToStorage(
-                  upload.uploadUrl,
-                  file,
-                  upload.requiredHeaders,
-                )
+                .uploadImageToStorage(upload.uploadUrl, file, upload.headers)
                 .pipe(
                   switchMap(() => {
                     const payload: FinalizeAdminImageUploadPayload = {
