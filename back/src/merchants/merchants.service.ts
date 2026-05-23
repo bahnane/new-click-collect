@@ -67,6 +67,8 @@ export class MerchantsService {
               businessType: dto.businessType,
               phone: dto.phone,
               address: dto.address,
+              latitude: dto.latitude,
+              longitude: dto.longitude,
               ...(dto.openingHours?.length
                 ? {
                     openingHours: {
@@ -172,6 +174,8 @@ export class MerchantsService {
           city: true,
           zipCode: true,
           address: true,
+          latitude: true,
+          longitude: true,
           isActive: true,
         },
       }),
@@ -199,6 +203,8 @@ export class MerchantsService {
         address: true,
         city: true,
         zipCode: true,
+        latitude: true,
+        longitude: true,
         isActive: true,
         openingHours: {
           orderBy: { dayOfWeek: 'asc' },
