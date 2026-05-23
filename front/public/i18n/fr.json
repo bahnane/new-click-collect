@@ -130,6 +130,12 @@
       "PRODUCT_SUBMISSION_INVALID_STATUS": "Statut de soumission invalide.",
       "PRODUCT_SUBMISSION_ALREADY_REVIEWED": "Seules les soumissions en attente peuvent être traitées.",
       "PRODUCT_SUBMISSION_REJECTION_REASON_REQUIRED": "Le motif de rejet est obligatoire.",
+      "IMAGE_ASSET_NOT_FOUND": "Image introuvable.",
+      "IMAGE_ASSET_DUPLICATE": "Cette image existe déjà.",
+      "IMAGE_UPLOAD_INVALID_MIME": "Le type de fichier image n'est pas autorisé.",
+      "IMAGE_UPLOAD_SIZE_EXCEEDED": "Le fichier image dépasse la taille maximale autorisée.",
+      "IMAGE_UPLOAD_OBJECT_NOT_FOUND": "Le fichier image transféré est introuvable.",
+      "IMAGE_UPLOAD_STORAGE_UNAVAILABLE": "Le stockage des images est temporairement indisponible.",
       "OFFER_NOT_FOUND": "Offre introuvable.",
       "OFFER_ALREADY_EXISTS_FOR_PRODUCT": "Une offre existe déjà pour ce produit.",
       "OFFER_PRICE_REQUIRED": "Un prix est requis pour cette offre.",
@@ -642,7 +648,9 @@
           "saleUnit": "Unité de vente",
           "price": "Prix (DZD)",
           "priceHint": "Laissez vide pour créer un produit sans prix par défaut.",
-          "description": "Description"
+          "description": "Description",
+          "image": "Image produit",
+          "imageHint": "Téléversez une image pour illustrer ce produit."
         },
         "status": {
           "active": "Actif",
@@ -652,6 +660,8 @@
           "new": "Nouveau produit",
           "create": "Créer le produit",
           "edit": "Modifier",
+          "uploadImage": "Ajouter une image",
+          "replaceImage": "Remplacer l'image",
           "activate": "Activer",
           "deactivate": "Désactiver"
         },
@@ -663,7 +673,9 @@
           "created": "Produit créé avec succès.",
           "updated": "Produit mis à jour avec succès.",
           "activated": "Produit activé avec succès.",
-          "deactivated": "Produit désactivé avec succès."
+          "deactivated": "Produit désactivé avec succès.",
+          "imageUploading": "Téléversement de l'image en cours...",
+          "imageUploaded": "Image prête pour ce produit."
         }
       },
       "productSubmissions": {
@@ -688,6 +700,7 @@
           "saleUnit": "Unité",
           "price": "Prix",
           "description": "Description",
+          "image": "Image",
           "status": "Statut",
           "rejectionReason": "Motif de refus"
         },
@@ -699,6 +712,7 @@
           "saleUnit": "Unité de vente",
           "price": "Prix (DZD)",
           "description": "Description",
+          "imageHint": "Une image est obligatoire avant l'approbation.",
           "rejectionReason": "Motif de refus",
           "rejectionHint": "Minimum 3 caractères pour refuser une soumission."
         },
@@ -712,6 +726,8 @@
           "approve": "Approuver",
           "reject": "Refuser",
           "approveWithEdits": "Approuver avec modifications",
+          "uploadImage": "Ajouter une image",
+          "replaceImage": "Remplacer l'image",
           "selectAllPending": "Sélectionner tout (en attente)",
           "approveSelected": "Approuver la sélection",
           "rejectSelected": "Refuser la sélection"
@@ -725,11 +741,15 @@
           "batchApprovedOne": "1 soumission approuvée.",
           "batchApprovedMany": "Soumissions approuvées avec succès.",
           "batchRejectedOne": "1 soumission refusée.",
-          "batchRejectedMany": "Soumissions refusées avec succès."
+          "batchRejectedMany": "Soumissions refusées avec succès.",
+          "imageUploading": "Téléversement de l'image en cours...",
+          "imageUploaded": "Image prête pour l'approbation."
         },
         "errors": {
           "rejectionReasonRequired": "Le motif de refus doit contenir au moins 3 caractères.",
-          "rejectionReasonRequiredForSelected": "Renseignez un motif de refus (3 caractères minimum) pour chaque soumission sélectionnée."
+          "rejectionReasonRequiredForSelected": "Renseignez un motif de refus (3 caractères minimum) pour chaque soumission sélectionnée.",
+          "imageRequired": "Ajoutez une image avant d'approuver cette soumission.",
+          "imageUploadInProgress": "Patientez pendant le téléversement de l'image avant d'approuver."
         },
         "diff": {
           "tooltip": "Des modifications ont été apportées avant approbation — voir le comparatif"

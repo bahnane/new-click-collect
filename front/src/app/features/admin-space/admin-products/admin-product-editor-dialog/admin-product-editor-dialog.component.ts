@@ -21,6 +21,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { extractApiErrorCode } from '../../../../core/errors/api-error.util';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../../core/errors/auth-error-i18n-map';
 import { Product } from '../../../../core/models/merchant-shop.model';
+import { AdminImageUploadService } from '../../../../core/services/admin-image-upload.service';
 import {
   AdminCatalogProduct,
   AdminProductCategory,
@@ -42,6 +43,7 @@ export interface AdminProductEditorPayload {
   saleUnit: Product['saleUnit'];
   description?: string;
   priceInCents: number | undefined;
+  imageAssetId?: string;
 }
 
 export interface AdminProductEditorDialogResult {
@@ -115,9 +117,6 @@ export interface AdminProductEditorDialogResult {
             <mat-option value="KG">{{
               'shop.saleUnit.kg' | transloco
             }}</mat-option>
-            <mat-option value="G">{{
-              'shop.saleUnit.g' | transloco
-            }}</mat-option>
             <mat-option value="LITER">{{
               'shop.saleUnit.liter' | transloco
             }}</mat-option>
@@ -151,6 +150,85 @@ export interface AdminProductEditorDialogResult {
           }}</mat-label>
           <textarea matInput rows="3" formControlName="description"></textarea>
         </mat-form-field>
+
+        <div class="full-width image-section">
+          <span class="image-section-label">{{
+            'shell.adminSpace.products.fields.image' | transloco
+          }}</span>
+
+          <div class="image-panel">
+            <div class="image-preview">
+              @if (imagePreviewUrl) {
+                <img
+                  [src]="imagePreviewUrl"
+                  [alt]="imagePreviewAlt"
+                  loading="lazy"
+                />
+              } @else {
+                <div class="image-placeholder" aria-hidden="true">
+                  <mat-icon>image</mat-icon>
+                </div>
+              }
+            </div>
+
+            <div class="image-actions">
+              <p class="image-hint">
+                {{ 'shell.adminSpace.products.fields.imageHint' | transloco }}
+              </p>
+
+              <input
+                #imageInput
+                type="file"
+                accept="image/*"
+                class="visually-hidden"
+                (change)="onImageSelected($event)"
+              />
+
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="saving || imageUploading"
+                (click)="imageInput.click()"
+              >
+                <mat-icon aria-hidden="true">upload</mat-icon>
+                {{
+                  (imageAssetId
+                    ? 'shell.adminSpace.products.actions.replaceImage'
+                    : 'shell.adminSpace.products.actions.uploadImage'
+                  ) | transloco
+                }}
+              </button>
+
+              @if (imageUploading) {
+                <div class="image-status" aria-live="polite">
+                  <mat-spinner diameter="18"></mat-spinner>
+                  <span>{{
+                    'shell.adminSpace.products.messages.imageUploading'
+                      | transloco
+                  }}</span>
+                </div>
+              } @else if (imageAssetId) {
+                <p class="image-success" aria-live="polite">
+                  {{
+                    'shell.adminSpace.products.messages.imageUploaded'
+                      | transloco
+                  }}
+                </p>
+              }
+
+              @if (imageErrorKey) {
+                <div
+                  class="error-row image-error"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  <mat-icon aria-hidden="true">error_outline</mat-icon>
+                  <span>{{ imageErrorKey | transloco }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
       </form>
     </mat-dialog-content>
 
@@ -167,7 +245,7 @@ export interface AdminProductEditorDialogResult {
       <button
         mat-flat-button
         color="primary"
-        [disabled]="form.invalid || saving"
+        [disabled]="form.invalid || saving || imageUploading"
         (click)="submit()"
       >
         @if (saving) {
@@ -192,6 +270,87 @@ export interface AdminProductEditorDialogResult {
 
       .editor-form .full-width {
         grid-column: 1 / -1;
+      }
+
+      .image-section {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .image-section-label {
+        font: var(--mat-sys-title-small);
+      }
+
+      .image-panel {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+        align-items: start;
+        padding: 0.75rem;
+        border: 1px solid var(--mat-sys-outline-variant);
+        border-radius: 1rem;
+      }
+
+      .image-preview {
+        aspect-ratio: 1;
+        border-radius: 0.875rem;
+        overflow: hidden;
+        background: color-mix(
+          in srgb,
+          var(--mat-sys-surface-variant) 75%,
+          transparent
+        );
+        display: grid;
+        place-items: center;
+      }
+
+      .image-preview img {
+        inline-size: 100%;
+        block-size: 100%;
+        object-fit: cover;
+      }
+
+      .image-placeholder {
+        color: var(--mat-sys-on-surface-variant);
+      }
+
+      .image-actions {
+        display: grid;
+        gap: 0.5rem;
+        justify-items: start;
+      }
+
+      .image-hint {
+        margin: 0;
+        color: var(--mat-sys-on-surface-variant);
+      }
+
+      .image-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .image-success {
+        margin: 0;
+        color: #176b2c;
+        font-weight: 600;
+      }
+
+      .image-error {
+        margin-block-end: 0;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
       }
 
       .editor-form mat-form-field:has(mat-hint) {
@@ -223,16 +382,25 @@ export interface AdminProductEditorDialogResult {
         .editor-form {
           grid-template-columns: 1fr;
         }
+
+        .image-panel {
+          grid-template-columns: 1fr;
+        }
       }
     `,
   ],
 })
 export class AdminProductEditorDialogComponent implements OnInit {
   private readonly merchantsService = inject(MerchantsService);
+  private readonly adminImageUploadService = inject(AdminImageUploadService);
 
   isEditMode: boolean;
   saving = false;
   apiErrorKey: string | null = null;
+  imageErrorKey: string | null = null;
+  imageUploading = false;
+  imageAssetId: string | null = null;
+  imagePreviewUrl: string | null = null;
 
   form = new FormGroup({
     name: new FormControl('', {
@@ -284,6 +452,8 @@ export class AdminProductEditorDialogComponent implements OnInit {
 
     if (this.isEditMode && this.data.product) {
       const p = this.data.product;
+      this.imageAssetId = p.imageAsset?.id ?? null;
+      this.imagePreviewUrl = p.imageAsset?.cdnUrl ?? null;
       this.form.patchValue({
         name: p.name,
         categoryId: p.category.id,
@@ -300,7 +470,7 @@ export class AdminProductEditorDialogComponent implements OnInit {
   }
 
   submit(): void {
-    if (this.saving || this.form.invalid) {
+    if (this.saving || this.form.invalid || this.imageUploading) {
       this.form.markAllAsTouched();
       return;
     }
@@ -319,6 +489,7 @@ export class AdminProductEditorDialogComponent implements OnInit {
       saleUnit: this.form.controls.saleUnit.value,
       description: this.form.controls.description.value.trim() || undefined,
       priceInCents: priceInCents ?? undefined,
+      ...(this.imageAssetId ? { imageAssetId: this.imageAssetId } : {}),
     };
 
     this.saving = true;
@@ -397,5 +568,34 @@ export class AdminProductEditorDialogComponent implements OnInit {
       AUTH_ERROR_I18N_KEY_BY_CODE[code] ||
       'auth.apiErrors.INTERNAL_SERVER_ERROR'
     );
+  }
+
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.item(0);
+    input.value = '';
+
+    if (!file || this.imageUploading) {
+      return;
+    }
+
+    this.imageUploading = true;
+    this.imageErrorKey = null;
+
+    this.adminImageUploadService.uploadProductImage(file).subscribe({
+      next: (imageAsset) => {
+        this.imageUploading = false;
+        this.imageAssetId = imageAsset.id;
+        this.imagePreviewUrl = imageAsset.cdnUrl;
+      },
+      error: (error) => {
+        this.imageUploading = false;
+        this.imageErrorKey = this.mapApiError(error);
+      },
+    });
+  }
+
+  get imagePreviewAlt(): string {
+    return this.form.controls.name.value.trim();
   }
 }

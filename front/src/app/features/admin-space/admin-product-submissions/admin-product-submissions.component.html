@@ -132,7 +132,6 @@
                                     <mat-select [value]="getDraft(submission).saleUnit"
                                         (valueChange)="updateDraft(submission, { saleUnit: $event })">
                                         <mat-option value="KG">{{ 'shop.saleUnit.kg' | transloco }}</mat-option>
-                                        <mat-option value="G">{{ 'shop.saleUnit.g' | transloco }}</mat-option>
                                         <mat-option value="LITER">{{ 'shop.saleUnit.liter' | transloco }}</mat-option>
                                         <mat-option value="UNIT">{{ 'shop.saleUnit.unit' | transloco }}</mat-option>
                                         <mat-option value="PORTION">{{ 'shop.saleUnit.portion' | transloco
@@ -170,6 +169,63 @@
                                     [matTooltipDisabled]="!submission.description">
                                     {{ getDescriptionPreview(submission.description, 90) }}
                                 </span>
+                                }
+                            </dd>
+                        </div>
+                        <div>
+                            <dt>{{ 'shell.adminSpace.productSubmissions.columns.image' | transloco }}</dt>
+                            <dd>
+                                @if (canReview(submission)) {
+                                <div class="image-upload-block">
+                                    <div class="image-preview-tile">
+                                        @if (getDraft(submission).imagePreviewUrl) {
+                                        <img [src]="getDraft(submission).imagePreviewUrl"
+                                            [alt]="getDraftImageAlt(submission)" loading="lazy" />
+                                        } @else {
+                                        <mat-icon aria-hidden="true">image</mat-icon>
+                                        }
+                                    </div>
+
+                                    <div class="image-upload-content">
+                                        <p class="image-upload-hint">{{
+                                            'shell.adminSpace.productSubmissions.fields.imageHint' | transloco }}</p>
+
+                                        <input #mobileImageInput type="file" accept="image/*" class="visually-hidden"
+                                            (change)="onSubmissionImageSelected(submission, $event)" />
+
+                                        <button mat-stroked-button type="button"
+                                            [disabled]="getDraft(submission).imageUploading || reviewingId() === submission.id"
+                                            (click)="mobileImageInput.click()">
+                                            <mat-icon aria-hidden="true">upload</mat-icon>
+                                            {{
+                                            (getDraft(submission).imageAssetId
+                                            ? 'shell.adminSpace.productSubmissions.actions.replaceImage'
+                                            : 'shell.adminSpace.productSubmissions.actions.uploadImage'
+                                            ) | transloco
+                                            }}
+                                        </button>
+
+                                        @if (getDraft(submission).imageUploading) {
+                                        <div class="image-upload-status" aria-live="polite">
+                                            <mat-spinner diameter="16"></mat-spinner>
+                                            <span>{{
+                                                'shell.adminSpace.productSubmissions.messages.imageUploading' |
+                                                transloco }}</span>
+                                        </div>
+                                        } @else if (getDraft(submission).imageAssetId) {
+                                        <p class="image-upload-success" aria-live="polite">{{
+                                            'shell.adminSpace.productSubmissions.messages.imageUploaded' | transloco }}
+                                        </p>
+                                        }
+
+                                        @if (getDraft(submission).imageErrorKey) {
+                                        <p class="image-upload-error" role="alert">{{
+                                            getDraft(submission).imageErrorKey! | transloco }}</p>
+                                        }
+                                    </div>
+                                </div>
+                                } @else {
+                                -
                                 }
                             </dd>
                         </div>
@@ -213,7 +269,7 @@
                         {{ 'shell.adminSpace.productSubmissions.actions.reject' | transloco }}
                     </button>
                     <button mat-flat-button color="primary" type="button"
-                        [disabled]="!canReview(submission) || reviewingId() === submission.id"
+                        [disabled]="!canApprove(submission) || reviewingId() === submission.id"
                         (click)="onApproveInline(submission)">
                         @if (reviewingId() === submission.id) {
                         <mat-spinner diameter="16"></mat-spinner>
@@ -306,7 +362,6 @@
                                 <mat-select [value]="getDraft(row).saleUnit"
                                     (valueChange)="updateDraft(row, { saleUnit: $event })">
                                     <mat-option value="KG">{{ 'shop.saleUnit.kg' | transloco }}</mat-option>
-                                    <mat-option value="G">{{ 'shop.saleUnit.g' | transloco }}</mat-option>
                                     <mat-option value="LITER">{{ 'shop.saleUnit.liter' | transloco }}</mat-option>
                                     <mat-option value="UNIT">{{ 'shop.saleUnit.unit' | transloco }}</mat-option>
                                     <mat-option value="PORTION">{{ 'shop.saleUnit.portion' | transloco
@@ -315,6 +370,62 @@
                             </mat-form-field>
                             } @else {
                             {{ getSaleUnitLabel(row.saleUnit) | transloco }}
+                            }
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="image">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.adminSpace.productSubmissions.columns.image' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let row">
+                            @if (canReview(row)) {
+                            <div class="image-upload-block compact">
+                                <div class="image-preview-tile">
+                                    @if (getDraft(row).imagePreviewUrl) {
+                                    <img [src]="getDraft(row).imagePreviewUrl" [alt]="getDraftImageAlt(row)"
+                                        loading="lazy" />
+                                    } @else {
+                                    <mat-icon aria-hidden="true">image</mat-icon>
+                                    }
+                                </div>
+
+                                <div class="image-upload-content">
+                                    <input #desktopImageInput type="file" accept="image/*" class="visually-hidden"
+                                        (change)="onSubmissionImageSelected(row, $event)" />
+
+                                    <button mat-stroked-button type="button"
+                                        [disabled]="getDraft(row).imageUploading || reviewingId() === row.id"
+                                        (click)="desktopImageInput.click()">
+                                        <mat-icon aria-hidden="true">upload</mat-icon>
+                                        {{
+                                        (getDraft(row).imageAssetId
+                                        ? 'shell.adminSpace.productSubmissions.actions.replaceImage'
+                                        : 'shell.adminSpace.productSubmissions.actions.uploadImage'
+                                        ) | transloco
+                                        }}
+                                    </button>
+
+                                    @if (getDraft(row).imageUploading) {
+                                    <div class="image-upload-status" aria-live="polite">
+                                        <mat-spinner diameter="16"></mat-spinner>
+                                        <span>{{
+                                            'shell.adminSpace.productSubmissions.messages.imageUploading' | transloco
+                                            }}</span>
+                                    </div>
+                                    } @else if (getDraft(row).imageAssetId) {
+                                    <p class="image-upload-success" aria-live="polite">{{
+                                        'shell.adminSpace.productSubmissions.messages.imageUploaded' | transloco }}</p>
+                                    }
+
+                                    @if (getDraft(row).imageErrorKey) {
+                                    <p class="image-upload-error" role="alert">{{ getDraft(row).imageErrorKey! |
+                                        transloco }}</p>
+                                    }
+                                </div>
+                            </div>
+                            } @else {
+                            -
                             }
                         </td>
                     </ng-container>
@@ -398,7 +509,7 @@
                                     <mat-icon>close</mat-icon>
                                 </button>
                                 <button mat-icon-button type="button"
-                                    [disabled]="!canReview(row) || reviewingId() === row.id"
+                                    [disabled]="!canApprove(row) || reviewingId() === row.id"
                                     (click)="onApproveInline(row)"
                                     [attr.aria-label]="'shell.adminSpace.productSubmissions.actions.approveWithEdits' | transloco">
                                     @if (reviewingId() === row.id) {

@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  ImageAsset,
   MerchantProfile,
   ProductCategory,
   Product,
@@ -37,6 +38,7 @@ export interface ProductSubmission {
     priceInCents: number | null;
     category: { id: string; name: string; slug: string };
     subCategory: ProductCategory | null;
+    imageAsset?: ImageAsset | null;
   } | null;
 }
 
@@ -81,7 +83,34 @@ export interface AdminProductSubmission {
     isActive: boolean;
     category: { id: string; name: string; slug: string };
     subCategory: ProductCategory | null;
+    imageAsset?: ImageAsset | null;
   } | null;
+}
+
+export interface GenerateAdminImageUploadUrlPayload {
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  targetFolder?: string;
+}
+
+export interface GenerateAdminImageUploadUrlResponse {
+  storageKey: string;
+  uploadUrl: string;
+  expiresInSeconds: number;
+  method: 'PUT';
+  requiredHeaders: Record<string, string>;
+  cdnUrl: string;
+}
+
+export interface FinalizeAdminImageUploadPayload {
+  storageKey: string;
+  width?: number;
+  height?: number;
+  altText?: string;
+  focalPointX?: number;
+  focalPointY?: number;
+  dominantColor?: string;
 }
 
 export interface AdminProductSubmissionsPaginatedResponse {
@@ -100,6 +129,7 @@ export interface ReviewAdminProductSubmissionPayload {
   priceInCents?: number | null;
   categoryId?: string;
   subCategoryId?: string | null;
+  imageAssetId?: string | null;
 }
 
 export interface ApproveAdminProductSubmissionBatchItem {
@@ -110,6 +140,7 @@ export interface ApproveAdminProductSubmissionBatchItem {
   priceInCents?: number | null;
   categoryId?: string;
   subCategoryId?: string | null;
+  imageAssetId?: string | null;
 }
 
 export interface ApproveAdminProductSubmissionsBatchResponse {
@@ -200,6 +231,7 @@ export interface AdminCatalogProduct {
   saleUnit: Product['saleUnit'];
   priceInCents: number | null;
   isActive: boolean;
+  imageAsset?: ImageAsset | null;
   category: {
     id: string;
     name: string;
@@ -226,6 +258,7 @@ export interface CreateAdminCatalogProductPayload {
   priceInCents?: number;
   categoryId: string;
   subCategoryId?: string;
+  imageAssetId?: string;
 }
 
 export interface UpdateAdminCatalogProductPayload {
@@ -235,6 +268,7 @@ export interface UpdateAdminCatalogProductPayload {
   priceInCents?: number;
   categoryId?: string;
   subCategoryId?: string | null;
+  imageAssetId?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -523,6 +557,39 @@ export class MerchantsService {
     return this.http.post<ApproveAdminProductSubmissionsBatchResponse>(
       `${environment.apiUrl}/admin/product-submissions/approve-batch`,
       { items },
+      { withCredentials: true },
+    );
+  }
+
+  generateAdminImageUploadUrl(
+    payload: GenerateAdminImageUploadUrlPayload,
+  ): Observable<GenerateAdminImageUploadUrlResponse> {
+    return this.http.post<GenerateAdminImageUploadUrlResponse>(
+      `${environment.apiUrl}/admin/image-assets/upload-url`,
+      payload,
+      { withCredentials: true },
+    );
+  }
+
+  uploadImageToStorage(
+    uploadUrl: string,
+    file: File,
+    requiredHeaders: Record<string, string>,
+  ): Observable<void> {
+    return this.http
+      .put(uploadUrl, file, {
+        headers: requiredHeaders,
+        responseType: 'text',
+      })
+      .pipe(map(() => undefined));
+  }
+
+  finalizeAdminImageUpload(
+    payload: FinalizeAdminImageUploadPayload,
+  ): Observable<ImageAsset> {
+    return this.http.post<ImageAsset>(
+      `${environment.apiUrl}/admin/image-assets/finalize`,
+      payload,
       { withCredentials: true },
     );
   }

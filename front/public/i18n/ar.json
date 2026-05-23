@@ -130,6 +130,12 @@
       "PRODUCT_SUBMISSION_INVALID_STATUS": "حالة طلب المنتج غير صالحة.",
       "PRODUCT_SUBMISSION_ALREADY_REVIEWED": "لا يمكن مراجعة إلا الطلبات قيد الانتظار.",
       "PRODUCT_SUBMISSION_REJECTION_REASON_REQUIRED": "سبب الرفض مطلوب.",
+      "IMAGE_ASSET_NOT_FOUND": "الصورة غير موجودة.",
+      "IMAGE_ASSET_DUPLICATE": "هذه الصورة موجودة بالفعل.",
+      "IMAGE_UPLOAD_INVALID_MIME": "نوع ملف الصورة غير مسموح به.",
+      "IMAGE_UPLOAD_SIZE_EXCEEDED": "حجم ملف الصورة يتجاوز الحد المسموح.",
+      "IMAGE_UPLOAD_OBJECT_NOT_FOUND": "ملف الصورة المرفوع غير موجود.",
+      "IMAGE_UPLOAD_STORAGE_UNAVAILABLE": "تخزين الصور غير متاح مؤقتًا.",
       "OFFER_NOT_FOUND": "العرض غير موجود.",
       "OFFER_ALREADY_EXISTS_FOR_PRODUCT": "يوجد عرض لهذا المنتج بالفعل.",
       "OFFER_PRICE_REQUIRED": "يجب تحديد سعر لهذا العرض.",
@@ -642,7 +648,9 @@
           "saleUnit": "وحدة البيع",
           "price": "السعر (دج)",
           "priceHint": "اتركه فارغًا لإنشاء منتج بدون سعر افتراضي.",
-          "description": "الوصف"
+          "description": "الوصف",
+          "image": "صورة المنتج",
+          "imageHint": "ارفع صورة لعرض هذا المنتج."
         },
         "status": {
           "active": "نشط",
@@ -652,6 +660,8 @@
           "new": "منتج جديد",
           "create": "إنشاء المنتج",
           "edit": "تعديل",
+          "uploadImage": "إضافة صورة",
+          "replaceImage": "استبدال الصورة",
           "activate": "تفعيل",
           "deactivate": "تعطيل"
         },
@@ -663,7 +673,9 @@
           "created": "تم إنشاء المنتج بنجاح.",
           "updated": "تم تحديث المنتج بنجاح.",
           "activated": "تم تفعيل المنتج بنجاح.",
-          "deactivated": "تم تعطيل المنتج بنجاح."
+          "deactivated": "تم تعطيل المنتج بنجاح.",
+          "imageUploading": "جارٍ رفع الصورة...",
+          "imageUploaded": "أصبحت الصورة جاهزة لهذا المنتج."
         }
       },
       "productSubmissions": {
@@ -688,6 +700,7 @@
           "saleUnit": "الوحدة",
           "price": "السعر",
           "description": "الوصف",
+          "image": "الصورة",
           "status": "الحالة",
           "rejectionReason": "سبب الرفض"
         },
@@ -699,6 +712,7 @@
           "saleUnit": "وحدة البيع",
           "price": "السعر (دج)",
           "description": "الوصف",
+          "imageHint": "الصورة مطلوبة قبل قبول الطلب.",
           "rejectionReason": "سبب الرفض",
           "rejectionHint": "3 أحرف على الأقل لرفض الطلب."
         },
@@ -712,6 +726,8 @@
           "approve": "قبول",
           "reject": "رفض",
           "approveWithEdits": "قبول مع التعديل",
+          "uploadImage": "إضافة صورة",
+          "replaceImage": "استبدال الصورة",
           "selectAllPending": "تحديد الكل (قيد الانتظار)",
           "approveSelected": "قبول المحدد",
           "rejectSelected": "رفض المحدد"
@@ -725,11 +741,15 @@
           "batchApprovedOne": "تم قبول طلب واحد.",
           "batchApprovedMany": "تم قبول الطلبات بنجاح.",
           "batchRejectedOne": "تم رفض طلب واحد.",
-          "batchRejectedMany": "تم رفض الطلبات بنجاح."
+          "batchRejectedMany": "تم رفض الطلبات بنجاح.",
+          "imageUploading": "جارٍ رفع الصورة...",
+          "imageUploaded": "أصبحت الصورة جاهزة للموافقة."
         },
         "errors": {
           "rejectionReasonRequired": "سبب الرفض يجب أن يحتوي على 3 أحرف على الأقل.",
-          "rejectionReasonRequiredForSelected": "يرجى إدخال سبب رفض (3 أحرف على الأقل) لكل طلب محدد."
+          "rejectionReasonRequiredForSelected": "يرجى إدخال سبب رفض (3 أحرف على الأقل) لكل طلب محدد.",
+          "imageRequired": "أضف صورة قبل قبول هذا الطلب.",
+          "imageUploadInProgress": "يرجى انتظار انتهاء رفع الصورة قبل القبول."
         },
         "diff": {
           "tooltip": "تم تعديل هذا الاقتراح قبل الموافقة — انقر لمقارنة النسختين"

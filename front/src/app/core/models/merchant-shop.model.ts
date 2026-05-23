@@ -68,6 +68,28 @@ export interface ProductCategory {
   name: string;
   slug: string;
   isActive?: boolean;
+  imageAsset?: ImageAsset | null;
+}
+
+export interface ImageAssetVariant {
+  variantKey: string;
+  cdnUrl: string;
+  width: number | null;
+  height: number | null;
+  format: string | null;
+}
+
+export interface ImageAsset {
+  id: string;
+  cdnUrl: string;
+  blurDataUrl?: string | null;
+  altText?: string | null;
+  focalPointX?: number | null;
+  focalPointY?: number | null;
+  dominantColor?: string | null;
+  width?: number | null;
+  height?: number | null;
+  variants?: ImageAssetVariant[];
 }
 
 export interface Product {
@@ -78,6 +100,7 @@ export interface Product {
   priceInCents: number | null;
   category: ProductCategory;
   subCategory?: ProductCategory | null;
+  imageAsset?: ImageAsset | null;
 }
 
 export interface StoreOffer {

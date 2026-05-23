@@ -13,6 +13,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { forkJoin } from 'rxjs';
+import { AdminImageUploadService } from '../../../core/services/admin-image-upload.service';
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import { Product } from '../../../core/models/merchant-shop.model';
@@ -50,6 +51,7 @@ import { SubmissionDiffDialogComponent } from '../../merchant-space/merchant-pro
 })
 export class AdminProductSubmissionsComponent {
   private readonly merchantsService = inject(MerchantsService);
+  private readonly adminImageUploadService = inject(AdminImageUploadService);
   private readonly dialog = inject(MatDialog);
   private readonly uiFeedback = inject(UiFeedbackService);
 
@@ -79,6 +81,7 @@ export class AdminProductSubmissionsComponent {
     'saleUnit',
     'price',
     'description',
+    'image',
     'status',
     'actions',
   ];
@@ -257,6 +260,41 @@ export class AdminProductSubmissionsComponent {
       });
   }
 
+  onSubmissionImageSelected(
+    submission: AdminProductSubmission,
+    event: Event,
+  ): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.item(0);
+    input.value = '';
+
+    if (!file || this.getDraft(submission).imageUploading) {
+      return;
+    }
+
+    this.updateDraft(submission, {
+      imageUploading: true,
+      imageErrorKey: null,
+    });
+
+    this.adminImageUploadService.uploadProductImage(file).subscribe({
+      next: (imageAsset) => {
+        this.updateDraft(submission, {
+          imageUploading: false,
+          imageAssetId: imageAsset.id,
+          imagePreviewUrl: imageAsset.cdnUrl,
+          imageErrorKey: null,
+        });
+      },
+      error: (error) => {
+        this.updateDraft(submission, {
+          imageUploading: false,
+          imageErrorKey: this.mapApiError(error),
+        });
+      },
+    });
+  }
+
   onToggleSelectOne(
     submission: AdminProductSubmission,
     checked: boolean,
@@ -415,6 +453,15 @@ export class AdminProductSubmissionsComponent {
     return submission.status === 'PENDING';
   }
 
+  canApprove(submission: AdminProductSubmission): boolean {
+    const draft = this.getDraft(submission);
+    return (
+      this.canReview(submission) &&
+      !draft.imageUploading &&
+      !!draft.imageAssetId
+    );
+  }
+
   hasApprovedDiff(submission: AdminProductSubmission): boolean {
     if (submission.status !== 'APPROVED' || !submission.approvedProduct) {
       return false;
@@ -523,6 +570,10 @@ export class AdminProductSubmissionsComponent {
     return (priceInCents / 100).toFixed(2);
   }
 
+  getDraftImageAlt(submission: AdminProductSubmission): string {
+    return this.getDraft(submission).name.trim() || submission.name;
+  }
+
   private pruneSelectionForCurrentPage(): void {
     const visiblePendingIds = new Set(
       this.pendingItemsOnPage().map((item) => item.id),
@@ -557,6 +608,10 @@ export class AdminProductSubmissionsComponent {
       price: this.formatDraftPrice(submission.priceInCents),
       description: submission.description ?? '',
       rejectionReason: submission.rejectionReason ?? '',
+      imageAssetId: '',
+      imagePreviewUrl: '',
+      imageUploading: false,
+      imageErrorKey: null,
     };
   }
 
@@ -594,8 +649,23 @@ export class AdminProductSubmissionsComponent {
       return null;
     }
 
+    if (draft.imageUploading) {
+      this.actionErrorKey.set(
+        'shell.adminSpace.productSubmissions.errors.imageUploadInProgress',
+      );
+      return null;
+    }
+
+    if (!draft.imageAssetId) {
+      this.actionErrorKey.set(
+        'shell.adminSpace.productSubmissions.errors.imageRequired',
+      );
+      return null;
+    }
+
     const payload: ReviewAdminProductSubmissionPayload = {
       status: 'APPROVED',
+      imageAssetId: draft.imageAssetId,
     };
 
     if (name !== submission.name) {
@@ -646,6 +716,7 @@ export class AdminProductSubmissionsComponent {
       ...(payload.priceInCents !== undefined
         ? { priceInCents: payload.priceInCents }
         : {}),
+      ...(payload.imageAssetId ? { imageAssetId: payload.imageAssetId } : {}),
     };
   }
 
@@ -680,4 +751,8 @@ interface InlineSubmissionDraft {
   price: string;
   description: string;
   rejectionReason: string;
+  imageAssetId: string;
+  imagePreviewUrl: string;
+  imageUploading: boolean;
+  imageErrorKey: string | null;
 }
