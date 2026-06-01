@@ -433,6 +433,7 @@
           "price": "Prix",
           "minQty": "Quantité minimale",
           "stepQty": "Pas",
+          "maxQty": "Quantité maximale",
           "status": "Statut"
         },
         "status": {
