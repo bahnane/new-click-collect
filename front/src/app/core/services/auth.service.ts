@@ -1,5 +1,7 @@
 import { HttpClient, HttpContext } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   catchError,
@@ -60,11 +62,15 @@ interface ActivateInvitePayload {
   password: string;
 }
 
+const SESSION_HINT_STORAGE_KEY = 'auth.session.active';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
   private readonly languageService = inject(LanguageService);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   private readonly _accessToken = signal<string | null>(null);
   private readonly _currentUser = signal<User | null>(null);
@@ -169,6 +175,10 @@ export class AuthService {
       return of(null);
     }
 
+    if (!this.hasSessionHint()) {
+      return of(null);
+    }
+
     if (this.refreshInFlight$) {
       return this.refreshInFlight$;
     }
@@ -198,12 +208,6 @@ export class AuthService {
     return this.refreshInFlight$;
   }
 
-  clearSession(): void {
-    this._accessToken.set(null);
-    this._currentUser.set(null);
-    this.languageService.clearStoredLanguage();
-  }
-
   getAccessToken(): string | null {
     return this._accessToken();
   }
@@ -231,6 +235,10 @@ export class AuthService {
     this._accessToken.set(response.accessToken);
     this._currentUser.set(response.user);
     this.languageService.setLanguage(response.user.preferredLanguage);
+
+    if (this.isBrowser) {
+      window.localStorage.setItem(SESSION_HINT_STORAGE_KEY, '1');
+    }
   }
 
   private withCurrentLanguage(
@@ -240,5 +248,23 @@ export class AuthService {
       ...payload,
       preferredLanguage: this.languageService.currentLanguage(),
     };
+  }
+
+  private hasSessionHint(): boolean {
+    if (!this.isBrowser) {
+      return false;
+    }
+
+    return window.localStorage.getItem(SESSION_HINT_STORAGE_KEY) === '1';
+  }
+
+  clearSession(): void {
+    this._accessToken.set(null);
+    this._currentUser.set(null);
+    this.languageService.clearStoredLanguage();
+
+    if (this.isBrowser) {
+      window.localStorage.removeItem(SESSION_HINT_STORAGE_KEY);
+    }
   }
 }
