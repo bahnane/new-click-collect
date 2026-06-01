@@ -119,6 +119,7 @@ export class MerchantsService {
       createdUser.email,
       activationLink,
       createdUser.merchantProfile?.storeName ?? dto.storeName,
+      createdUser.preferredLanguage,
     );
 
     return {

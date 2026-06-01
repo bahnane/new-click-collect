@@ -592,6 +592,7 @@ export class OrdersService {
           customer: {
             select: {
               email: true,
+              preferredLanguage: true,
             },
           },
           merchant: {
@@ -600,6 +601,7 @@ export class OrdersService {
               user: {
                 select: {
                   email: true,
+                  preferredLanguage: true,
                 },
               },
             },
@@ -633,17 +635,23 @@ export class OrdersService {
           this.mailService.sendCustomerOrderPendingEmail(
             order.customer.email,
             payload,
+            order.customer.preferredLanguage,
           ),
           this.mailService.sendMerchantNewOrderEmail(
             order.merchant.user.email,
             payload,
+            order.merchant.user.preferredLanguage,
           ),
         ]);
         return;
       }
 
-      const statusLabel = this.getCustomerStatusLabel(status);
-      if (!statusLabel) {
+      if (
+        status !== OrderStatus.CONFIRMED &&
+        status !== OrderStatus.READY &&
+        status !== OrderStatus.COLLECTED &&
+        status !== OrderStatus.CANCELLED
+      ) {
         return;
       }
 
@@ -651,49 +659,16 @@ export class OrdersService {
         order.customer.email,
         {
           ...payload,
-          status: statusLabel,
+          status,
           cancellationReason: order.cancellationReason,
         },
+        order.customer.preferredLanguage,
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(
         `Failed to send order notification for ${orderId}: ${message}`,
       );
-    }
-  }
-
-  private getCustomerStatusLabel(status: OrderStatus) {
-    switch (status) {
-      case OrderStatus.CONFIRMED:
-        return {
-          label: 'confirmee',
-          subjectSuffix: 'confirmee',
-          description:
-            'Le marchand a confirme votre commande. Elle est en preparation.',
-        };
-      case OrderStatus.READY:
-        return {
-          label: 'prete',
-          subjectSuffix: 'prete a etre retiree',
-          description:
-            'Votre commande est prete. Vous pouvez venir la recuperer sur le creneau prevu.',
-        };
-      case OrderStatus.COLLECTED:
-        return {
-          label: 'retiree',
-          subjectSuffix: 'retiree',
-          description: 'Le retrait de votre commande a ete confirme.',
-        };
-      case OrderStatus.CANCELLED:
-        return {
-          label: 'annulee',
-          subjectSuffix: 'annulee',
-          description:
-            'Votre commande a ete annulee. Contactez le marchand si besoin.',
-        };
-      default:
-        return null;
     }
   }
 }

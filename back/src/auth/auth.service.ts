@@ -149,6 +149,7 @@ export class AuthService {
     await this.mailService.sendCustomerEmailVerificationEmail(
       user.email,
       verificationLink,
+      user.preferredLanguage,
     );
 
     return {
@@ -426,7 +427,11 @@ export class AuthService {
       this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
     const resetLink = `${frontendUrl.replace(/\/$/, '')}/reset-password?token=${rawToken}`;
 
-    await this.mailService.sendPasswordResetEmail(user.email, resetLink);
+    await this.mailService.sendPasswordResetEmail(
+      user.email,
+      resetLink,
+      user.preferredLanguage,
+    );
 
     return genericResponse;
   }
