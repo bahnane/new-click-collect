@@ -23,6 +23,22 @@ enum AppLanguage {
   ar
 }
 
+enum EmailTemplate {
+  MERCHANT_INVITATION
+  PASSWORD_RESET
+  CUSTOMER_EMAIL_VERIFICATION
+  CUSTOMER_ORDER_PENDING
+  MERCHANT_NEW_ORDER
+  CUSTOMER_ORDER_STATUS
+}
+
+enum EmailDeliveryStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+}
+
 enum Weekday {
   SUNDAY
   MONDAY
@@ -446,4 +462,27 @@ model InviteToken {
   @@index([userId])
 
   @@map("invite_tokens")
+}
+
+model EmailDelivery {
+  id                String              @id @default(cuid())
+  template          EmailTemplate
+  recipientEmail    String              @db.VarChar(191)
+  language          AppLanguage         @default(fr)
+  payload           Json
+  status            EmailDeliveryStatus @default(PENDING)
+  attemptCount      Int                 @default(0)
+  maxAttempts       Int                 @default(5)
+  nextAttemptAt     DateTime            @default(now())
+  lastAttemptAt     DateTime?
+  sentAt            DateTime?
+  lastError         String?             @db.Text
+  providerMessageId String?             @db.VarChar(255)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([nextAttemptAt])
+  @@index([template, createdAt])
+  @@map("email_deliveries")
 }
