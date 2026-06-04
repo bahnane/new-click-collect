@@ -22,20 +22,6 @@
   font: var(--mat-sys-body-medium);
 }
 
-.error-banner {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
-
-  span {
-    flex: 1;
-  }
-}
-
 .loading-container,
 .empty-state {
   display: grid;

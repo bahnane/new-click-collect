@@ -59,20 +59,6 @@
   background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
 }
 
-.feedback {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  border-radius: 1rem;
-  margin-block-end: 1rem;
-}
-
-.feedback.error {
-  color: var(--mat-sys-error);
-  background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
-}
-
 .orders-state,
 .orders-empty {
   display: grid;

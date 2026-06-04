@@ -17,18 +17,6 @@
   font: var(--font-body-medium);
 }
 
-.error-banner {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-  padding: var(--space-md);
-  border: 1px solid color-mix(in srgb, var(--color-error) 20%, transparent);
-  border-radius: var(--radius-md);
-  background-color: color-mix(in srgb, var(--color-error) 8%, transparent);
-  color: var(--color-text-primary);
-}
-
 .state-block {
   min-height: var(--size-state-min-height);
   display: flex;

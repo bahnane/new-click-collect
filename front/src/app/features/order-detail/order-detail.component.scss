@@ -31,24 +31,6 @@
   }
 }
 
-.error-banner {
-  max-width: 50rem;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  border-radius: var(--radius-md);
-  padding-inline: var(--space-lg);
-  padding-block: var(--space-md);
-  background-color: color-mix(in srgb, var(--color-error) 12%, transparent);
-  color: var(--color-error);
-  font: var(--font-body-small);
-
-  button {
-    margin-inline-start: var(--space-md);
-  }
-}
-
 .state-block {
   display: flex;
   flex-direction: column;

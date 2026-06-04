@@ -70,21 +70,6 @@
   text-align: var(--text-align-start);
 }
 
-.orders-feedback {
-  margin-block-start: var(--space-lg);
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-md);
-}
-
-.orders-feedback.error {
-  color: var(--color-error);
-  background: color-mix(in srgb, var(--color-error) 10%, transparent);
-}
-
 .orders-state {
   margin-block-start: var(--space-lg);
   display: flex;

@@ -35,25 +35,6 @@
   }
 }
 
-.error-banner {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem;
-  border: 1px solid color-mix(in srgb, var(--mat-sys-error) 35%, transparent);
-  border-radius: 0.75rem;
-  background: color-mix(in srgb, var(--mat-sys-error) 8%, transparent);
-  color: var(--mat-sys-error);
-
-  mat-icon {
-    flex-shrink: 0;
-  }
-
-  button {
-    margin-inline-start: auto;
-  }
-}
-
 .loading-container,
 .empty-state {
   display: grid;

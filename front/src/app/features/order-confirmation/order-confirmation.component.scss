@@ -37,23 +37,6 @@
   max-width: 40rem;
 }
 
-/* Error Banner */
-.error-banner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  border-radius: var(--radius-md);
-  padding-inline: var(--space-lg);
-  padding-block: var(--space-md);
-  background-color: color-mix(in srgb, var(--color-error) 12%, transparent);
-  color: var(--color-error);
-  font: var(--font-body-small);
-
-  button {
-    margin-inline-start: var(--space-md);
-  }
-}
-
 /* State Block */
 .state-block {
   display: flex;
@@ -115,12 +98,6 @@
   padding: var(--space-md);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
-}
-
-/* Status Section */
-.status-section {
-  padding-block: var(--space-lg);
-  border-block-end: 1px solid var(--color-divider);
 }
 
 .status-badge {
@@ -217,16 +194,6 @@
   color: var(--color-primary);
   font-size: var(--font-size-md);
   white-space: nowrap;
-}
-
-/* Note Section */
-.note-section {
-  padding-block: var(--space-lg);
-  border-block-end: 1px solid var(--color-divider);
-
-  &:last-child {
-    border-block-end: none;
-  }
 }
 
 .note-text {
