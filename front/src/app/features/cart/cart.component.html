@@ -100,12 +100,6 @@
                     </p>
                     }
 
-                    @if (checkoutSuccessMessageKey()) {
-                    <p class="checkout-message checkout-success" role="status" aria-live="polite">
-                        {{ checkoutSuccessMessageKey()! | transloco }}
-                    </p>
-                    }
-
                     @if (slotsErrorMessageKey()) {
                     <p class="checkout-message checkout-error" role="alert" aria-live="polite">
                         {{ slotsErrorMessageKey()! | transloco }}

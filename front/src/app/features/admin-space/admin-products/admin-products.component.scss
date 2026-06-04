@@ -20,8 +20,7 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-.error-banner,
-.success-banner {
+.error-banner {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -32,10 +31,6 @@
 .error-banner {
   background: color-mix(in srgb, var(--mat-sys-error) 14%, transparent);
   color: var(--mat-sys-on-error-container);
-}
-
-.success-banner {
-  background: color-mix(in srgb, #28a745 15%, transparent);
 }
 
 .editor-card {

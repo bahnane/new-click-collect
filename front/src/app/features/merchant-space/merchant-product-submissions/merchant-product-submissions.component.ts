@@ -56,7 +56,6 @@ export class MerchantProductSubmissionsComponent {
   readonly creatingOfferForId = signal<string | null>(null);
   readonly errorKey = signal<string | null>(null);
   readonly actionErrorKey = signal<string | null>(null);
-  readonly successKey = signal<string | null>(null);
 
   readonly page = signal<ProductSubmissionsPaginatedResponse | null>(null);
   readonly categories = signal<ProductCategory[]>([]);
@@ -85,13 +84,6 @@ export class MerchantProductSubmissionsComponent {
         this.uiFeedback.showError(currentError);
       } else {
         this.uiFeedback.clearError();
-      }
-    });
-    effect(() => {
-      const success = this.successKey();
-      if (success) {
-        this.uiFeedback.showSuccessToast(success);
-        this.successKey.set(null);
       }
     });
     this.loadInitialData();
@@ -136,7 +128,6 @@ export class MerchantProductSubmissionsComponent {
   }
 
   onOpenCreate(): void {
-    this.successKey.set(null);
     this.actionErrorKey.set(null);
 
     const dialogRef = this.dialog.open(SubmissionEditorDialogComponent, {
@@ -156,9 +147,6 @@ export class MerchantProductSubmissionsComponent {
         }
 
         if (result.created) {
-          this.successKey.set(
-            'shell.merchant.productSubmissions.messages.created',
-          );
           this.loadSubmissions(1, this.pageSize());
         }
       });
@@ -169,7 +157,6 @@ export class MerchantProductSubmissionsComponent {
       return;
     }
 
-    this.successKey.set(null);
     this.actionErrorKey.set(null);
 
     const dialogRef = this.dialog.open(SubmissionEditorDialogComponent, {
@@ -190,9 +177,6 @@ export class MerchantProductSubmissionsComponent {
         }
 
         if (result.updated) {
-          this.successKey.set(
-            'shell.merchant.productSubmissions.messages.updated',
-          );
           this.loadSubmissions(this.currentPage(), this.pageSize());
         }
       });
@@ -224,9 +208,6 @@ export class MerchantProductSubmissionsComponent {
     dialogRef.afterClosed().subscribe((confirmed) => {
       this.deletingSubmissionId.set(null);
       if (confirmed) {
-        this.successKey.set(
-          'shell.merchant.productSubmissions.messages.deleted',
-        );
         this.loadSubmissions(this.currentPage(), this.pageSize());
       }
     });

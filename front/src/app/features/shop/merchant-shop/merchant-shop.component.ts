@@ -88,7 +88,6 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly error = signal<string | null>(null);
   readonly feedErrorKey = signal<string | null>(null);
   readonly addToCartErrorKey = signal<string | null>(null);
-  readonly addToCartSuccessKey = signal<string | null>(null);
   readonly addingOfferId = signal<string | null>(null);
   readonly searchInputValue = signal('');
   readonly activeSearchQuery = signal('');
@@ -229,13 +228,6 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
         this.uiFeedback.showError(currentError);
       } else {
         this.uiFeedback.clearError();
-      }
-    });
-    effect(() => {
-      const success = this.addToCartSuccessKey();
-      if (success) {
-        this.uiFeedback.showSuccessToast(success);
-        this.addToCartSuccessKey.set(null);
       }
     });
     effect(() => {
@@ -637,7 +629,6 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
     maxOrderQty: number | null = null,
   ): void {
     this.addToCartErrorKey.set(null);
-    this.addToCartSuccessKey.set(null);
 
     if (!this.isAuthenticated()) {
       const merchantSlug = this.route.snapshot.paramMap.get('merchantSlug');
@@ -667,7 +658,6 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
     this.cartService.upsertMyCartItem(storeOfferId, safeQuantity).subscribe({
       next: () => {
         this.addingOfferId.set(null);
-        this.addToCartSuccessKey.set('shop.addedToCart');
       },
       error: (error: unknown) => {
         this.addingOfferId.set(null);

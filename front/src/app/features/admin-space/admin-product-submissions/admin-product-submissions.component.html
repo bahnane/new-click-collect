@@ -230,10 +230,6 @@
                                                 'shell.adminSpace.productSubmissions.messages.imageUploading' |
                                                 transloco }}</span>
                                         </div>
-                                        } @else if (getDraft(submission).imageAssetId) {
-                                        <p class="image-upload-success" aria-live="polite">{{
-                                            'shell.adminSpace.productSubmissions.messages.imageUploaded' | transloco }}
-                                        </p>
                                         }
 
                                         @if (getDraft(submission).imageErrorKey) {
@@ -448,9 +444,6 @@
                                             'shell.adminSpace.productSubmissions.messages.imageUploading' | transloco
                                             }}</span>
                                     </div>
-                                    } @else if (getDraft(row).imageAssetId) {
-                                    <p class="image-upload-success" aria-live="polite">{{
-                                        'shell.adminSpace.productSubmissions.messages.imageUploaded' | transloco }}</p>
                                     }
 
                                     @if (getDraft(row).imageErrorKey) {

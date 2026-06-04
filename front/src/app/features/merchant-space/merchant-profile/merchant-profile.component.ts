@@ -161,7 +161,6 @@ export class MerchantProfileComponent {
       next: (updated) => {
         this.profile.set(updated);
         this.saving.set(false);
-        this.uiFeedback.showSuccessToast('shell.merchant.profile.saveSuccess');
       },
       error: () => {
         this.saveErrorKey.set('shell.merchant.profile.errors.saveFailed');

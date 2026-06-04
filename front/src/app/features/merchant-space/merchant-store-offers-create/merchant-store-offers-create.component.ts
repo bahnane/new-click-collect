@@ -204,9 +204,6 @@ export class MerchantStoreOffersCreateComponent {
     this.merchantsService.createOffersBatch(payloads).subscribe({
       next: () => {
         this.creatingOffer.set(false);
-        this.uiFeedback.showSuccessToast(
-          'shell.merchant.storeOffers.create.success',
-        );
         this.loadCatalogProducts(this.currentPage(), this.pageSize());
       },
       error: (error) => {

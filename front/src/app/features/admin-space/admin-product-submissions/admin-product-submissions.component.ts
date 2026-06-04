@@ -64,7 +64,6 @@ export class AdminProductSubmissionsComponent {
   readonly batchRejecting = signal(false);
   readonly errorKey = signal<string | null>(null);
   readonly actionErrorKey = signal<string | null>(null);
-  readonly successKey = signal<string | null>(null);
 
   readonly page = signal<AdminProductSubmissionsPaginatedResponse | null>(null);
   readonly categories = signal<AdminProductCategory[]>([]);
@@ -121,13 +120,6 @@ export class AdminProductSubmissionsComponent {
         this.uiFeedback.showError(currentError);
       } else {
         this.uiFeedback.clearError();
-      }
-    });
-    effect(() => {
-      const success = this.successKey();
-      if (success) {
-        this.uiFeedback.showSuccessToast(success);
-        this.successKey.set(null);
       }
     });
     this.loadInitialData();
@@ -204,9 +196,6 @@ export class AdminProductSubmissionsComponent {
       .subscribe({
         next: () => {
           this.reviewingId.set(null);
-          this.successKey.set(
-            'shell.adminSpace.productSubmissions.messages.approved',
-          );
           this.selectedSubmissionIds.update((current) => {
             const next = new Set(current);
             next.delete(submission.id);
@@ -246,9 +235,6 @@ export class AdminProductSubmissionsComponent {
       .subscribe({
         next: () => {
           this.reviewingId.set(null);
-          this.successKey.set(
-            'shell.adminSpace.productSubmissions.messages.rejected',
-          );
           this.selectedSubmissionIds.update((current) => {
             const next = new Set(current);
             next.delete(submission.id);
@@ -410,11 +396,6 @@ export class AdminProductSubmissionsComponent {
       next: (result) => {
         this.batchApproving.set(false);
         this.selectedSubmissionIds.set(new Set<string>());
-        this.successKey.set(
-          result.count > 1
-            ? 'shell.adminSpace.productSubmissions.messages.batchApprovedMany'
-            : 'shell.adminSpace.productSubmissions.messages.batchApprovedOne',
-        );
         this.loadSubmissions(this.currentPage(), this.pageSize());
       },
       error: (error) => {
@@ -468,11 +449,6 @@ export class AdminProductSubmissionsComponent {
       next: (result) => {
         this.batchRejecting.set(false);
         this.selectedSubmissionIds.set(new Set<string>());
-        this.successKey.set(
-          result.length > 1
-            ? 'shell.adminSpace.productSubmissions.messages.batchRejectedMany'
-            : 'shell.adminSpace.productSubmissions.messages.batchRejectedOne',
-        );
         this.loadSubmissions(this.currentPage(), this.pageSize());
       },
       error: (error) => {

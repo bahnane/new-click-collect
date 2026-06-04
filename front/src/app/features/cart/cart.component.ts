@@ -68,7 +68,6 @@ export class CartComponent implements OnInit {
   readonly errorMessageKey = signal<string | null>(null);
   readonly slotsErrorMessageKey = signal<string | null>(null);
   readonly checkoutErrorMessageKey = signal<string | null>(null);
-  readonly checkoutSuccessMessageKey = signal<string | null>(null);
   readonly cart = signal<CartResponse | null>(null);
   readonly pickupSlots = signal<PublicPickupSlot[]>([]);
 
@@ -225,7 +224,6 @@ export class CartComponent implements OnInit {
     }
 
     this.checkoutErrorMessageKey.set(null);
-    this.checkoutSuccessMessageKey.set(null);
     this.checkoutLoading.set(true);
     this.syncPickupSlotControlState();
 

@@ -496,9 +496,6 @@ export class SubmissionEditorDialogComponent implements OnInit {
             .subscribe({
               next: () => {
                 this.creatingOfferForId = null;
-                this.uiFeedback.showSuccessToast(
-                  'shell.merchant.productSubmissions.messages.offerCreated',
-                );
               },
               error: (error) => {
                 this.creatingOfferForId = null;

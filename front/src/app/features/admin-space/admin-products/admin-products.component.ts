@@ -51,7 +51,6 @@ export class AdminProductsComponent {
   readonly togglingProductId = signal<string | null>(null);
   readonly errorKey = signal<string | null>(null);
   readonly actionErrorKey = signal<string | null>(null);
-  readonly successKey = signal<string | null>(null);
 
   readonly page = signal<AdminCatalogProductsPaginatedResponse | null>(null);
   readonly categories = signal<AdminProductCategory[]>([]);
@@ -81,13 +80,6 @@ export class AdminProductsComponent {
         this.uiFeedback.showError(currentError);
       } else {
         this.uiFeedback.clearError();
-      }
-    });
-    effect(() => {
-      const success = this.successKey();
-      if (success) {
-        this.uiFeedback.showSuccessToast(success);
-        this.successKey.set(null);
       }
     });
     this.loadInitialData();
@@ -132,7 +124,6 @@ export class AdminProductsComponent {
   }
 
   onOpenCreate(): void {
-    this.successKey.set(null);
     this.actionErrorKey.set(null);
 
     const dialogRef = this.dialog.open(AdminProductEditorDialogComponent, {
@@ -152,14 +143,12 @@ export class AdminProductsComponent {
         }
 
         if (result.created) {
-          this.successKey.set('shell.adminSpace.products.messages.created');
           this.loadProducts(1, this.pageSize());
         }
       });
   }
 
   onEdit(product: AdminCatalogProduct): void {
-    this.successKey.set(null);
     this.actionErrorKey.set(null);
 
     const dialogRef = this.dialog.open(AdminProductEditorDialogComponent, {
@@ -180,7 +169,6 @@ export class AdminProductsComponent {
         }
 
         if (result.updated) {
-          this.successKey.set('shell.adminSpace.products.messages.updated');
           this.loadProducts(this.currentPage(), this.pageSize());
         }
       });
@@ -197,11 +185,6 @@ export class AdminProductsComponent {
     this.merchantsService.toggleAdminCatalogProduct(product.id).subscribe({
       next: () => {
         this.togglingProductId.set(null);
-        this.successKey.set(
-          product.isActive
-            ? 'shell.adminSpace.products.messages.deactivated'
-            : 'shell.adminSpace.products.messages.activated',
-        );
         this.loadProducts(this.currentPage(), this.pageSize());
       },
       error: (error) => {

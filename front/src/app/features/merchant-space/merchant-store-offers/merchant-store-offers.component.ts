@@ -120,9 +120,6 @@ export class MerchantStoreOffersComponent {
 
     dialogRef.afterClosed().subscribe((updated: boolean | undefined) => {
       if (updated) {
-        this.uiFeedback.showSuccessToast(
-          'shell.merchant.storeOffers.messages.updated',
-        );
         this.loadOffers(this.currentPage(), this.pageSize());
       }
     });
@@ -157,11 +154,8 @@ export class MerchantStoreOffersComponent {
     this.deleting.set(offer.id);
     dialogRef.afterClosed().subscribe((confirmed: boolean | undefined) => {
       this.deleting.set(null);
-      if (confirmed) {
-        const successKey = offer.isActive
-          ? 'shell.merchant.storeOffers.messages.deactivated'
-          : 'shell.merchant.storeOffers.messages.activated';
-        this.uiFeedback.showSuccessToast(successKey);
+      if (!confirmed) {
+        return;
       }
     });
   }

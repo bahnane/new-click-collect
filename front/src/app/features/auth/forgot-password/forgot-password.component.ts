@@ -12,7 +12,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import { AuthService } from '../../../core/services/auth.service';
-import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 
 @Component({
   selector: 'app-forgot-password',
@@ -33,7 +32,6 @@ import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
 export class ForgotPasswordComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
-  private readonly uiFeedback = inject(UiFeedbackService);
 
   readonly isLoading = signal(false);
   readonly errorMessageKey = signal<string | null>(null);
@@ -60,7 +58,6 @@ export class ForgotPasswordComponent {
         this.form.enable();
         this.form.reset();
         this.successMessageKey.set('auth.forgotPassword.successMessage');
-        this.uiFeedback.showSuccessToast('auth.forgotPassword.successMessage');
       },
       error: (error) => {
         this.isLoading.set(false);
