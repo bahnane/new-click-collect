@@ -12,7 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { extractApiErrorCode } from '../../core/errors/api-error.util';
 import { LanguageService } from '../../core/i18n/language.service';
@@ -56,6 +56,7 @@ export class CartComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly cartService = inject(CartService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly uiFeedback = inject(UiFeedbackService);
   protected readonly languageService = inject(LanguageService);
 
@@ -138,6 +139,14 @@ export class CartComponent implements OnInit {
   }
 
   continueShopping(): void {
+    const merchantSlug = this.route.snapshot.queryParamMap
+      .get('merchantSlug')
+      ?.trim();
+    if (merchantSlug) {
+      this.router.navigate(['/shop', merchantSlug]);
+      return;
+    }
+
     this.router.navigate(['/dashboard']);
   }
 
@@ -226,7 +235,12 @@ export class CartComponent implements OnInit {
         next: (order) => {
           this.checkoutLoading.set(false);
           this.syncPickupSlotControlState();
-          this.router.navigate(['/order-confirmation', order.id]);
+          const merchantSlug = this.route.snapshot.queryParamMap
+            .get('merchantSlug')
+            ?.trim();
+          this.router.navigate(['/order-confirmation', order.id], {
+            queryParams: merchantSlug ? { merchantSlug } : undefined,
+          });
         },
         error: (error: unknown) => {
           this.checkoutLoading.set(false);

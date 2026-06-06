@@ -27,15 +27,17 @@
                 }
             </div>
 
+            @if (isAuthenticated()) {
             <button mat-stroked-button type="button" class="logout-button" (click)="logout()">
                 {{ 'shell.nav.logout' | transloco }}
             </button>
+            }
         </div>
     </header>
 
     <nav class="shell-tabs shell-tabs--top" [attr.aria-label]="'shell.header.navigationLabel' | transloco">
         @for (tab of primaryTabs(); track tab.labelKey) {
-        <a [routerLink]="tab.route" routerLinkActive="is-active"
+        <a [routerLink]="tab.route" [queryParams]="tab.queryParams ?? null" routerLinkActive="is-active"
             [routerLinkActiveOptions]="{ exact: tab.exact ?? false }" class="shell-tab-link" mat-button type="button">
             <mat-icon aria-hidden="true">{{ tab.icon }}</mat-icon>
             <span>{{ tab.labelKey | transloco }}</span>
@@ -49,7 +51,7 @@
 
     <nav class="shell-tabs shell-tabs--bottom" [attr.aria-label]="'shell.header.navigationLabel' | transloco">
         @for (tab of primaryTabs(); track tab.labelKey) {
-        <a [routerLink]="tab.route" routerLinkActive="is-active"
+        <a [routerLink]="tab.route" [queryParams]="tab.queryParams ?? null" routerLinkActive="is-active"
             [routerLinkActiveOptions]="{ exact: tab.exact ?? false }" class="shell-tab-link" mat-button type="button">
             <mat-icon aria-hidden="true">{{ tab.icon }}</mat-icon>
             <span>{{ tab.labelKey | transloco }}</span>

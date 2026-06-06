@@ -113,6 +113,14 @@ export class ActivateInviteComponent {
         next: (response) => {
           this.isLoading.set(false);
           this.successMessageKey.set('auth.activateInvite.successMessage');
+          const merchantSlug = this.route.snapshot.queryParamMap
+            .get('merchantSlug')
+            ?.trim();
+          if (merchantSlug) {
+            this.router.navigate(['/shop', merchantSlug]);
+            return;
+          }
+
           this.router.navigate(getDefaultAuthenticatedRoute(response.user));
         },
         error: (error) => {

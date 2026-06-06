@@ -114,11 +114,24 @@ export class OrderConfirmationComponent implements OnInit {
   }
 
   goToDashboard(): void {
+    const merchantSlug = this.route.snapshot.queryParamMap
+      .get('merchantSlug')
+      ?.trim();
+    if (merchantSlug) {
+      this.router.navigate(['/shop', merchantSlug]);
+      return;
+    }
+
     this.router.navigate(['/dashboard']);
   }
 
   goToMyOrders(): void {
-    this.router.navigate(['/dashboard', 'orders']);
+    const merchantSlug = this.route.snapshot.queryParamMap
+      .get('merchantSlug')
+      ?.trim();
+    this.router.navigate(['/dashboard', 'orders'], {
+      queryParams: merchantSlug ? { merchantSlug } : undefined,
+    });
   }
 
   retry(): void {

@@ -292,10 +292,9 @@
     "nav": {
       "home": "الرئيسية",
       "orders": "الطلبات",
-      "dashboard": "لوحة التحكم",
+      "shopHome": "المتجر",
+      "categories": "الفئات",
       "cart": "السلة",
-      "merchant": "مساحة التاجر",
-      "admin": "مساحة الإدارة",
       "overview": "نظرة عامة",
       "offers": "العروض",
       "submissions": "الاقتراحات",

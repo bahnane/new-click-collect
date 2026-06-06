@@ -12,7 +12,6 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -53,7 +52,6 @@ interface RootCategoryGroup {
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink,
     MatProgressSpinnerModule,
     MatCardModule,
     MatButtonModule,
@@ -95,7 +93,6 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly categoryBarsVisible = signal(true);
   readonly shopHeaderHeight = signal(0);
   readonly merchantSlug = signal('');
-  readonly currentUser = this.authService.currentUser;
   readonly isAuthenticated = this.authService.isAuthenticated;
 
   private searchDebounceHandle: ReturnType<typeof setTimeout> | null = null;
@@ -114,10 +111,6 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly onWindowResize = (): void => {
     this.updateShopHeaderHeight();
   };
-
-  readonly isMerchant = computed(() => this.currentUser()?.role === 'MERCHANT');
-  readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
-  readonly isCustomer = computed(() => this.currentUser()?.role === 'CUSTOMER');
 
   readonly businessTypeLabel = computed(() => {
     const type = this.merchantInfo()?.businessType;
@@ -632,7 +625,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    if (!this.isCustomer()) {
+    if (this.authService.currentUser()?.role !== 'CUSTOMER') {
       this.addToCartErrorKey.set('shop.requiresCustomerRole');
       return;
     }

@@ -292,10 +292,9 @@
     "nav": {
       "home": "Accueil",
       "orders": "Commandes",
-      "dashboard": "Tableau de bord",
+      "shopHome": "Boutique",
+      "categories": "Catégories",
       "cart": "Panier",
-      "merchant": "Espace marchand",
-      "admin": "Espace admin",
       "overview": "Vue d'ensemble",
       "offers": "Offres",
       "submissions": "Propositions",

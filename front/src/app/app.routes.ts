@@ -234,20 +234,38 @@ export const routes: Routes = [
     title: 'routes.login.title',
   },
   {
-    path: 'shop/:merchantSlug/categories',
-    loadComponent: () =>
-      import('./features/shop/shop-categories/shop-categories.component').then(
-        (m) => m.ShopCategoriesComponent,
-      ),
-    title: 'routes.shopCategories.title',
-  },
-  {
     path: 'shop/:merchantSlug',
     loadComponent: () =>
-      import('./features/shop/merchant-shop/merchant-shop.component').then(
-        (m) => m.MerchantShopComponent,
+      import('./layouts/app-shell/app-shell.component').then(
+        (m) => m.AppShellComponent,
       ),
-    title: 'routes.merchantShop.title',
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/shop/merchant-shop/merchant-shop.component').then(
+            (m) => m.MerchantShopComponent,
+          ),
+        title: 'routes.merchantShop.title',
+      },
+    ],
+  },
+  {
+    path: 'shop/:merchantSlug/categories',
+    loadComponent: () =>
+      import('./layouts/app-shell/app-shell.component').then(
+        (m) => m.AppShellComponent,
+      ),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/shop/shop-categories/shop-categories.component').then(
+            (m) => m.ShopCategoriesComponent,
+          ),
+        title: 'routes.shopCategories.title',
+      },
+    ],
   },
   {
     path: '**',

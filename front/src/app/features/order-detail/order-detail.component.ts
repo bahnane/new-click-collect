@@ -191,7 +191,12 @@ export class OrderDetailComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/dashboard'], { fragment: 'my-orders' });
+    const merchantSlug = this.route.snapshot.queryParamMap
+      .get('merchantSlug')
+      ?.trim();
+    this.router.navigate(['/dashboard', 'orders'], {
+      queryParams: merchantSlug ? { merchantSlug } : undefined,
+    });
   }
 
   retry(): void {

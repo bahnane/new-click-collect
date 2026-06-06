@@ -5,57 +5,6 @@
         </button>
         <h1>{{ 'shop.title' | transloco }}</h1>
 
-        <div class="shop-header-actions">
-            @if (isAuthenticated()) {
-            @if (!isMerchant()) {
-            <a routerLink="/dashboard" mat-stroked-button type="button">
-                {{ 'shell.nav.dashboard' | transloco }}
-            </a>
-            }
-
-            @if (isCustomer()) {
-            <a routerLink="/cart" mat-stroked-button type="button">
-                {{ 'shell.nav.cart' | transloco }}
-            </a>
-            }
-
-            @if (isMerchant()) {
-            <a routerLink="/merchant" mat-stroked-button type="button">
-                {{ 'shell.nav.merchant' | transloco }}
-            </a>
-            }
-
-            @if (isAdmin()) {
-            <a routerLink="/admin-space" mat-stroked-button type="button">
-                {{ 'shell.nav.admin' | transloco }}
-            </a>
-            }
-            }
-
-            @if (merchantSlug()) {
-            <a [routerLink]="['/shop', merchantSlug(), 'categories']" mat-stroked-button type="button">
-                {{ 'shop.categoriesPageLink' | transloco }}
-            </a>
-            }
-
-            <div class="language-switcher" [attr.aria-label]="'common.languages.label' | transloco" role="group">
-                @for (language of languageService.availableLanguages; track language.code) {
-                <button mat-stroked-button type="button" class="language-button"
-                    [class.is-active]="languageService.currentLanguage() === language.code"
-                    [attr.aria-pressed]="languageService.currentLanguage() === language.code"
-                    (click)="setLanguage(language.code)">
-                    {{ language.label }}
-                </button>
-                }
-            </div>
-
-            @if (isAuthenticated()) {
-            <button mat-stroked-button type="button" class="logout-button" (click)="logout()">
-                {{ 'shell.nav.logout' | transloco }}
-            </button>
-            }
-        </div>
-
         <div class="shop-search-bar" role="search">
             <mat-icon aria-hidden="true">search</mat-icon>
             <input type="search" class="shop-search-input" [value]="searchInputValue()"

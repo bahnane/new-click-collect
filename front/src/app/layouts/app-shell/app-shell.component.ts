@@ -1,8 +1,16 @@
 import { Component, computed, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import {
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet,
+} from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { filter, map, startWith } from 'rxjs';
 import { LanguageService } from '../../core/i18n/language.service';
 import { AuthService } from '../../core/services/auth.service';
 import { UiFeedbackService } from '../../core/services/ui-feedback.service';
@@ -13,7 +21,10 @@ interface ShellTab {
   icon: string;
   route: string[];
   exact?: boolean;
+  queryParams?: Record<string, string>;
 }
+
+type ShellContext = 'customer' | 'merchant' | 'admin' | 'shop';
 
 @Component({
   selector: 'app-app-shell',
@@ -31,9 +42,24 @@ interface ShellTab {
 export class AppShellComponent {
   private readonly authService = inject(AuthService);
   private readonly uiFeedback = inject(UiFeedbackService);
+  private readonly router = inject(Router);
   protected readonly languageService = inject(LanguageService);
 
   readonly currentUser = this.authService.currentUser;
+  readonly isAuthenticated = computed(() => this.currentUser() !== null);
+  readonly currentUrl = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      startWith(null),
+      map(() => this.router.url),
+    ),
+    { initialValue: this.router.url },
+  );
+  readonly currentPath = computed(() => this.currentUrl().split('?')[0]);
+  readonly currentQueryParams = computed(() => {
+    const queryString = this.currentUrl().split('?')[1] ?? '';
+    return new URLSearchParams(queryString.split('#')[0]);
+  });
 
   readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
   readonly isMerchant = computed(() => this.currentUser()?.role === 'MERCHANT');
@@ -43,7 +69,84 @@ export class AppShellComponent {
   );
   readonly globalErrorKey = this.uiFeedback.errorKey;
 
+  readonly merchantShopSlug = computed(() => {
+    const pathMatch = this.currentPath().match(/^\/shop\/([^/?#]+)/);
+    if (pathMatch?.[1]) {
+      return pathMatch[1];
+    }
+
+    const queryMerchantSlug =
+      this.currentQueryParams().get('merchantSlug')?.trim() || null;
+    if (!queryMerchantSlug) {
+      return null;
+    }
+
+    const currentPath = this.currentPath();
+    if (
+      currentPath === '/cart' ||
+      currentPath === '/dashboard/orders' ||
+      currentPath.startsWith('/order-confirmation') ||
+      currentPath.startsWith('/detail-commande')
+    ) {
+      return queryMerchantSlug;
+    }
+
+    return null;
+  });
+
+  readonly shellContext = computed<ShellContext>(() => {
+    if (this.merchantShopSlug()) {
+      return 'shop';
+    }
+
+    if (this.isMerchant()) {
+      return 'merchant';
+    }
+
+    if (this.isAdmin()) {
+      return 'admin';
+    }
+
+    return 'customer';
+  });
+
   readonly primaryTabs = computed<ShellTab[]>(() => {
+    if (this.shellContext() === 'shop') {
+      const merchantSlug = this.merchantShopSlug();
+      if (!merchantSlug) {
+        return [];
+      }
+
+      return [
+        {
+          labelKey: 'shell.nav.shopHome',
+          icon: 'storefront',
+          route: ['/shop', merchantSlug],
+          exact: true,
+        },
+        {
+          labelKey: 'shell.nav.categories',
+          icon: 'category',
+          route: ['/shop', merchantSlug, 'categories'],
+          exact: true,
+        },
+        {
+          labelKey: 'shell.nav.cart',
+          icon: 'shopping_cart',
+          route: ['/cart'],
+          exact: true,
+          queryParams: { merchantSlug },
+        },
+        {
+          labelKey: 'shell.nav.orders',
+          icon: 'receipt_long',
+          route: ['/dashboard', 'orders'],
+          exact: true,
+          queryParams: { merchantSlug },
+        },
+      ];
+    }
+
     if (this.isCustomer()) {
       return [
         {

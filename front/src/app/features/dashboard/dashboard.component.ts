@@ -151,7 +151,12 @@ export class DashboardComponent {
   }
 
   goToOrderDetail(orderId: string): void {
-    this.router.navigate(['/detail-commande', orderId]);
+    const merchantSlug = this.route.snapshot.queryParamMap
+      .get('merchantSlug')
+      ?.trim();
+    this.router.navigate(['/detail-commande', orderId], {
+      queryParams: merchantSlug ? { merchantSlug } : undefined,
+    });
   }
 
   goToMerchantShop(merchantSlug: string): void {

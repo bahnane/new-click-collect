@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -35,6 +35,7 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   protected readonly languageService = inject(LanguageService);
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
   readonly isLoading = signal(false);
@@ -67,6 +68,14 @@ export class LoginComponent {
         // Admins always go to their dedicated space — never to a merchant shop.
         if (response.user.role === 'ADMIN') {
           this.router.navigate(getDefaultAuthenticatedRoute(response.user));
+          return;
+        }
+
+        const merchantSlug = this.route.snapshot.queryParamMap
+          .get('merchantSlug')
+          ?.trim();
+        if (merchantSlug) {
+          this.router.navigate(['/shop', merchantSlug]);
           return;
         }
 
