@@ -17,7 +17,6 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { Order } from '../../core/models/order.model';
 import { OrdersService } from '../../core/services/orders.service';
 import { UiFeedbackService } from '../../core/services/ui-feedback.service';
-import { resolvePostAuthMerchantSlug } from '../../core/utils/post-auth-redirect.util';
 
 @Component({
   selector: 'app-order-confirmation',
@@ -115,17 +114,11 @@ export class OrderConfirmationComponent implements OnInit {
   }
 
   goToDashboard(): void {
-    const merchantSlug = resolvePostAuthMerchantSlug();
-    if (merchantSlug) {
-      this.router.navigate(['/shop', merchantSlug]);
-      return;
-    }
-
     this.router.navigate(['/dashboard']);
   }
 
   goToMyOrders(): void {
-    this.router.navigate(['/dashboard'], { fragment: 'my-orders' });
+    this.router.navigate(['/dashboard', 'orders']);
   }
 
   retry(): void {

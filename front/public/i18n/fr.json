@@ -287,12 +287,10 @@
   },
   "shell": {
     "header": {
-      "toggleMenu": "Ouvrir ou fermer le menu",
       "navigationLabel": "Navigation principale"
     },
     "nav": {
       "home": "Accueil",
-      "shop": "Boutique",
       "orders": "Commandes",
       "dashboard": "Tableau de bord",
       "cart": "Panier",
@@ -309,10 +307,19 @@
     },
     "dashboard": {
       "eyebrow": "Espace connecté",
-      "title": "Bienvenue",
-      "subtitle": "Votre shell applicatif est prêt. Les prochaines fonctionnalités seront ajoutées ici.",
+      "title": "Accueil boutiques",
+      "subtitle": "Choisissez un établissement pour consulter ses produits et commander.",
       "emailLabel": "Email",
       "roleLabel": "Rôle",
+      "home": {
+        "listLabel": "Liste des boutiques",
+        "loading": "Chargement des boutiques...",
+        "empty": "Aucune boutique disponible pour le moment.",
+        "openShop": "Voir la boutique",
+        "errors": {
+          "loadFailed": "Impossible de charger la liste des boutiques."
+        }
+      },
       "orders": {
         "title": "Mes commandes",
         "subtitle": "Suivez vos commandes et consultez leur détail.",

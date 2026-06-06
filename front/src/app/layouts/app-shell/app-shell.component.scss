@@ -98,8 +98,7 @@
   inset-inline: 0;
   inset-block-end: 0;
   z-index: var(--z-fixed);
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: flex;
   gap: 0;
   min-block-size: calc(
     var(--size-mobile-tabs-height) + env(safe-area-inset-bottom)
@@ -111,6 +110,7 @@
 }
 
 .shell-tab-link {
+  flex: 1 1 0;
   min-block-size: var(--size-mobile-tabs-height);
   border-radius: 0;
   display: inline-flex;

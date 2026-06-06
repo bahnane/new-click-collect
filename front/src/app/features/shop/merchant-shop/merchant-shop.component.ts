@@ -34,8 +34,6 @@ import {
   StoreOffer,
 } from '../../../core/models/merchant-shop.model';
 
-const LAST_MERCHANT_STORAGE_KEY = 'shop.lastMerchantSlug';
-
 interface SubCategoryGroup {
   id: string;
   name: string;
@@ -302,10 +300,6 @@ export class MerchantShopComponent implements OnInit, OnDestroy, AfterViewInit {
         this.requestedRootCategory.set(requestedRootCategory || null);
       },
     );
-
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(LAST_MERCHANT_STORAGE_KEY, merchantSlug);
-    }
 
     this.loadMerchantAndProducts(merchantSlug);
 

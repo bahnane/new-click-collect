@@ -7,7 +7,6 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { AuthService } from '../../core/services/auth.service';
 import { UiFeedbackService } from '../../core/services/ui-feedback.service';
 import { getDefaultAuthenticatedRoute } from '../../core/utils/default-auth-route.util';
-import { resolvePostAuthMerchantSlug } from '../../core/utils/post-auth-redirect.util';
 
 interface ShellTab {
   labelKey: string;
@@ -42,7 +41,6 @@ export class AppShellComponent {
   readonly homeRoute = computed(() =>
     getDefaultAuthenticatedRoute(this.currentUser()),
   );
-  readonly merchantShopSlug = resolvePostAuthMerchantSlug();
   readonly globalErrorKey = this.uiFeedback.errorKey;
 
   readonly primaryTabs = computed<ShellTab[]>(() => {
@@ -53,13 +51,6 @@ export class AppShellComponent {
           icon: 'home',
           route: ['/dashboard'],
           exact: true,
-        },
-        {
-          labelKey: 'shell.nav.shop',
-          icon: 'storefront',
-          route: this.merchantShopSlug
-            ? ['/shop', this.merchantShopSlug]
-            : ['/dashboard'],
         },
         {
           labelKey: 'shell.nav.orders',

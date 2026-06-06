@@ -1,26 +1,47 @@
 <section class="dashboard">
-    <mat-card class="dashboard-card">
+    @if (isHomeView()) {
+    <mat-card class="dashboard-card dashboard-home-card">
         <mat-card-content>
             <p class="eyebrow">{{ 'shell.dashboard.eyebrow' | transloco }}</p>
             <h1 class="dashboard-title">{{ 'shell.dashboard.title' | transloco }}</h1>
             <p class="dashboard-subtitle">{{ 'shell.dashboard.subtitle' | transloco }}</p>
 
-            @if (currentUser(); as user) {
-            <dl class="user-meta">
-                <div>
-                    <dt>{{ 'shell.dashboard.emailLabel' | transloco }}</dt>
-                    <dd>{{ user.email }}</dd>
-                </div>
-                <div>
-                    <dt>{{ 'shell.dashboard.roleLabel' | transloco }}</dt>
-                    <dd>{{ user.role }}</dd>
-                </div>
-            </dl>
+            @if (loadingMerchants()) {
+            <div class="orders-state">
+                <mat-progress-spinner mode="indeterminate" diameter="36" />
+                <p>{{ 'shell.dashboard.home.loading' | transloco }}</p>
+            </div>
+            } @else if (merchants().length === 0) {
+            <p class="orders-empty">{{ 'shell.dashboard.home.empty' | transloco }}</p>
+            } @else {
+            <div class="merchant-grid" role="list" [attr.aria-label]="'shell.dashboard.home.listLabel' | transloco">
+                @for (merchant of merchants(); track merchant.id) {
+                <article class="merchant-card" role="listitem">
+                    <div>
+                        <h2>{{ merchant.storeName }}</h2>
+                        <p class="merchant-meta">{{ 'shop.businessType.' + merchant.businessType.toLowerCase() |
+                            transloco }}</p>
+                        @if (merchant.description) {
+                        <p class="merchant-description">{{ merchant.description }}</p>
+                        }
+                        @if (getMerchantAddress(merchant.city, merchant.address); as address) {
+                        <p class="merchant-meta">{{ address }}</p>
+                        }
+                    </div>
+
+                    <button mat-stroked-button type="button" (click)="goToMerchantShop(merchant.slug)"
+                        [disabled]="isMerchantOpening(merchant.slug)">
+                        {{ 'shell.dashboard.home.openShop' | transloco }}
+                    </button>
+                </article>
+                }
+            </div>
             }
         </mat-card-content>
     </mat-card>
+    }
 
-    @if (isCustomer()) {
+    @if (isCustomer() && isOrdersView()) {
     <mat-card id="my-orders" class="dashboard-card orders-card">
         <mat-card-content>
             <div class="orders-header">

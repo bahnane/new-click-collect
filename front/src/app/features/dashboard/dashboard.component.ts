@@ -1,6 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -12,6 +12,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { extractApiErrorCode } from '../../core/errors/api-error.util';
 import { OrderListItem, PaginatedOrders } from '../../core/models/order.model';
 import { AuthService } from '../../core/services/auth.service';
+import { MerchantShopService } from '../../core/services/merchant-shop.service';
 import { OrdersService } from '../../core/services/orders.service';
 import { UiFeedbackService } from '../../core/services/ui-feedback.service';
 import { ConfirmationDialogComponent } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog.component';
@@ -41,11 +42,29 @@ const CUSTOMER_CANCEL_CONTACT_MERCHANT_CODES = new Set([
 export class DashboardComponent {
   private readonly authService = inject(AuthService);
   private readonly ordersService = inject(OrdersService);
+  private readonly merchantShopService = inject(MerchantShopService);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly uiFeedback = inject(UiFeedbackService);
 
   readonly currentUser = this.authService.currentUser;
+  readonly currentView = signal<'home' | 'orders'>('home');
+
+  readonly loadingMerchants = signal(false);
+  readonly merchantsErrorKey = signal<string | null>(null);
+  readonly merchantSlugsLoading = signal<Record<string, boolean>>({});
+  readonly merchants = signal<
+    {
+      id: string;
+      slug: string;
+      storeName: string;
+      businessType: 'HANOUTE' | 'PATISSERIE';
+      description: string | null;
+      city: string | null;
+      address: string | null;
+    }[]
+  >([]);
 
   readonly loadingOrders = signal(false);
   readonly ordersErrorKey = signal<string | null>(null);
@@ -56,10 +75,15 @@ export class DashboardComponent {
   readonly pageSize = signal(5);
 
   readonly isCustomer = computed(() => this.currentUser()?.role === 'CUSTOMER');
+  readonly isOrdersView = computed(() => this.currentView() === 'orders');
+  readonly isHomeView = computed(() => this.currentView() === 'home');
 
   constructor() {
     effect(() => {
-      const currentError = this.ordersErrorKey() ?? this.orderActionErrorKey();
+      const currentError =
+        this.ordersErrorKey() ??
+        this.orderActionErrorKey() ??
+        this.merchantsErrorKey();
       if (currentError) {
         this.uiFeedback.showError(currentError);
       } else {
@@ -67,9 +91,36 @@ export class DashboardComponent {
       }
     });
 
+    const routePath = this.route.snapshot.routeConfig?.path;
+    this.currentView.set(routePath === 'dashboard/orders' ? 'orders' : 'home');
+
     if (this.isCustomer()) {
-      this.loadMyOrders();
+      if (this.isOrdersView()) {
+        this.loadMyOrders();
+      } else {
+        this.loadMerchants();
+      }
     }
+  }
+
+  loadMerchants(): void {
+    if (!this.isCustomer()) {
+      return;
+    }
+
+    this.loadingMerchants.set(true);
+    this.merchantsErrorKey.set(null);
+
+    this.merchantShopService.listPublicMerchants(1, 24).subscribe({
+      next: (response) => {
+        this.merchants.set(response.data);
+        this.loadingMerchants.set(false);
+      },
+      error: () => {
+        this.merchantsErrorKey.set('shell.dashboard.home.errors.loadFailed');
+        this.loadingMerchants.set(false);
+      },
+    });
   }
 
   loadMyOrders(page = this.currentPage(), pageSize = this.pageSize()): void {
@@ -101,6 +152,39 @@ export class DashboardComponent {
 
   goToOrderDetail(orderId: string): void {
     this.router.navigate(['/detail-commande', orderId]);
+  }
+
+  goToMerchantShop(merchantSlug: string): void {
+    const normalizedSlug = merchantSlug.trim();
+    if (!normalizedSlug) {
+      return;
+    }
+
+    this.merchantSlugsLoading.update((current) => ({
+      ...current,
+      [normalizedSlug]: true,
+    }));
+    this.router.navigate(['/shop', normalizedSlug]).finally(() => {
+      this.merchantSlugsLoading.update((current) => {
+        const { [normalizedSlug]: _, ...remaining } = current;
+        return remaining;
+      });
+    });
+  }
+
+  isMerchantOpening(merchantSlug: string): boolean {
+    return !!this.merchantSlugsLoading()[merchantSlug];
+  }
+
+  getMerchantAddress(
+    city: string | null,
+    address: string | null,
+  ): string | null {
+    const parts = [city, address]
+      .map((value) => value?.trim())
+      .filter((value): value is string => !!value);
+
+    return parts.length > 0 ? parts.join(' - ') : null;
   }
 
   canCancelOrder(order: OrderListItem): boolean {

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   MerchantShopInfo,
+  PaginatedPublicMerchantsResponse,
   ProductCategory,
   PublicStoreOffersCursorResponse,
 } from '../models/merchant-shop.model';
@@ -11,6 +12,18 @@ import {
 @Injectable({ providedIn: 'root' })
 export class MerchantShopService {
   private readonly http = inject(HttpClient);
+
+  listPublicMerchants(
+    page: number = 1,
+    pageSize: number = 12,
+  ): Observable<PaginatedPublicMerchantsResponse> {
+    return this.http.get<PaginatedPublicMerchantsResponse>(
+      `${environment.apiUrl}/merchants`,
+      {
+        params: { page: page.toString(), pageSize: pageSize.toString() },
+      },
+    );
+  }
 
   getMerchantInfo(merchantSlug: string): Observable<MerchantShopInfo> {
     return this.http.get<MerchantShopInfo>(

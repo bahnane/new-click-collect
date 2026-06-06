@@ -22,7 +22,6 @@ import {
   PublicPickupSlot,
 } from '../../core/services/cart.service';
 import { UiFeedbackService } from '../../core/services/ui-feedback.service';
-import { resolvePostAuthMerchantSlug } from '../../core/utils/post-auth-redirect.util';
 
 const CHECKOUT_ERROR_KEY_BY_CODE: Record<string, string> = {
   BAD_REQUEST: 'cart.checkout.errors.invalidRequest',
@@ -139,12 +138,6 @@ export class CartComponent implements OnInit {
   }
 
   continueShopping(): void {
-    const merchantSlug = resolvePostAuthMerchantSlug();
-    if (merchantSlug) {
-      this.router.navigate(['/shop', merchantSlug]);
-      return;
-    }
-
     this.router.navigate(['/dashboard']);
   }
 

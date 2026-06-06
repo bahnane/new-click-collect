@@ -49,6 +49,27 @@ export interface MerchantShopInfo {
   pickupHours: MerchantHours[];
 }
 
+export interface PublicMerchantSummary {
+  id: string;
+  slug: string;
+  storeName: string;
+  businessType: 'HANOUTE' | 'PATISSERIE';
+  description: string | null;
+  city: string | null;
+  zipCode: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  isActive: boolean;
+}
+
+export interface PaginatedPublicMerchantsResponse {
+  data: PublicMerchantSummary[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface MerchantHours {
   dayOfWeek:
     | 'SUNDAY'
