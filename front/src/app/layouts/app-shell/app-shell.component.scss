@@ -2,6 +2,7 @@
 
 .shell {
   --size-global-error-bar-height: 3rem;
+  --size-mobile-tabs-height: 4.5rem;
   min-height: var(--size-app-min-height);
   background-color: var(--color-bg-primary);
 }
@@ -33,8 +34,8 @@
   position: sticky;
   inset-block-start: 0;
   z-index: var(--z-sticky);
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: var(--space-md);
   padding-block: var(--space-md);
@@ -62,31 +63,10 @@
   font: var(--font-title-medium);
 }
 
-.menu-toggle {
-  justify-self: end;
-}
-
-.shell-nav {
-  grid-column: 1 / -1;
-  display: none;
-  flex-direction: column;
+.shell-header-actions {
+  display: inline-flex;
+  align-items: center;
   gap: var(--space-sm);
-  padding-block-start: var(--space-xs);
-}
-
-.shell-nav.is-open {
-  display: flex;
-}
-
-.shell-nav a,
-.shell-nav button {
-  justify-content: flex-start;
-}
-
-.nav-divider {
-  block-size: 1px;
-  background-color: color-mix(in srgb, var(--color-divider) 70%, transparent);
-  margin-block: var(--space-xs);
 }
 
 @include languageSwitcher.language-switcher-base();
@@ -99,13 +79,76 @@
   width: fit-content;
 }
 
-.is-active {
+.shell-tabs {
+  border-block-end: 1px solid
+    color-mix(in srgb, var(--color-divider) 70%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-bg-secondary) 94%,
+    transparent
+  );
+}
+
+.shell-tabs--top {
+  display: none;
+}
+
+.shell-tabs--bottom {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: var(--z-fixed);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  min-block-size: calc(
+    var(--size-mobile-tabs-height) + env(safe-area-inset-bottom)
+  );
+  padding-block-end: env(safe-area-inset-bottom);
+  border-block-start: 1px solid
+    color-mix(in srgb, var(--color-divider) 70%, transparent);
+  border-block-end: none;
+}
+
+.shell-tab-link {
+  min-block-size: var(--size-mobile-tabs-height);
+  border-radius: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  color: var(--color-text-secondary);
+  padding-block: var(--space-xs);
+  padding-inline: var(--space-2xs);
+
+  mat-icon {
+    font-size: 1.25rem;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+  }
+
+  span {
+    font: var(--font-label-small);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-inline-size: 100%;
+  }
+}
+
+.shell-tab-link.is-active {
+  color: var(--color-primary);
   background-color: color-mix(in srgb, var(--color-primary) 14%, transparent);
 }
 
 .shell-content {
   padding-block: var(--space-lg);
   padding-inline: var(--space-lg);
+  padding-block-end: calc(
+    var(--space-xl) + var(--size-mobile-tabs-height) +
+      env(safe-area-inset-bottom)
+  );
 }
 
 @media (min-width: 56rem) {
@@ -114,35 +157,47 @@
   }
 
   .shell-header {
-    grid-template-columns: auto 1fr;
     align-items: center;
     gap: var(--space-lg);
     padding-inline: var(--space-xl);
   }
 
-  .menu-toggle {
+  .shell-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .shell-tabs--top {
+    position: sticky;
+    inset-block-start: 4.5rem;
+    z-index: var(--z-sticky);
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding-block: var(--space-xs);
+    padding-inline: var(--space-xl);
+  }
+
+  .shell-header.with-global-error + .shell-tabs--top {
+    inset-block-start: calc(4.5rem + var(--size-global-error-bar-height));
+  }
+
+  .shell-tabs--bottom {
     display: none;
   }
 
-  .shell-nav {
-    display: flex;
-    grid-column: auto;
+  .shell-tab-link {
     flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--space-sm);
-    padding-block-start: 0;
-  }
-
-  .nav-divider {
-    inline-size: 1px;
-    block-size: var(--size-nav-divider-block);
-    margin-inline: var(--space-xs);
-    margin-block: 0;
+    min-block-size: 2.75rem;
+    gap: var(--space-2xs);
+    border-radius: var(--radius-pill);
+    padding-inline: var(--space-md);
   }
 
   .shell-content {
     padding-block: var(--space-xl);
     padding-inline: var(--space-xl);
+    padding-block-end: var(--space-xl);
   }
 }

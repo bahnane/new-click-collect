@@ -291,10 +291,20 @@
       "navigationLabel": "Navigation principale"
     },
     "nav": {
+      "home": "Accueil",
+      "shop": "Boutique",
+      "orders": "Commandes",
       "dashboard": "Tableau de bord",
       "cart": "Panier",
       "merchant": "Espace marchand",
       "admin": "Espace admin",
+      "overview": "Vue d'ensemble",
+      "offers": "Offres",
+      "submissions": "Propositions",
+      "profile": "Profil",
+      "merchants": "Marchands",
+      "products": "Produits",
+      "productSubmissions": "Soumissions",
       "logout": "Se déconnecter"
     },
     "dashboard": {

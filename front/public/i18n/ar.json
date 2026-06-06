@@ -291,10 +291,20 @@
       "navigationLabel": "التنقل الرئيسي"
     },
     "nav": {
+      "home": "الرئيسية",
+      "shop": "المتجر",
+      "orders": "الطلبات",
       "dashboard": "لوحة التحكم",
       "cart": "السلة",
       "merchant": "مساحة التاجر",
       "admin": "مساحة الإدارة",
+      "overview": "نظرة عامة",
+      "offers": "العروض",
+      "submissions": "الاقتراحات",
+      "profile": "الملف الشخصي",
+      "merchants": "التجار",
+      "products": "المنتجات",
+      "productSubmissions": "طلبات المنتجات",
       "logout": "تسجيل الخروج"
     },
     "dashboard": {

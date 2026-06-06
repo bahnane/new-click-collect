@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,6 +8,13 @@ import { AuthService } from '../../core/services/auth.service';
 import { UiFeedbackService } from '../../core/services/ui-feedback.service';
 import { getDefaultAuthenticatedRoute } from '../../core/utils/default-auth-route.util';
 import { resolvePostAuthMerchantSlug } from '../../core/utils/post-auth-redirect.util';
+
+interface ShellTab {
+  labelKey: string;
+  icon: string;
+  route: string[];
+  exact?: boolean;
+}
 
 @Component({
   selector: 'app-app-shell',
@@ -27,9 +34,7 @@ export class AppShellComponent {
   private readonly uiFeedback = inject(UiFeedbackService);
   protected readonly languageService = inject(LanguageService);
 
-  readonly isMenuOpen = signal(false);
   readonly currentUser = this.authService.currentUser;
-  readonly isAuthenticated = this.authService.isAuthenticated;
 
   readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
   readonly isMerchant = computed(() => this.currentUser()?.role === 'MERCHANT');
@@ -37,23 +42,96 @@ export class AppShellComponent {
   readonly homeRoute = computed(() =>
     getDefaultAuthenticatedRoute(this.currentUser()),
   );
-  readonly showDashboardLink = computed(
-    () => this.currentUser()?.role !== 'MERCHANT',
-  );
   readonly merchantShopSlug = resolvePostAuthMerchantSlug();
   readonly globalErrorKey = this.uiFeedback.errorKey;
 
-  toggleMenu(): void {
-    this.isMenuOpen.update((value) => !value);
-  }
+  readonly primaryTabs = computed<ShellTab[]>(() => {
+    if (this.isCustomer()) {
+      return [
+        {
+          labelKey: 'shell.nav.home',
+          icon: 'home',
+          route: ['/dashboard'],
+          exact: true,
+        },
+        {
+          labelKey: 'shell.nav.shop',
+          icon: 'storefront',
+          route: this.merchantShopSlug
+            ? ['/shop', this.merchantShopSlug]
+            : ['/dashboard'],
+        },
+        {
+          labelKey: 'shell.nav.orders',
+          icon: 'receipt_long',
+          route: ['/dashboard', 'orders'],
+          exact: true,
+        },
+        {
+          labelKey: 'shell.nav.cart',
+          icon: 'shopping_cart',
+          route: ['/cart'],
+          exact: true,
+        },
+      ];
+    }
 
-  closeMenu(): void {
-    this.isMenuOpen.set(false);
-  }
+    if (this.isMerchant()) {
+      return [
+        {
+          labelKey: 'shell.nav.overview',
+          icon: 'dashboard',
+          route: ['/merchant', 'overview'],
+          exact: true,
+        },
+        {
+          labelKey: 'shell.nav.offers',
+          icon: 'sell',
+          route: ['/merchant', 'store-offers'],
+        },
+        {
+          labelKey: 'shell.nav.submissions',
+          icon: 'inventory_2',
+          route: ['/merchant', 'product-submissions'],
+          exact: true,
+        },
+        {
+          labelKey: 'shell.nav.profile',
+          icon: 'person',
+          route: ['/merchant', 'profile'],
+          exact: true,
+        },
+      ];
+    }
+
+    if (this.isAdmin()) {
+      return [
+        {
+          labelKey: 'shell.nav.merchants',
+          icon: 'store',
+          route: ['/admin-space', 'merchants'],
+          exact: true,
+        },
+        {
+          labelKey: 'shell.nav.products',
+          icon: 'inventory',
+          route: ['/admin-space', 'products'],
+          exact: true,
+        },
+        {
+          labelKey: 'shell.nav.productSubmissions',
+          icon: 'fact_check',
+          route: ['/admin-space', 'product-submissions'],
+          exact: true,
+        },
+      ];
+    }
+
+    return [];
+  });
 
   logout(): void {
     this.authService.logout().subscribe();
-    this.closeMenu();
   }
 
   setLanguage(language: 'fr' | 'ar'): void {

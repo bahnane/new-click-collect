@@ -11,50 +11,11 @@
     }
 
     <header class="shell-header" [class.with-global-error]="!!globalErrorKey()">
-        <a class="brand" [routerLink]="homeRoute()" (click)="closeMenu()">
+        <a class="brand" [routerLink]="homeRoute()">
             <span class="brand-title">{{ 'app.name' | transloco }}</span>
         </a>
 
-        <button mat-icon-button type="button" class="menu-toggle" (click)="toggleMenu()"
-            [attr.aria-expanded]="isMenuOpen()" [attr.aria-label]="'shell.header.toggleMenu' | transloco">
-            <mat-icon>{{ isMenuOpen() ? 'close' : 'menu' }}</mat-icon>
-        </button>
-
-        <nav class="shell-nav" [class.is-open]="isMenuOpen()"
-            [attr.aria-label]="'shell.header.navigationLabel' | transloco">
-            @if (showDashboardLink()) {
-            <a routerLink="/dashboard" routerLinkActive="is-active" mat-button type="button" (click)="closeMenu()">
-                {{ 'shell.nav.dashboard' | transloco }}
-            </a>
-            }
-
-            @if (merchantShopSlug; as slug) {
-            <a [routerLink]="['/shop', slug]" routerLinkActive="is-active" mat-button type="button"
-                (click)="closeMenu()">
-                {{ 'shop.title' | transloco }}
-            </a>
-            }
-
-            @if (isCustomer()) {
-            <a routerLink="/cart" routerLinkActive="is-active" mat-button type="button" (click)="closeMenu()">
-                {{ 'shell.nav.cart' | transloco }}
-            </a>
-            }
-
-            @if (isMerchant()) {
-            <a routerLink="/merchant" routerLinkActive="is-active" mat-button type="button" (click)="closeMenu()">
-                {{ 'shell.nav.merchant' | transloco }}
-            </a>
-            }
-
-            @if (isAdmin()) {
-            <a routerLink="/admin-space" routerLinkActive="is-active" mat-button type="button" (click)="closeMenu()">
-                {{ 'shell.nav.admin' | transloco }}
-            </a>
-            }
-
-            <div class="nav-divider" aria-hidden="true"></div>
-
+        <div class="shell-header-actions">
             <div class="language-switcher" [attr.aria-label]="'common.languages.label' | transloco" role="group">
                 @for (language of languageService.availableLanguages; track language.code) {
                 <button mat-stroked-button type="button" class="language-button"
@@ -69,10 +30,30 @@
             <button mat-stroked-button type="button" class="logout-button" (click)="logout()">
                 {{ 'shell.nav.logout' | transloco }}
             </button>
-        </nav>
+        </div>
     </header>
+
+    <nav class="shell-tabs shell-tabs--top" [attr.aria-label]="'shell.header.navigationLabel' | transloco">
+        @for (tab of primaryTabs(); track tab.labelKey) {
+        <a [routerLink]="tab.route" routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: tab.exact ?? false }" class="shell-tab-link" mat-button type="button">
+            <mat-icon aria-hidden="true">{{ tab.icon }}</mat-icon>
+            <span>{{ tab.labelKey | transloco }}</span>
+        </a>
+        }
+    </nav>
 
     <main class="shell-content">
         <router-outlet />
     </main>
+
+    <nav class="shell-tabs shell-tabs--bottom" [attr.aria-label]="'shell.header.navigationLabel' | transloco">
+        @for (tab of primaryTabs(); track tab.labelKey) {
+        <a [routerLink]="tab.route" routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: tab.exact ?? false }" class="shell-tab-link" mat-button type="button">
+            <mat-icon aria-hidden="true">{{ tab.icon }}</mat-icon>
+            <span>{{ tab.labelKey | transloco }}</span>
+        </a>
+        }
+    </nav>
 </div>
