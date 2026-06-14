@@ -69,6 +69,15 @@
     "orderDetail": {
       "title": "تفاصيل الطلب"
     },
+    "account": {
+      "title": "الحساب"
+    },
+    "accountSecurity": {
+      "title": "الأمان"
+    },
+    "accountLanguage": {
+      "title": "اللغة"
+    },
     "merchantShop": {
       "title": "المتجر"
     }
@@ -295,6 +304,7 @@
       "shopHome": "المتجر",
       "categories": "الفئات",
       "cart": "السلة",
+      "account": "الحساب",
       "overview": "نظرة عامة",
       "offers": "العروض",
       "submissions": "الاقتراحات",
@@ -780,6 +790,52 @@
     },
     "shopCategories": {
       "title": "فئات المتجر"
+    }
+  },
+  "account": {
+    "customer": {
+      "title": "حسابي",
+      "subtitle": "أدر التفضيلات واللغة وخيارات الأمان من مكان واحد."
+    },
+    "merchant": {
+      "title": "حساب التاجر",
+      "subtitle": "ركّز إعداداتك وتفضيلات الإدارة في صفحة واحدة."
+    },
+    "sections": {
+      "orders": {
+        "title": "سجل الطلبات",
+        "description": "راجع طلباتك السابقة والحالية."
+      },
+      "profile": {
+        "title": "ملف المتجر",
+        "description": "حدّث معلومات متجرك بسهولة."
+      },
+      "security": {
+        "title": "الأمان",
+        "description": "كلمة المرور والوصول وحماية الحساب."
+      },
+      "language": {
+        "title": "اللغة",
+        "description": "اختر لغة التطبيق."
+      }
+    },
+    "security": {
+      "changePassword": {
+        "title": "تغيير كلمة المرور",
+        "description": "ستتوفر هذه الميزة قريباً من هذه الصفحة."
+      },
+      "deleteAccount": {
+        "title": "حذف الحساب",
+        "description": "سيتم إضافة هذه العملية مع تأكيد حماية إضافي."
+      }
+    },
+    "language": {
+      "current": "اللغة الحالية"
+    },
+    "actions": {
+      "logout": "تسجيل الخروج",
+      "back": "رجوع",
+      "comingSoon": "قريباً"
     }
   },
   "shop": {

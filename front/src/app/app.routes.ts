@@ -35,6 +35,36 @@ export const routes: Routes = [
         title: 'routes.dashboard.title',
       },
       {
+        path: 'account',
+        canActivate: [roleGuard(['CUSTOMER'])],
+        loadComponent: () =>
+          import('./features/account/account-home/account-home.component').then(
+            (m) => m.AccountHomeComponent,
+          ),
+        title: 'routes.account.title',
+        data: { accountScope: 'customer' },
+      },
+      {
+        path: 'account/security',
+        canActivate: [roleGuard(['CUSTOMER'])],
+        loadComponent: () =>
+          import('./features/account/account-security/account-security.component').then(
+            (m) => m.AccountSecurityComponent,
+          ),
+        title: 'routes.accountSecurity.title',
+        data: { accountScope: 'customer' },
+      },
+      {
+        path: 'account/language',
+        canActivate: [roleGuard(['CUSTOMER'])],
+        loadComponent: () =>
+          import('./features/account/account-language/account-language.component').then(
+            (m) => m.AccountLanguageComponent,
+          ),
+        title: 'routes.accountLanguage.title',
+        data: { accountScope: 'customer' },
+      },
+      {
         path: 'cart',
         canActivate: [roleGuard(['CUSTOMER'])],
         loadComponent: () =>
@@ -88,6 +118,33 @@ export const routes: Routes = [
                 (m) => m.MerchantProfileComponent,
               ),
             title: 'routes.merchantProfile.title',
+          },
+          {
+            path: 'account',
+            loadComponent: () =>
+              import('./features/account/account-home/account-home.component').then(
+                (m) => m.AccountHomeComponent,
+              ),
+            title: 'routes.account.title',
+            data: { accountScope: 'merchant' },
+          },
+          {
+            path: 'account/security',
+            loadComponent: () =>
+              import('./features/account/account-security/account-security.component').then(
+                (m) => m.AccountSecurityComponent,
+              ),
+            title: 'routes.accountSecurity.title',
+            data: { accountScope: 'merchant' },
+          },
+          {
+            path: 'account/language',
+            loadComponent: () =>
+              import('./features/account/account-language/account-language.component').then(
+                (m) => m.AccountLanguageComponent,
+              ),
+            title: 'routes.accountLanguage.title',
+            data: { accountScope: 'merchant' },
           },
           {
             path: 'store-offers/add',

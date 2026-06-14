@@ -69,6 +69,15 @@
     "orderDetail": {
       "title": "Détail de commande"
     },
+    "account": {
+      "title": "Compte"
+    },
+    "accountSecurity": {
+      "title": "Sécurité"
+    },
+    "accountLanguage": {
+      "title": "Langue"
+    },
     "merchantShop": {
       "title": "Boutique"
     }
@@ -295,6 +304,7 @@
       "shopHome": "Boutique",
       "categories": "Catégories",
       "cart": "Panier",
+      "account": "Compte",
       "overview": "Vue d'ensemble",
       "offers": "Offres",
       "submissions": "Propositions",
@@ -780,6 +790,52 @@
     },
     "shopCategories": {
       "title": "Catégories boutique"
+    }
+  },
+  "account": {
+    "customer": {
+      "title": "Mon compte",
+      "subtitle": "Gérez vos préférences, votre langue et vos options de sécurité."
+    },
+    "merchant": {
+      "title": "Compte marchand",
+      "subtitle": "Centralisez vos paramètres et préférences de gestion."
+    },
+    "sections": {
+      "orders": {
+        "title": "Historique des commandes",
+        "description": "Consultez vos commandes passées et en cours."
+      },
+      "profile": {
+        "title": "Profil boutique",
+        "description": "Mettez à jour les informations de votre boutique."
+      },
+      "security": {
+        "title": "Sécurité",
+        "description": "Mot de passe, accès et protection du compte."
+      },
+      "language": {
+        "title": "Langue",
+        "description": "Choisissez la langue de l'application."
+      }
+    },
+    "security": {
+      "changePassword": {
+        "title": "Changer le mot de passe",
+        "description": "Bientôt disponible depuis cet espace."
+      },
+      "deleteAccount": {
+        "title": "Supprimer mon compte",
+        "description": "Cette action sera ajoutée avec une confirmation renforcée."
+      }
+    },
+    "language": {
+      "current": "Langue actuelle"
+    },
+    "actions": {
+      "logout": "Se déconnecter",
+      "back": "Retour",
+      "comingSoon": "Bientôt"
     }
   },
   "shop": {

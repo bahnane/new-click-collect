@@ -1,0 +1,41 @@
+<section class="account-page">
+    <mat-card class="account-card">
+        <mat-card-content>
+            <button mat-icon-button type="button" class="back-btn" (click)="goBack()"
+                [attr.aria-label]="'shop.goBack' | transloco">
+                <mat-icon aria-hidden="true">arrow_back</mat-icon>
+            </button>
+
+            <h1>{{ titleKey() | transloco }}</h1>
+            <p>{{ subtitleKey() | transloco }}</p>
+
+            <nav class="account-list" [attr.aria-label]="titleKey() | transloco">
+                @for (entry of entries(); track entry.labelKey) {
+                @if (entry.route) {
+                <a class="account-row" [routerLink]="entry.route" [queryParams]="entry.queryParams ?? null">
+                    <span class="row-main">
+                        <mat-icon aria-hidden="true">{{ entry.icon }}</mat-icon>
+                        <span>
+                            <strong>{{ entry.labelKey | transloco }}</strong>
+                            @if (entry.descriptionKey) {
+                            <small>{{ entry.descriptionKey | transloco }}</small>
+                            }
+                        </span>
+                    </span>
+                    <mat-icon aria-hidden="true">chevron_right</mat-icon>
+                </a>
+                } @else {
+                <button class="account-row logout-row" type="button" (click)="onAction(entry)">
+                    <span class="row-main">
+                        <mat-icon aria-hidden="true">{{ entry.icon }}</mat-icon>
+                        <span>
+                            <strong>{{ entry.labelKey | transloco }}</strong>
+                        </span>
+                    </span>
+                </button>
+                }
+                }
+            </nav>
+        </mat-card-content>
+    </mat-card>
+</section>

@@ -1,0 +1,33 @@
+<section class="account-page">
+    <mat-card class="account-card">
+        <mat-card-content>
+            <button class="back-link" type="button" (click)="goBack()">
+                <mat-icon aria-hidden="true">arrow_back</mat-icon>
+                <span>{{ 'account.actions.back' | transloco }}</span>
+            </button>
+
+            <h1>{{ 'account.sections.language.title' | transloco }}</h1>
+            <p>{{ 'account.sections.language.description' | transloco }}</p>
+
+            <div class="account-list" role="list" [attr.aria-label]="'common.languages.label' | transloco">
+                @for (language of languageService.availableLanguages; track language.code) {
+                <button type="button" class="account-row" role="listitem" (click)="setLanguage(language.code)"
+                    [disabled]="pendingLanguage() !== null">
+                    <span>
+                        <strong>{{ language.label }}</strong>
+                        @if (languageService.currentLanguage() === language.code) {
+                        <small>{{ 'account.language.current' | transloco }}</small>
+                        }
+                    </span>
+
+                    @if (languageService.currentLanguage() === language.code) {
+                    <mat-icon aria-hidden="true">check_circle</mat-icon>
+                    } @else {
+                    <mat-icon aria-hidden="true">chevron_right</mat-icon>
+                    }
+                </button>
+                }
+            </div>
+        </mat-card-content>
+    </mat-card>
+</section>

@@ -16,18 +16,7 @@
         </a>
 
         <div class="shell-header-actions">
-            <div class="language-switcher" [attr.aria-label]="'common.languages.label' | transloco" role="group">
-                @for (language of languageService.availableLanguages; track language.code) {
-                <button mat-stroked-button type="button" class="language-button"
-                    [class.is-active]="languageService.currentLanguage() === language.code"
-                    [attr.aria-pressed]="languageService.currentLanguage() === language.code"
-                    (click)="setLanguage(language.code)">
-                    {{ language.label }}
-                </button>
-                }
-            </div>
-
-            @if (isAuthenticated()) {
+            @if (isAuthenticated() && isAdmin()) {
             <button mat-stroked-button type="button" class="logout-button" (click)="logout()">
                 {{ 'shell.nav.logout' | transloco }}
             </button>

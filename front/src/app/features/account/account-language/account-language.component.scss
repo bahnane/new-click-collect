@@ -1,0 +1,54 @@
+.account-card {
+  max-width: 44rem;
+}
+
+.back-link {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-block-end: var(--space-md);
+}
+
+h1 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font: var(--font-title-large);
+}
+
+p {
+  margin: var(--space-xs) 0 var(--space-md);
+  color: var(--color-text-secondary);
+  font: var(--font-body-medium);
+}
+
+.account-list {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.account-row {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+  text-align: var(--text-align-start);
+  padding: var(--space-md);
+}
+
+.account-row strong {
+  font: var(--font-label-large);
+}
+
+.account-row small {
+  display: block;
+  margin-block-start: 0.125rem;
+  color: var(--color-text-secondary);
+  font: var(--font-body-small);
+}

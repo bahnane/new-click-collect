@@ -1,0 +1,24 @@
+<section class="account-page">
+    <mat-card class="account-card">
+        <mat-card-content>
+            <button class="back-link" type="button" (click)="goBack()">
+                <mat-icon aria-hidden="true">arrow_back</mat-icon>
+                <span>{{ 'account.actions.back' | transloco }}</span>
+            </button>
+
+            <h1>{{ titleKey | transloco }}</h1>
+
+            <div class="account-list">
+                @for (entry of entries(); track entry.labelKey) {
+                <article class="account-row" aria-disabled="true">
+                    <div>
+                        <strong>{{ entry.labelKey | transloco }}</strong>
+                        <small>{{ entry.descriptionKey | transloco }}</small>
+                    </div>
+                    <span class="soon-pill">{{ 'account.actions.comingSoon' | transloco }}</span>
+                </article>
+                }
+            </div>
+        </mat-card-content>
+    </mat-card>
+</section>

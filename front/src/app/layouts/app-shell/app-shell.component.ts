@@ -11,7 +11,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
-import { LanguageService } from '../../core/i18n/language.service';
 import { AuthService } from '../../core/services/auth.service';
 import { UiFeedbackService } from '../../core/services/ui-feedback.service';
 import { getDefaultAuthenticatedRoute } from '../../core/utils/default-auth-route.util';
@@ -43,7 +42,6 @@ export class AppShellComponent {
   private readonly authService = inject(AuthService);
   private readonly uiFeedback = inject(UiFeedbackService);
   private readonly router = inject(Router);
-  protected readonly languageService = inject(LanguageService);
 
   readonly currentUser = this.authService.currentUser;
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
@@ -85,6 +83,8 @@ export class AppShellComponent {
     if (
       currentPath === '/cart' ||
       currentPath === '/dashboard/orders' ||
+      currentPath === '/account' ||
+      currentPath.startsWith('/account/') ||
       currentPath.startsWith('/order-confirmation') ||
       currentPath.startsWith('/detail-commande')
     ) {
@@ -138,9 +138,9 @@ export class AppShellComponent {
           queryParams: { merchantSlug },
         },
         {
-          labelKey: 'shell.nav.orders',
-          icon: 'receipt_long',
-          route: ['/dashboard', 'orders'],
+          labelKey: 'shell.nav.account',
+          icon: 'person',
+          route: ['/account'],
           exact: true,
           queryParams: { merchantSlug },
         },
@@ -167,6 +167,12 @@ export class AppShellComponent {
           route: ['/cart'],
           exact: true,
         },
+        {
+          labelKey: 'shell.nav.account',
+          icon: 'person',
+          route: ['/account'],
+          exact: true,
+        },
       ];
     }
 
@@ -190,9 +196,9 @@ export class AppShellComponent {
           exact: true,
         },
         {
-          labelKey: 'shell.nav.profile',
+          labelKey: 'shell.nav.account',
           icon: 'person',
-          route: ['/merchant', 'profile'],
+          route: ['/merchant', 'account'],
           exact: true,
         },
       ];
@@ -226,10 +232,6 @@ export class AppShellComponent {
 
   logout(): void {
     this.authService.logout().subscribe();
-  }
-
-  setLanguage(language: 'fr' | 'ar'): void {
-    this.authService.updatePreferredLanguage(language).subscribe();
   }
 
   clearGlobalError(): void {
