@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Body,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
@@ -22,9 +23,18 @@ export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   @Get()
-  getMyCart(@CurrentUser() user: JwtPayload) {
+  getMyCart(
+    @CurrentUser() user: JwtPayload,
+    @Query('merchantId') merchantId?: string,
+  ) {
     this.assertCustomer(user);
-    return this.cartService.getMyCart(user.sub);
+    return this.cartService.getMyCart(user.sub, merchantId);
+  }
+
+  @Get('/all')
+  listMyCarts(@CurrentUser() user: JwtPayload) {
+    this.assertCustomer(user);
+    return this.cartService.listMyCarts(user.sub);
   }
 
   @Post('items')

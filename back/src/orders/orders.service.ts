@@ -25,8 +25,40 @@ export class OrdersService {
   ) {}
 
   async checkout(userId: string, dto: CheckoutOrderDto) {
-    const cart = await this.prisma.cart.findUnique({
-      where: { customerId: userId },
+    const pickupSlot = await this.prisma.pickupSlot.findUnique({
+      where: { id: dto.pickupSlotId },
+      include: {
+        merchant: { select: { pickupSlotCapacity: true } },
+      },
+    });
+
+    if (!pickupSlot || !pickupSlot.isActive) {
+      throw new NotFoundException({
+        code: ErrorCodes.ORDER_PICKUP_SLOT_NOT_FOUND,
+        message: 'Pickup slot not found',
+      });
+    }
+
+    const now = new Date();
+    if (pickupSlot.startsAt <= now) {
+      throw new BadRequestException({
+        code: ErrorCodes.ORDER_PICKUP_SLOT_ALREADY_STARTED,
+        message: 'Pickup slot has already started',
+      });
+    }
+
+    if (pickupSlot.endsAt <= now) {
+      throw new BadRequestException({
+        code: ErrorCodes.ORDER_PICKUP_SLOT_EXPIRED,
+        message: 'Pickup slot is expired',
+      });
+    }
+
+    const cart = await this.prisma.cart.findFirst({
+      where: {
+        customerId: userId,
+        merchantId: pickupSlot.merchantId,
+      },
       include: {
         items: {
           include: {
@@ -44,42 +76,6 @@ export class OrdersService {
       throw new BadRequestException({
         code: ErrorCodes.CART_EMPTY,
         message: 'Cart is empty',
-      });
-    }
-
-    const pickupSlot = await this.prisma.pickupSlot.findUnique({
-      where: { id: dto.pickupSlotId },
-      include: {
-        merchant: { select: { pickupSlotCapacity: true } },
-      },
-    });
-
-    if (!pickupSlot || !pickupSlot.isActive) {
-      throw new NotFoundException({
-        code: ErrorCodes.ORDER_PICKUP_SLOT_NOT_FOUND,
-        message: 'Pickup slot not found',
-      });
-    }
-
-    if (pickupSlot.merchantId !== cart.merchantId) {
-      throw new BadRequestException({
-        code: ErrorCodes.ORDER_PICKUP_SLOT_MERCHANT_MISMATCH,
-        message: 'Pickup slot does not belong to cart merchant',
-      });
-    }
-
-    const now = new Date();
-    if (pickupSlot.startsAt <= now) {
-      throw new BadRequestException({
-        code: ErrorCodes.ORDER_PICKUP_SLOT_ALREADY_STARTED,
-        message: 'Pickup slot has already started',
-      });
-    }
-
-    if (pickupSlot.endsAt <= now) {
-      throw new BadRequestException({
-        code: ErrorCodes.ORDER_PICKUP_SLOT_EXPIRED,
-        message: 'Pickup slot is expired',
       });
     }
 
@@ -159,10 +155,7 @@ export class OrdersService {
       });
 
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
-      await tx.cart.update({
-        where: { id: cart.id },
-        data: { merchantId: null },
-      });
+      await tx.cart.delete({ where: { id: cart.id } });
 
       return createdOrder;
     });

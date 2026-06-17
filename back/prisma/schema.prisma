@@ -79,7 +79,7 @@ model User {
   resetTokens        PasswordResetToken[]
   inviteTokens       InviteToken[]
   reviewedSubmissions ProductSubmission[] @relation("SubmissionReviewer")
-  cart               Cart?
+  carts              Cart[]
   customerOrders     Order[]
 
   @@map("users")
@@ -322,7 +322,7 @@ model StoreOffer {
 
 model Cart {
   id          String   @id @default(cuid())
-  customerId  String   @unique
+  customerId  String
   merchantId  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -331,7 +331,9 @@ model Cart {
   merchant MerchantProfile? @relation(fields: [merchantId], references: [id], onDelete: SetNull)
   items    CartItem[]
 
+  @@unique([customerId, merchantId])
   @@index([merchantId])
+  @@index([customerId])
   @@map("carts")
 }
 

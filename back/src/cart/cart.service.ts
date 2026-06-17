@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -13,21 +12,43 @@ import { UpsertCartItemDto } from './dto/upsert-cart-item.dto';
 export class CartService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getMyCart(userId: string) {
-    const cart = await this.prisma.cart.findUnique({
-      where: { customerId: userId },
+  async getMyCart(userId: string, merchantId?: string) {
+    const normalizedMerchantId = merchantId?.trim();
+
+    const cart = await this.prisma.cart.findFirst({
+      where: {
+        customerId: userId,
+        ...(normalizedMerchantId ? { merchantId: normalizedMerchantId } : {}),
+      },
+      orderBy: { updatedAt: 'desc' },
       include: this.getCartInclude(),
     });
 
     if (!cart) {
-      return {
-        merchantId: null,
-        items: [],
-        totalEstimatedInCents: 0,
-      };
+      return this.emptyCartResponse();
     }
 
     return this.toCartResponse(cart);
+  }
+
+  async listMyCarts(userId: string) {
+    const carts = await this.prisma.cart.findMany({
+      where: { customerId: userId },
+      include: this.getCartInclude(),
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    return carts.map((cart) => {
+      const response = this.toCartResponse(cart);
+      return {
+        id: response.id,
+        merchantId: response.merchantId,
+        merchant: response.merchant,
+        itemsCount: response.items.length,
+        totalEstimatedInCents: response.totalEstimatedInCents,
+        updatedAt: cart.updatedAt,
+      };
+    });
   }
 
   async upsertMyCartItem(userId: string, dto: UpsertCartItemDto) {
@@ -81,8 +102,11 @@ export class CartService {
       maxOrderQty,
     );
 
-    let cart = await this.prisma.cart.findUnique({
-      where: { customerId: userId },
+    let cart = await this.prisma.cart.findFirst({
+      where: {
+        customerId: userId,
+        merchantId: offer.merchantId,
+      },
     });
 
     if (!cart) {
@@ -91,17 +115,6 @@ export class CartService {
           customerId: userId,
           merchantId: offer.merchantId,
         },
-      });
-    } else if (cart.merchantId && cart.merchantId !== offer.merchantId) {
-      throw new ConflictException({
-        code: ErrorCodes.CART_MERCHANT_MISMATCH,
-        message:
-          'Cart supports only one merchant. Clear your cart before changing merchant.',
-      });
-    } else if (!cart.merchantId) {
-      cart = await this.prisma.cart.update({
-        where: { id: cart.id },
-        data: { merchantId: offer.merchantId },
       });
     }
 
@@ -129,22 +142,19 @@ export class CartService {
   }
 
   async removeMyCartItem(userId: string, itemId: string) {
-    const cart = await this.prisma.cart.findUnique({
-      where: { customerId: userId },
+    const item = await this.prisma.cartItem.findUnique({
+      where: { id: itemId },
       include: {
-        items: true,
+        cart: {
+          select: {
+            id: true,
+            customerId: true,
+          },
+        },
       },
     });
 
-    if (!cart) {
-      throw new NotFoundException({
-        code: ErrorCodes.CART_NOT_FOUND,
-        message: 'Cart not found',
-      });
-    }
-
-    const item = cart.items.find((it) => it.id === itemId);
-    if (!item) {
+    if (!item || item.cart.customerId !== userId) {
       throw new NotFoundException({
         code: ErrorCodes.CART_ITEM_NOT_FOUND,
         message: 'Cart item not found',
@@ -154,18 +164,18 @@ export class CartService {
     await this.prisma.cartItem.delete({ where: { id: itemId } });
 
     const remainingItems = await this.prisma.cartItem.count({
-      where: { cartId: cart.id },
+      where: { cartId: item.cart.id },
     });
 
     if (remainingItems === 0) {
-      await this.prisma.cart.update({
-        where: { id: cart.id },
-        data: { merchantId: null },
+      await this.prisma.cart.delete({
+        where: { id: item.cart.id },
       });
+      return this.emptyCartResponse();
     }
 
     const updatedCart = await this.prisma.cart.findUnique({
-      where: { id: cart.id },
+      where: { id: item.cart.id },
       include: this.getCartInclude(),
     });
 
@@ -205,7 +215,7 @@ export class CartService {
   private getCartInclude() {
     return {
       merchant: {
-        select: { id: true, storeName: true },
+        select: { id: true, slug: true, storeName: true },
       },
       items: {
         orderBy: { createdAt: 'desc' as const },
@@ -270,6 +280,15 @@ export class CartService {
       merchantId: cart.merchantId,
       items,
       totalEstimatedInCents,
+    };
+  }
+
+  private emptyCartResponse() {
+    return {
+      merchant: null,
+      merchantId: null,
+      items: [],
+      totalEstimatedInCents: 0,
     };
   }
 }
