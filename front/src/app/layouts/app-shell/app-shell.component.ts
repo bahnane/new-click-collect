@@ -1,4 +1,13 @@
-import { Component, computed, inject } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  OnDestroy,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import {
   NavigationEnd,
   Router,
@@ -11,7 +20,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
+import { LanguageService } from '../../core/i18n/language.service';
 import { AuthService } from '../../core/services/auth.service';
+import { MerchantShopService } from '../../core/services/merchant-shop.service';
+import { ShopShellContextService } from '../../core/services/shop-shell-context.service';
 import { UiFeedbackService } from '../../core/services/ui-feedback.service';
 import { getDefaultAuthenticatedRoute } from '../../core/utils/default-auth-route.util';
 
@@ -40,11 +52,17 @@ type ShellContext = 'customer' | 'merchant' | 'admin' | 'shop';
 })
 export class AppShellComponent {
   private readonly authService = inject(AuthService);
+  private readonly merchantShopService = inject(MerchantShopService);
+  private readonly shopShellContext = inject(ShopShellContextService);
   private readonly uiFeedback = inject(UiFeedbackService);
+  protected readonly languageService = inject(LanguageService);
   private readonly router = inject(Router);
+  private topChromeElement: HTMLElement | null = null;
+  private resizeObserver: ResizeObserver | null = null;
 
   readonly currentUser = this.authService.currentUser;
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
+  readonly shellTopOffset = signal('0px');
   readonly currentUrl = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -62,10 +80,20 @@ export class AppShellComponent {
   readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
   readonly isMerchant = computed(() => this.currentUser()?.role === 'MERCHANT');
   readonly isCustomer = computed(() => this.currentUser()?.role === 'CUSTOMER');
+  readonly isRtl = this.languageService.isRtl;
   readonly homeRoute = computed(() =>
     getDefaultAuthenticatedRoute(this.currentUser()),
   );
   readonly globalErrorKey = this.uiFeedback.errorKey;
+  readonly isShopContext = computed(() => this.shellContext() === 'shop');
+  readonly isShopRoute = computed(() =>
+    this.currentPath().startsWith('/shop/'),
+  );
+  readonly shopTitle = computed(
+    () => this.shopShellContext.shopName() ?? this.merchantShopSlug() ?? '',
+  );
+  readonly isShopSearchVisible = this.shopShellContext.isSearchOpen;
+  readonly shopSearchValue = this.shopShellContext.searchValue;
 
   readonly merchantShopSlug = computed(() => {
     const pathMatch = this.currentPath().match(/^\/shop\/([^/?#]+)/);
@@ -138,9 +166,9 @@ export class AppShellComponent {
           queryParams: { merchantSlug },
         },
         {
-          labelKey: 'shell.nav.account',
-          icon: 'person',
-          route: ['/account'],
+          labelKey: 'shell.nav.repeat',
+          icon: 'history',
+          route: ['/dashboard', 'orders'],
           exact: true,
           queryParams: { merchantSlug },
         },
@@ -230,11 +258,117 @@ export class AppShellComponent {
     return [];
   });
 
+  constructor() {
+    effect(() => {
+      const merchantSlug = this.merchantShopSlug();
+
+      if (!merchantSlug || this.shellContext() !== 'shop') {
+        this.shopShellContext.reset();
+        this.scheduleShellTopOffsetUpdate();
+        return;
+      }
+
+      if (!this.isShopRoute()) {
+        this.shopShellContext.closeSearch();
+      }
+
+      if (
+        this.shopShellContext.shopSlug() === merchantSlug &&
+        this.shopShellContext.shopName()
+      ) {
+        this.scheduleShellTopOffsetUpdate();
+        return;
+      }
+
+      this.merchantShopService.getMerchantInfo(merchantSlug).subscribe({
+        next: (info) => {
+          this.shopShellContext.setShopIdentity(merchantSlug, info.storeName);
+          this.scheduleShellTopOffsetUpdate();
+        },
+        error: () => {
+          this.shopShellContext.setShopIdentity(merchantSlug, null);
+          this.scheduleShellTopOffsetUpdate();
+        },
+      });
+    });
+
+    effect(() => {
+      this.isShopSearchVisible();
+      this.currentPath();
+      this.scheduleShellTopOffsetUpdate();
+    });
+  }
+
+  @ViewChild('topChrome')
+  set topChrome(element: ElementRef<HTMLElement> | undefined) {
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+    this.topChromeElement = element?.nativeElement ?? null;
+
+    if (this.topChromeElement && typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => {
+        this.updateShellTopOffset();
+      });
+      this.resizeObserver.observe(this.topChromeElement);
+    }
+
+    this.updateShellTopOffset();
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+  }
+
   logout(): void {
     this.authService.logout().subscribe();
   }
 
+  toggleShopSearch(): void {
+    if (!this.isShopContext() || !this.isShopRoute()) {
+      return;
+    }
+
+    this.shopShellContext.toggleSearch();
+    this.scheduleShellTopOffsetUpdate();
+  }
+
+  updateShopSearch(value: string): void {
+    this.shopShellContext.setSearchValue(value);
+  }
+
+  clearShopSearch(): void {
+    this.shopShellContext.setSearchValue('');
+  }
+
+  goToShopContextBack(): void {
+    const merchantSlug = this.merchantShopSlug();
+    if (!merchantSlug) {
+      this.router.navigate(this.homeRoute());
+      return;
+    }
+
+    if (this.currentPath() === `/shop/${merchantSlug}`) {
+      this.router.navigate(['/dashboard']);
+      return;
+    }
+
+    this.router.navigate(['/shop', merchantSlug]);
+  }
+
   clearGlobalError(): void {
     this.uiFeedback.clearError();
+  }
+
+  private scheduleShellTopOffsetUpdate(): void {
+    setTimeout(() => {
+      this.updateShellTopOffset();
+    });
+  }
+
+  private updateShellTopOffset(): void {
+    this.shellTopOffset.set(
+      this.topChromeElement ? `${this.topChromeElement.offsetHeight}px` : '0px',
+    );
   }
 }

@@ -10,6 +10,7 @@
   align-items: center;
   gap: 0.25rem;
   margin-block-end: var(--space-md);
+  cursor: pointer;
 }
 
 h1 {
@@ -40,6 +41,11 @@ p {
   gap: var(--space-sm);
   text-align: var(--text-align-start);
   padding: var(--space-md);
+  cursor: pointer;
+}
+
+.account-row:disabled {
+  cursor: default;
 }
 
 .account-row strong {

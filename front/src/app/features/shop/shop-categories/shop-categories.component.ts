@@ -36,7 +36,6 @@ export class ShopCategoriesComponent implements OnInit {
   readonly merchantSlug = signal('');
   readonly categories = signal<ProductCategory[]>([]);
 
-  readonly isRtl = this.languageService.isRtl;
   readonly currentDirection = this.languageService.currentDirection;
 
   readonly sortedRootCategories = computed(() =>
@@ -46,7 +45,9 @@ export class ShopCategoriesComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    const merchantSlug = this.route.snapshot.paramMap.get('merchantSlug')?.trim();
+    const merchantSlug = this.route.snapshot.paramMap
+      .get('merchantSlug')
+      ?.trim();
     if (!merchantSlug) {
       this.router.navigate(['/']);
       return;
@@ -70,14 +71,14 @@ export class ShopCategoriesComponent implements OnInit {
     this.merchantShopService
       .getMerchantRootCategories(this.merchantSlug())
       .subscribe({
-      next: (categories) => {
-        this.categories.set(categories);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.error.set('shop.categoriesLoadFailed');
-        this.loading.set(false);
-      },
-    });
+        next: (categories) => {
+          this.categories.set(categories);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.error.set('shop.categoriesLoadFailed');
+          this.loading.set(false);
+        },
+      });
   }
 }

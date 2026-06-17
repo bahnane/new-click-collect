@@ -1,4 +1,4 @@
-<div class="shell">
+<div class="shell" [style.--shell-top-offset]="shellTopOffset()">
     @if (globalErrorKey(); as currentGlobalErrorKey) {
     <div class="shell-global-error" role="alert" aria-live="assertive">
         <mat-icon aria-hidden="true">error_outline</mat-icon>
@@ -10,29 +10,66 @@
     </div>
     }
 
-    <header class="shell-header" [class.with-global-error]="!!globalErrorKey()">
-        <a class="brand" [routerLink]="homeRoute()">
-            <span class="brand-title">{{ 'app.name' | transloco }}</span>
-        </a>
+    <div #topChrome class="shell-top-chrome" [class.with-global-error]="!!globalErrorKey()">
+        <header class="shell-header" [class.is-shop]="isShopContext()">
+            @if (isShopContext()) {
+            <button mat-icon-button type="button" class="shell-back-button" (click)="goToShopContextBack()"
+                [attr.aria-label]="'shop.goBack' | transloco">
+                <mat-icon aria-hidden="true">{{ isRtl() ? 'arrow_forward' : 'arrow_back' }}</mat-icon>
+            </button>
 
-        <div class="shell-header-actions">
-            @if (isAuthenticated() && isAdmin()) {
-            <button mat-stroked-button type="button" class="logout-button" (click)="logout()">
-                {{ 'shell.nav.logout' | transloco }}
+            <div class="shell-shop-title">{{ shopTitle() }}</div>
+
+            @if (isShopRoute()) {
+            <button mat-icon-button type="button" class="shell-search-toggle" (click)="toggleShopSearch()"
+                [attr.aria-label]="'shop.searchAriaLabel' | transloco">
+                <mat-icon aria-hidden="true">{{ isShopSearchVisible() ? 'close' : 'search' }}</mat-icon>
+            </button>
+            } @else {
+            <span class="shell-header-spacer" aria-hidden="true"></span>
+            }
+            } @else {
+            <a class="brand" [routerLink]="homeRoute()">
+                <span class="brand-title">{{ 'app.name' | transloco }}</span>
+            </a>
+
+            <div class="shell-header-actions">
+                @if (isAuthenticated() && isAdmin()) {
+                <button mat-stroked-button type="button" class="logout-button" (click)="logout()">
+                    {{ 'shell.nav.logout' | transloco }}
+                </button>
+                }
+            </div>
+            }
+        </header>
+
+        @if (isShopContext() && isShopRoute() && isShopSearchVisible()) {
+        <div class="shell-shop-search" role="search">
+            <mat-icon aria-hidden="true">search</mat-icon>
+            <input type="search" class="shell-shop-search-input" [value]="shopSearchValue()"
+                (input)="updateShopSearch($any($event.target).value)"
+                [placeholder]="'shop.searchPlaceholder' | transloco"
+                [attr.aria-label]="'shop.searchAriaLabel' | transloco" />
+            @if (shopSearchValue()) {
+            <button mat-icon-button type="button" (click)="clearShopSearch()"
+                [attr.aria-label]="'shop.searchClear' | transloco">
+                <mat-icon aria-hidden="true">close</mat-icon>
             </button>
             }
         </div>
-    </header>
-
-    <nav class="shell-tabs shell-tabs--top" [attr.aria-label]="'shell.header.navigationLabel' | transloco">
-        @for (tab of primaryTabs(); track tab.labelKey) {
-        <a [routerLink]="tab.route" [queryParams]="tab.queryParams ?? null" routerLinkActive="is-active"
-            [routerLinkActiveOptions]="{ exact: tab.exact ?? false }" class="shell-tab-link" mat-button type="button">
-            <mat-icon aria-hidden="true">{{ tab.icon }}</mat-icon>
-            <span>{{ tab.labelKey | transloco }}</span>
-        </a>
         }
-    </nav>
+
+        <nav class="shell-tabs shell-tabs--top" [attr.aria-label]="'shell.header.navigationLabel' | transloco">
+            @for (tab of primaryTabs(); track tab.labelKey) {
+            <a [routerLink]="tab.route" [queryParams]="tab.queryParams ?? null" routerLinkActive="is-active"
+                [routerLinkActiveOptions]="{ exact: tab.exact ?? false }" class="shell-tab-link" mat-button
+                type="button">
+                <mat-icon aria-hidden="true">{{ tab.icon }}</mat-icon>
+                <span>{{ tab.labelKey | transloco }}</span>
+            </a>
+            }
+        </nav>
+    </div>
 
     <main class="shell-content">
         <router-outlet />

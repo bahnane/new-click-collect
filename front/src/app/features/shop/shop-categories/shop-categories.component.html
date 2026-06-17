@@ -1,14 +1,5 @@
 <div [dir]="currentDirection()" class="shop-categories-page">
   <header class="shop-categories-header">
-    <button
-      mat-icon-button
-      type="button"
-      [attr.aria-label]="'shop.goBack' | transloco"
-      [routerLink]="['/shop', merchantSlug()]"
-    >
-      <mat-icon>{{ isRtl() ? 'arrow_forward' : 'arrow_back' }}</mat-icon>
-    </button>
-
     <div>
       <h1>{{ 'shop.categoriesPageTitle' | transloco }}</h1>
       <p>{{ 'shop.categoriesPageSubtitle' | transloco }}</p>

@@ -1,5 +1,3 @@
-@use "../../../shared/styles/language-switcher.shared" as languageSwitcher;
-
 .merchant-shop {
   min-height: var(--size-page-min-height);
   background-color: var(--color-bg-primary);
@@ -7,77 +5,9 @@
   overflow-anchor: none;
 }
 
-/* Header */
-.shop-header {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: var(--z-sticky);
-  background-color: var(--color-bg-secondary);
-  border-block-end: 1px solid var(--color-divider);
-  display: flex;
-  align-items: center;
-  gap: var(--space-lg);
-  padding: var(--space-lg);
-  box-shadow: var(--shadow-md);
-}
-
-.shop-header-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-md);
-  flex-wrap: wrap;
-}
-
-@include languageSwitcher.language-switcher-base();
-@include languageSwitcher.language-switcher-active(
-  var(--color-primary),
-  null,
-  var(--color-primary)
-);
-
-.logout-button {
-  white-space: nowrap;
-}
-
-.back-button {
-  flex-shrink: 0;
-}
-
-.shop-header h1 {
-  margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.shop-search-bar {
-  inline-size: 100%;
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  padding-inline: var(--space-md);
-  block-size: var(--size-button-height-md);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background-color: var(--color-bg-primary);
-}
-
-.shop-search-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  background: transparent;
-}
-
 .shop-catalog-nav {
   position: sticky;
-  inset-block-start: var(--shop-header-height, 0px);
+  inset-block-start: var(--shell-top-offset, 0px);
   z-index: calc(var(--z-sticky) - 1);
   background-color: var(--color-bg-secondary);
   border-block-end: 1px solid var(--color-divider);
@@ -139,24 +69,6 @@
   font: var(--font-body-small);
 }
 
-@media (max-width: 959px) {
-  .shop-header {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .shop-header h1 {
-    width: calc(100% - var(--size-icon-xl));
-    order: 1;
-  }
-
-  .shop-header-actions {
-    width: 100%;
-    order: 2;
-    justify-content: flex-start;
-  }
-}
-
 /* Loading State */
 .loading-container {
   display: flex;
@@ -195,97 +107,6 @@
 .error-container p {
   margin: 0;
   font-size: 1rem;
-}
-
-/* Merchant Info Card */
-.merchant-info-card {
-  margin: var(--space-lg);
-  margin-bottom: 0;
-  border-radius: var(--radius-md);
-}
-
-.merchant-details {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2xl);
-}
-
-.description {
-  margin: 0;
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  color: var(--color-text-secondary);
-}
-
-.contact-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-}
-
-.contact-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-primary);
-}
-
-.contact-item mat-icon {
-  font-size: var(--size-icon-md);
-  width: var(--size-icon-md);
-  height: var(--size-icon-md);
-  flex-shrink: 0;
-  color: var(--color-primary);
-}
-
-.hours-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-2xl);
-}
-
-@media (min-width: 600px) {
-  .hours-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.hours-section h3 {
-  margin: 0;
-  margin-block-end: var(--space-md);
-  font-size: 0.9375rem;
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-}
-
-.hours-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
-
-.hour-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: var(--font-size-sm);
-  padding-block: var(--space-sm);
-  gap: var(--space-md);
-  border-block-end: 1px solid var(--color-divider);
-}
-
-.hour-item .day {
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-}
-
-.hour-item .time {
-  color: var(--color-text-secondary);
-  text-align: var(--text-align-end);
 }
 
 /* Products Section */

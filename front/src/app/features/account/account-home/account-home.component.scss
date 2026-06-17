@@ -8,6 +8,7 @@
 
 .back-btn {
   margin-inline-start: -0.5rem;
+  cursor: pointer;
 }
 
 h1 {
@@ -38,6 +39,7 @@ p {
   gap: var(--space-sm);
   text-decoration: none;
   padding: var(--space-md);
+  cursor: pointer;
 }
 
 .account-row strong {
@@ -60,4 +62,8 @@ p {
 .logout-row {
   inline-size: 100%;
   text-align: var(--text-align-start);
+}
+
+.logout-row:disabled {
+  cursor: default;
 }

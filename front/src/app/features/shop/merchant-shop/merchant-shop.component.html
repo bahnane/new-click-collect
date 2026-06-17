@@ -1,26 +1,6 @@
 <div [dir]="currentDirection()" class="merchant-shop">
-    <div #shopHeader class="shop-header">
-        <button class="back-button" mat-icon-button (click)="goBack()" [attr.aria-label]="'shop.goBack' | transloco">
-            <mat-icon>{{ isRtl() ? 'arrow_forward' : 'arrow_back' }}</mat-icon>
-        </button>
-        <h1>{{ 'shop.title' | transloco }}</h1>
-
-        <div class="shop-search-bar" role="search">
-            <mat-icon aria-hidden="true">search</mat-icon>
-            <input type="search" class="shop-search-input" [value]="searchInputValue()"
-                (input)="onSearchInput($any($event.target).value)" [placeholder]="'shop.searchPlaceholder' | transloco"
-                [attr.aria-label]="'shop.searchAriaLabel' | transloco" />
-            @if (searchInputValue()) {
-            <button type="button" mat-icon-button (click)="clearSearch()"
-                [attr.aria-label]="'shop.searchClear' | transloco">
-                <mat-icon aria-hidden="true">close</mat-icon>
-            </button>
-            }
-        </div>
-    </div>
-
     @if (rootCategoryGroups().length > 0) {
-    <section class="shop-catalog-nav" [style.--shop-header-height]="shopHeaderHeight() + 'px'">
+    <section class="shop-catalog-nav">
         <div class="catalog-row-shell" [class.is-hidden]="!categoryBarsVisible()">
             <button mat-icon-button type="button" class="catalog-scroll-button catalog-scroll-button-start"
                 [attr.aria-label]="'shop.scrollLeft' | transloco" (click)="scrollCategoryRow('root', 'previous')">
@@ -98,70 +78,6 @@
     }
 
     @if (merchantInfo() && !error()) {
-    <mat-card class="merchant-info-card">
-        <mat-card-header>
-            <mat-card-title>{{ merchantInfo()!.storeName }}</mat-card-title>
-            <mat-card-subtitle>
-                {{ businessTypeLabel() | transloco }}
-            </mat-card-subtitle>
-        </mat-card-header>
-
-        <mat-card-content>
-            <div class="merchant-details">
-                @if (merchantInfo()!.description) {
-                <p class="description">
-                    {{ merchantInfo()!.description }}
-                </p>
-                }
-
-                <div class="contact-info">
-                    @if (merchantInfo()!.phone) {
-                    <span class="contact-item">
-                        <mat-icon>phone</mat-icon>
-                        <span>{{ merchantInfo()!.phone }}</span>
-                    </span>
-                    }
-
-                    @if (merchantInfo()!.address) {
-                    <span class="contact-item">
-                        <mat-icon>location_on</mat-icon>
-                        <span>{{ merchantInfo()!.address }}</span>
-                    </span>
-                    }
-
-                    @if (merchantInfo()!.city) {
-                    <span class="contact-item">
-                        <mat-icon>location_city</mat-icon>
-                        <span>{{ merchantInfo()!.city }}
-                            {{ merchantInfo()!.zipCode ? ', ' + merchantInfo()!.zipCode : ''
-                            }}</span>
-                    </span>
-                    }
-                </div>
-
-                <div class="hours-grid">
-                    @if (merchantInfo()!.openingHours.length) {
-                    <div class="hours-section">
-                        <h3>{{ 'shop.openingHours' | transloco }}</h3>
-                        <ul class="hours-list">
-                            @for (hour of merchantInfo()!.openingHours; track hour.dayOfWeek) {
-                            <li class="hour-item">
-                                <span class="day">
-                                    {{ 'shop.day.' + hour.dayOfWeek | transloco }}
-                                </span>
-                                <span class="time">
-                                    {{ hour.startHour }}:00 - {{ hour.endHour }}:00
-                                </span>
-                            </li>
-                            }
-                        </ul>
-                    </div>
-                    }
-                </div>
-            </div>
-        </mat-card-content>
-    </mat-card>
-
     <section class="products-section">
         <h2>{{ 'shop.products' | transloco }}</h2>
 

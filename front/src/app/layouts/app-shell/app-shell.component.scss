@@ -5,6 +5,16 @@
   background-color: var(--color-bg-primary);
 }
 
+.shell-top-chrome {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-sticky);
+}
+
+.shell-top-chrome.with-global-error {
+  inset-block-start: var(--size-global-error-bar-height);
+}
+
 .shell-global-error {
   position: sticky;
   inset-block-start: 0;
@@ -29,9 +39,6 @@
 }
 
 .shell-header {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: var(--z-sticky);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -48,8 +55,9 @@
   backdrop-filter: blur(6px);
 }
 
-.shell-header.with-global-error {
-  inset-block-start: var(--size-global-error-bar-height);
+.shell-header.is-shop {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
 .brand {
@@ -65,6 +73,47 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
+}
+
+.shell-back-button,
+.shell-search-toggle {
+  flex-shrink: 0;
+}
+
+.shell-shop-title {
+  min-inline-size: 0;
+  text-align: center;
+  color: var(--color-text-primary);
+  font: var(--font-title-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shell-header-spacer {
+  inline-size: 3rem;
+  block-size: 3rem;
+}
+
+.shell-shop-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-inline: var(--space-lg);
+  margin-block-end: var(--space-md);
+  padding-inline: var(--space-md);
+  min-block-size: var(--size-button-height-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-bg-primary);
+}
+
+.shell-shop-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--color-text-primary);
 }
 
 .logout-button {
@@ -160,19 +209,16 @@
     gap: var(--space-sm);
   }
 
+  .shell-shop-search {
+    margin-inline: var(--space-xl);
+  }
+
   .shell-tabs--top {
-    position: sticky;
-    inset-block-start: 4.5rem;
-    z-index: var(--z-sticky);
     display: flex;
     justify-content: center;
     gap: var(--space-sm);
     padding-block: var(--space-xs);
     padding-inline: var(--space-xl);
-  }
-
-  .shell-header.with-global-error + .shell-tabs--top {
-    inset-block-start: calc(4.5rem + var(--size-global-error-bar-height));
   }
 
   .shell-tabs--bottom {
