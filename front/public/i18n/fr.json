@@ -901,6 +901,12 @@
   "cart": {
     "title": "Votre panier",
     "subtitle": "Revoyez vos articles avant de passer commande.",
+    "homeContext": {
+      "title": "Mes paniers",
+      "subtitle": "Sélectionnez une boutique pour ouvrir son panier.",
+      "listLabel": "Liste des paniers par boutique",
+      "empty": "Vous n'avez pas de panier actif pour le moment."
+    },
     "loading": "Chargement du panier...",
     "retry": "Réessayer",
     "empty": "Votre panier est vide pour le moment.",

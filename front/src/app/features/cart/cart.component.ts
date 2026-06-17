@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
+  OnDestroy,
   OnInit,
   computed,
   effect,
@@ -14,9 +15,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { Subscription } from 'rxjs';
 import { extractApiErrorCode } from '../../core/errors/api-error.util';
 import { LanguageService } from '../../core/i18n/language.service';
-import { CartItem, CartResponse } from '../../core/models/cart.model';
+import {
+  CartItem,
+  CartResponse,
+  CartSummaryResponse,
+} from '../../core/models/cart.model';
+import { MerchantShopService } from '../../core/services/merchant-shop.service';
 import {
   CartService,
   PublicPickupSlot,
@@ -38,6 +45,15 @@ const CHECKOUT_ERROR_KEY_BY_CODE: Record<string, string> = {
   AUTH_FORBIDDEN: 'auth.apiErrors.AUTH_FORBIDDEN',
 };
 
+interface HomeCartEntry {
+  id: string;
+  merchantId: string;
+  storeName: string;
+  itemsCount: number;
+  totalEstimatedInCents: number;
+  merchantSlug: string;
+}
+
 @Component({
   selector: 'app-cart',
   imports: [
@@ -52,13 +68,15 @@ const CHECKOUT_ERROR_KEY_BY_CODE: Record<string, string> = {
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.scss',
 })
-export class CartComponent implements OnInit {
+export class CartComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly cartService = inject(CartService);
+  private readonly merchantShopService = inject(MerchantShopService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly uiFeedback = inject(UiFeedbackService);
   protected readonly languageService = inject(LanguageService);
+  private queryParamSubscription: Subscription | null = null;
 
   readonly loading = signal(true);
   readonly loadingSlots = signal(false);
@@ -69,9 +87,30 @@ export class CartComponent implements OnInit {
   readonly slotsErrorMessageKey = signal<string | null>(null);
   readonly checkoutErrorMessageKey = signal<string | null>(null);
   readonly cart = signal<CartResponse | null>(null);
+  readonly homeCarts = signal<CartSummaryResponse[]>([]);
   readonly pickupSlots = signal<PublicPickupSlot[]>([]);
+  readonly currentMerchantSlug = signal<string | null>(null);
 
-  readonly hasItems = computed(() => (this.cart()?.items.length ?? 0) > 0);
+  readonly hasItems = computed(() => {
+    if (this.isShopContext()) {
+      return (this.cart()?.items.length ?? 0) > 0;
+    }
+
+    return this.homeCarts().length > 0;
+  });
+  readonly isShopContext = computed(() => !!this.currentMerchantSlug());
+  readonly homeCartEntries = computed<HomeCartEntry[]>(() => {
+    return this.homeCarts()
+      .filter((entry) => !!entry.merchant?.slug)
+      .map((entry) => ({
+        id: entry.id,
+        merchantId: entry.merchantId,
+        storeName: entry.merchant?.storeName || '---',
+        itemsCount: entry.itemsCount,
+        totalEstimatedInCents: entry.totalEstimatedInCents,
+        merchantSlug: entry.merchant!.slug!,
+      }));
+  });
   readonly currentDirection = this.languageService.currentDirection;
 
   readonly checkoutForm = this.fb.nonNullable.group({
@@ -95,16 +134,39 @@ export class CartComponent implements OnInit {
 
   ngOnInit(): void {
     this.checkoutForm.controls.pickupSlotId.disable({ emitEvent: false });
-    this.loadCart();
+    this.queryParamSubscription = this.route.queryParamMap.subscribe(
+      (params) => {
+        const merchantSlug = params.get('merchantSlug')?.trim() || null;
+        this.currentMerchantSlug.set(merchantSlug);
+        this.loadCartContext();
+      },
+    );
   }
 
-  loadCart(): void {
+  ngOnDestroy(): void {
+    this.queryParamSubscription?.unsubscribe();
+    this.queryParamSubscription = null;
+  }
+
+  loadCartContext(): void {
+    if (this.isShopContext()) {
+      this.loadShopCart();
+      return;
+    }
+
+    this.loadHomeCarts();
+  }
+
+  private loadHomeCarts(): void {
     this.loading.set(true);
     this.errorMessageKey.set(null);
+    this.cart.set(null);
+    this.pickupSlots.set([]);
+    this.checkoutForm.controls.pickupSlotId.setValue('');
 
-    this.cartService.getMyCart().subscribe({
+    this.cartService.listMyCarts().subscribe({
       next: (response) => {
-        this.applyCartResponse(response);
+        this.homeCarts.set(response);
         this.loading.set(false);
       },
       error: () => {
@@ -114,7 +176,43 @@ export class CartComponent implements OnInit {
     });
   }
 
+  private loadShopCart(): void {
+    this.loading.set(true);
+    this.errorMessageKey.set(null);
+    this.homeCarts.set([]);
+
+    const merchantSlug = this.currentMerchantSlug();
+    if (!merchantSlug) {
+      this.errorMessageKey.set('cart.errors.loadFailed');
+      this.loading.set(false);
+      return;
+    }
+
+    this.merchantShopService.getMerchantInfo(merchantSlug).subscribe({
+      next: (merchantInfo) => {
+        this.cartService.getMyCart(merchantInfo.id).subscribe({
+          next: (response) => {
+            this.applyCartResponse(response);
+            this.loading.set(false);
+          },
+          error: () => {
+            this.errorMessageKey.set('cart.errors.loadFailed');
+            this.loading.set(false);
+          },
+        });
+      },
+      error: () => {
+        this.errorMessageKey.set('cart.errors.loadFailed');
+        this.loading.set(false);
+      },
+    });
+  }
+
   removeItem(itemId: string): void {
+    if (!this.isShopContext()) {
+      return;
+    }
+
     if (
       this.removingItemId() ||
       this.updatingItemId() ||
@@ -139,9 +237,7 @@ export class CartComponent implements OnInit {
   }
 
   continueShopping(): void {
-    const merchantSlug = this.route.snapshot.queryParamMap
-      .get('merchantSlug')
-      ?.trim();
+    const merchantSlug = this.currentMerchantSlug();
     if (merchantSlug) {
       this.router.navigate(['/shop', merchantSlug]);
       return;
@@ -155,6 +251,10 @@ export class CartComponent implements OnInit {
   }
 
   decreaseItemQuantity(item: CartItem): void {
+    if (!this.isShopContext()) {
+      return;
+    }
+
     if (
       this.updatingItemId() ||
       this.removingItemId() ||
@@ -172,6 +272,10 @@ export class CartComponent implements OnInit {
   }
 
   increaseItemQuantity(item: CartItem): void {
+    if (!this.isShopContext()) {
+      return;
+    }
+
     if (
       this.updatingItemId() ||
       this.removingItemId() ||
@@ -204,6 +308,10 @@ export class CartComponent implements OnInit {
   }
 
   submitCheckout(): void {
+    if (!this.isShopContext()) {
+      return;
+    }
+
     if (
       this.checkoutLoading() ||
       this.updatingItemId() ||
@@ -235,9 +343,7 @@ export class CartComponent implements OnInit {
         next: (order) => {
           this.checkoutLoading.set(false);
           this.syncPickupSlotControlState();
-          const merchantSlug = this.route.snapshot.queryParamMap
-            .get('merchantSlug')
-            ?.trim();
+          const merchantSlug = this.currentMerchantSlug();
           this.router.navigate(['/order-confirmation', order.id], {
             queryParams: merchantSlug ? { merchantSlug } : undefined,
           });
@@ -252,7 +358,17 @@ export class CartComponent implements OnInit {
       });
   }
 
+  openMerchantCart(entry: HomeCartEntry): void {
+    this.router.navigate(['/cart'], {
+      queryParams: { merchantSlug: entry.merchantSlug },
+    });
+  }
+
   private updateItemQuantity(item: CartItem, quantity: number): void {
+    if (!this.isShopContext()) {
+      return;
+    }
+
     this.errorMessageKey.set(null);
     this.updatingItemId.set(item.id);
 
@@ -270,8 +386,17 @@ export class CartComponent implements OnInit {
 
   private applyCartResponse(response: CartResponse): void {
     this.cart.set(response);
+
     const merchantId = response.merchantId;
     const hasItems = response.items.length > 0;
+
+    if (!this.isShopContext()) {
+      this.pickupSlots.set([]);
+      this.slotsErrorMessageKey.set(null);
+      this.checkoutForm.controls.pickupSlotId.setValue('');
+      this.syncPickupSlotControlState();
+      return;
+    }
 
     if (!merchantId || !hasItems) {
       this.pickupSlots.set([]);
@@ -312,6 +437,11 @@ export class CartComponent implements OnInit {
 
   private syncPickupSlotControlState(): void {
     const pickupSlotControl = this.checkoutForm.controls.pickupSlotId;
+    if (!this.isShopContext()) {
+      pickupSlotControl.disable({ emitEvent: false });
+      return;
+    }
+
     const shouldDisable =
       this.loadingSlots() ||
       this.checkoutLoading() ||

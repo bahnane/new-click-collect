@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CartResponse } from '../models/cart.model';
+import { CartResponse, CartSummaryResponse } from '../models/cart.model';
 import { Order } from '../models/order.model';
 
 interface UpsertCartItemPayload {
@@ -27,10 +27,20 @@ interface CheckoutOrderPayload {
 export class CartService {
   private readonly http = inject(HttpClient);
 
-  getMyCart(): Observable<CartResponse> {
+  getMyCart(merchantId?: string): Observable<CartResponse> {
     return this.http.get<CartResponse>(`${environment.apiUrl}/cart`, {
+      params: merchantId ? { merchantId } : undefined,
       withCredentials: true,
     });
+  }
+
+  listMyCarts(): Observable<CartSummaryResponse[]> {
+    return this.http.get<CartSummaryResponse[]>(
+      `${environment.apiUrl}/cart/all`,
+      {
+        withCredentials: true,
+      },
+    );
   }
 
   upsertMyCartItem(

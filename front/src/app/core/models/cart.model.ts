@@ -1,5 +1,6 @@
 export interface CartMerchant {
   id: string;
+  slug?: string;
   storeName: string;
 }
 
@@ -28,4 +29,13 @@ export interface CartResponse {
   merchantId: string | null;
   items: CartItem[];
   totalEstimatedInCents: number;
+}
+
+export interface CartSummaryResponse {
+  id: string;
+  merchantId: string;
+  merchant: CartMerchant | null;
+  itemsCount: number;
+  totalEstimatedInCents: number;
+  updatedAt: string;
 }

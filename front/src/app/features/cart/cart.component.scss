@@ -35,6 +35,54 @@
   color: var(--color-primary);
 }
 
+.home-carts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.home-cart-card {
+  border-radius: var(--radius-md);
+}
+
+.home-cart-action {
+  inline-size: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+  text-align: var(--text-align-start);
+  padding: var(--space-md);
+  cursor: pointer;
+}
+
+.home-cart-action h2 {
+  margin: 0;
+  font: var(--font-title-medium);
+  color: var(--color-text-primary);
+}
+
+.home-cart-action p {
+  margin: var(--space-xs) 0 0;
+  font: var(--font-body-small);
+  color: var(--color-text-secondary);
+}
+
+.home-cart-action small {
+  display: block;
+  margin-block-start: var(--space-xs);
+  font: var(--font-body-small);
+  color: var(--color-text-secondary);
+}
+
+.home-cart-action:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
 .cart-layout {
   display: grid;
   gap: var(--space-lg);
