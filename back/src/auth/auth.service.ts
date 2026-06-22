@@ -557,6 +557,37 @@ export class AuthService {
     };
   }
 
+  async deleteMyAccount(userId: string): Promise<{ message: string }> {
+    const user = await this.usersService.findById(userId);
+
+    if (!user) {
+      throw new UnauthorizedException({
+        code: ErrorCodes.AUTH_USER_NOT_FOUND,
+        message: 'User not found',
+      });
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.refreshToken.updateMany({
+        where: {
+          userId,
+          revokedAt: null,
+        },
+        data: {
+          revokedAt: new Date(),
+        },
+      });
+
+      await tx.user.delete({
+        where: { id: userId },
+      });
+    });
+
+    return {
+      message: 'Account deleted successfully.',
+    };
+  }
+
   async updatePreferredLanguage(
     userId: string,
     dto: UpdatePreferredLanguageDto,

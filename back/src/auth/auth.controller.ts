@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Patch,
   Post,
   Req,
@@ -122,6 +123,17 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const result = await this.authService.changePassword(userId, dto);
+    this.authService.clearRefreshTokenCookie(response);
+    return result;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('me')
+  async deleteMyAccount(
+    @CurrentUser('sub') userId: string,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.deleteMyAccount(userId);
     this.authService.clearRefreshTokenCookie(response);
     return result;
   }
