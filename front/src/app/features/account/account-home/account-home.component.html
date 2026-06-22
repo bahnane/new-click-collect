@@ -9,6 +9,26 @@
             <h1>{{ titleKey() | transloco }}</h1>
             <p>{{ subtitleKey() | transloco }}</p>
 
+            @if (accountDetails().length > 0) {
+            <section class="account-details" [attr.aria-label]="'account.details.title' | transloco">
+                <h2>{{ 'account.details.title' | transloco }}</h2>
+                <dl>
+                    @for (detail of accountDetails(); track detail.labelKey) {
+                    <div class="detail-row">
+                        <dt>{{ detail.labelKey | transloco }}</dt>
+                        <dd>
+                            @if (detail.valueKey) {
+                            {{ detail.valueKey | transloco }}
+                            } @else {
+                            {{ detail.value }}
+                            }
+                        </dd>
+                    </div>
+                    }
+                </dl>
+            </section>
+            }
+
             <nav class="account-list" [attr.aria-label]="titleKey() | transloco">
                 @for (entry of entries(); track entry.labelKey) {
                 @if (entry.route) {

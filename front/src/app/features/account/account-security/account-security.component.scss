@@ -19,9 +19,16 @@ h1 {
   font: var(--font-title-large);
 }
 
+p {
+  margin: 0 0 var(--space-lg);
+  color: var(--color-text-secondary);
+  font: var(--font-body-medium);
+}
+
 .account-list {
   display: grid;
   gap: var(--space-xs);
+  margin-block-end: var(--space-md);
 }
 
 .account-row {
@@ -32,6 +39,11 @@ h1 {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  inline-size: 100%;
+  text-align: var(--text-align-start);
 }
 
 .account-row strong {
@@ -45,10 +57,51 @@ h1 {
   font: var(--font-body-small);
 }
 
-.soon-pill {
-  border-radius: 999px;
-  padding: 0.2rem 0.55rem;
-  font: var(--font-label-small);
-  color: var(--color-text-secondary);
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+.row-main {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--space-sm);
+}
+
+.danger-row {
+  border-color: color-mix(in srgb, var(--color-error) 40%, var(--color-border));
+}
+
+.danger-row mat-icon,
+.danger-row strong {
+  color: var(--color-error);
+}
+
+.change-password-form {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.field-full-width {
+  display: block;
+  inline-size: 100%;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+}
+
+.error-banner {
+  align-items: center;
+  background: color-mix(in srgb, var(--color-error) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  display: flex;
+  font: var(--font-body-small);
+  gap: var(--space-xs);
+  margin-block-end: var(--space-sm);
+  padding: var(--space-sm);
+}
+
+.form-actions mat-progress-spinner {
+  display: inline-block;
 }

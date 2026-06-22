@@ -802,6 +802,22 @@
       "title": "حساب التاجر",
       "subtitle": "ركّز إعداداتك وتفضيلات الإدارة في صفحة واحدة."
     },
+    "details": {
+      "title": "تفاصيل الحساب",
+      "email": "البريد الإلكتروني",
+      "role": "نوع الحساب",
+      "status": "الحالة",
+      "roles": {
+        "admin": "مسؤول",
+        "merchant": "تاجر",
+        "customer": "عميل"
+      },
+      "statuses": {
+        "active": "نشط",
+        "invited": "الدعوة قيد الانتظار",
+        "suspended": "موقوف"
+      }
+    },
     "sections": {
       "orders": {
         "title": "سجل الطلبات",
@@ -821,13 +837,30 @@
       }
     },
     "security": {
+      "subtitle": "حدّث كلمة المرور وأدر الإجراءات الحساسة في حسابك.",
       "changePassword": {
         "title": "تغيير كلمة المرور",
-        "description": "ستتوفر هذه الميزة قريباً من هذه الصفحة."
+        "description": "حدّث كلمة المرور ثم سجّل الدخول مجدداً.",
+        "formLabel": "نموذج تغيير كلمة المرور",
+        "currentPassword": "كلمة المرور الحالية",
+        "newPassword": "كلمة المرور الجديدة",
+        "confirmPassword": "تأكيد كلمة المرور الجديدة",
+        "submit": "تحديث كلمة المرور",
+        "errors": {
+          "currentPasswordRequired": "كلمة المرور الحالية مطلوبة.",
+          "newPasswordRequired": "كلمة المرور الجديدة مطلوبة.",
+          "confirmPasswordRequired": "تأكيد كلمة المرور مطلوب.",
+          "passwordMinLength": "8 أحرف على الأقل.",
+          "passwordMismatch": "كلمتا المرور غير متطابقتين.",
+          "generic": "تعذر تغيير كلمة المرور. يرجى المحاولة مرة أخرى."
+        }
       },
       "deleteAccount": {
         "title": "حذف الحساب",
-        "description": "سيتم إضافة هذه العملية مع تأكيد حماية إضافي."
+        "description": "احذف حسابك نهائياً مع جميع صلاحيات الوصول.",
+        "confirmTitle": "تأكيد حذف الحساب",
+        "confirmMessage": "هل تريد فعلاً حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه.",
+        "confirmCta": "حذف حسابي"
       }
     },
     "language": {
@@ -835,6 +868,8 @@
     },
     "actions": {
       "logout": "تسجيل الخروج",
+      "logoutConfirmTitle": "تأكيد تسجيل الخروج",
+      "logoutConfirmMessage": "هل تريد فعلاً تسجيل الخروج من حسابك؟",
       "back": "رجوع",
       "comingSoon": "قريباً"
     }

@@ -802,6 +802,22 @@
       "title": "Compte marchand",
       "subtitle": "Centralisez vos paramètres et préférences de gestion."
     },
+    "details": {
+      "title": "Détails du compte",
+      "email": "Email",
+      "role": "Type de compte",
+      "status": "Statut",
+      "roles": {
+        "admin": "Administrateur",
+        "merchant": "Marchand",
+        "customer": "Client"
+      },
+      "statuses": {
+        "active": "Actif",
+        "invited": "Invitation en attente",
+        "suspended": "Suspendu"
+      }
+    },
     "sections": {
       "orders": {
         "title": "Historique des commandes",
@@ -821,13 +837,30 @@
       }
     },
     "security": {
+      "subtitle": "Mettez a jour votre mot de passe et gerez les actions sensibles de votre compte.",
       "changePassword": {
         "title": "Changer le mot de passe",
-        "description": "Bientôt disponible depuis cet espace."
+        "description": "Mettez a jour votre mot de passe puis reconnectez-vous.",
+        "formLabel": "Formulaire de changement du mot de passe",
+        "currentPassword": "Mot de passe actuel",
+        "newPassword": "Nouveau mot de passe",
+        "confirmPassword": "Confirmer le nouveau mot de passe",
+        "submit": "Mettre a jour le mot de passe",
+        "errors": {
+          "currentPasswordRequired": "Le mot de passe actuel est requis.",
+          "newPasswordRequired": "Le nouveau mot de passe est requis.",
+          "confirmPasswordRequired": "La confirmation du mot de passe est requise.",
+          "passwordMinLength": "Minimum 8 caracteres.",
+          "passwordMismatch": "Les mots de passe ne correspondent pas.",
+          "generic": "Impossible de changer le mot de passe. Veuillez reessayer."
+        }
       },
       "deleteAccount": {
         "title": "Supprimer mon compte",
-        "description": "Cette action sera ajoutée avec une confirmation renforcée."
+        "description": "Supprimez definitivement votre compte et ses acces.",
+        "confirmTitle": "Confirmer la suppression du compte",
+        "confirmMessage": "Voulez-vous vraiment supprimer votre compte ? Cette action est irreversible.",
+        "confirmCta": "Supprimer mon compte"
       }
     },
     "language": {
@@ -835,6 +868,8 @@
     },
     "actions": {
       "logout": "Se déconnecter",
+      "logoutConfirmTitle": "Confirmer la deconnexion",
+      "logoutConfirmMessage": "Voulez-vous vraiment vous deconnecter de votre compte ?",
       "back": "Retour",
       "comingSoon": "Bientôt"
     }

@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../../core/services/auth.service';
+import { ConfirmationDialogComponent } from '../../../shared/dialogs/confirmation-dialog/confirmation-dialog.component';
 
 type AccountScope = 'customer' | 'merchant';
 
@@ -16,6 +18,12 @@ interface AccountEntry {
   route?: string[];
   queryParams?: Record<string, string>;
   action?: 'logout';
+}
+
+interface AccountDetail {
+  labelKey: string;
+  value?: string;
+  valueKey?: string;
 }
 
 @Component({
@@ -34,7 +42,10 @@ interface AccountEntry {
 export class AccountHomeComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   private readonly authService = inject(AuthService);
+
+  readonly currentUser = this.authService.currentUser;
 
   readonly scope = computed<AccountScope>(
     () =>
@@ -52,6 +63,28 @@ export class AccountHomeComponent {
       ? 'account.merchant.subtitle'
       : 'account.customer.subtitle',
   );
+
+  readonly accountDetails = computed<AccountDetail[]>(() => {
+    const user = this.currentUser();
+    if (!user) {
+      return [];
+    }
+
+    return [
+      {
+        labelKey: 'account.details.email',
+        value: user.email,
+      },
+      {
+        labelKey: 'account.details.role',
+        valueKey: `account.details.roles.${user.role.toLowerCase()}`,
+      },
+      {
+        labelKey: 'account.details.status',
+        valueKey: `account.details.statuses.${user.status.toLowerCase()}`,
+      },
+    ];
+  });
 
   readonly entries = computed<AccountEntry[]>(() => {
     const isMerchant = this.scope() === 'merchant';
@@ -106,7 +139,17 @@ export class AccountHomeComponent {
 
   onAction(entry: AccountEntry): void {
     if (entry.action === 'logout') {
-      this.authService.logout().subscribe();
+      this.dialog.open(ConfirmationDialogComponent, {
+        width: '420px',
+        data: {
+          title: 'account.actions.logoutConfirmTitle',
+          message: 'account.actions.logoutConfirmMessage',
+          confirmLabel: 'account.actions.logout',
+          confirmColor: 'warn',
+          icon: 'logout',
+          confirmAction: () => this.authService.logout(),
+        },
+      });
     }
   }
 

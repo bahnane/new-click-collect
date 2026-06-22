@@ -49,6 +49,11 @@ interface ResetPasswordPayload {
   newPassword: string;
 }
 
+interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
 interface MessageResponse {
   message: string;
 }
@@ -120,6 +125,31 @@ export class AuthService {
         }),
         finalize(() => {
           this._loggingOut.set(false);
+        }),
+      );
+  }
+
+  changePassword(payload: ChangePasswordPayload) {
+    return this.http.post<MessageResponse>(
+      `${environment.apiUrl}/auth/change-password`,
+      payload,
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
+  deleteMyAccount(): Observable<MessageResponse> {
+    return this.http
+      .delete<MessageResponse>(`${environment.apiUrl}/auth/me`, {
+        withCredentials: true,
+      })
+      .pipe(
+        switchMap((response) => {
+          this.clearSession();
+          return from(this.router.navigate(['/login'])).pipe(
+            map(() => response),
+          );
         }),
       );
   }

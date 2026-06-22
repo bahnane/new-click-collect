@@ -7,18 +7,97 @@
             </button>
 
             <h1>{{ titleKey | transloco }}</h1>
+            <p>{{ 'account.security.subtitle' | transloco }}</p>
 
-            <div class="account-list">
+            <div class="account-list" role="list">
                 @for (entry of entries(); track entry.labelKey) {
-                <article class="account-row" aria-disabled="true">
-                    <div>
-                        <strong>{{ entry.labelKey | transloco }}</strong>
-                        <small>{{ entry.descriptionKey | transloco }}</small>
-                    </div>
-                    <span class="soon-pill">{{ 'account.actions.comingSoon' | transloco }}</span>
-                </article>
+                <button class="account-row" [class.danger-row]="entry.tone === 'danger'" type="button" role="listitem"
+                    (click)="onAction(entry)">
+                    <span class="row-main">
+                        <mat-icon aria-hidden="true">{{ entry.icon }}</mat-icon>
+                        <span>
+                            <strong>{{ entry.labelKey | transloco }}</strong>
+                            <small>{{ entry.descriptionKey | transloco }}</small>
+                        </span>
+                    </span>
+                    <mat-icon aria-hidden="true">chevron_right</mat-icon>
+                </button>
                 }
             </div>
+
+            @if (activeAction() === 'changePassword') {
+            <form class="change-password-form" [formGroup]="changePasswordForm" (ngSubmit)="submitChangePassword()"
+                novalidate [attr.aria-label]="'account.security.changePassword.formLabel' | transloco">
+                @if (changePasswordErrorKey()) {
+                <div class="error-banner" role="alert" aria-live="assertive">
+                    <mat-icon aria-hidden="true">error_outline</mat-icon>
+                    <span>{{ changePasswordErrorKey()! | transloco }}</span>
+                </div>
+                }
+
+                <mat-form-field appearance="outline" class="field-full-width">
+                    <mat-label>{{ 'account.security.changePassword.currentPassword' | transloco }}</mat-label>
+                    <input matInput type="password" autocomplete="current-password" formControlName="currentPassword" />
+                    @if (changePasswordForm.controls.currentPassword.touched) {
+                    @if (changePasswordForm.controls.currentPassword.hasError('required')) {
+                    <mat-error>
+                        {{ 'account.security.changePassword.errors.currentPasswordRequired' | transloco }}
+                    </mat-error>
+                    } @else if (changePasswordForm.controls.currentPassword.hasError('minlength')) {
+                    <mat-error>
+                        {{ 'account.security.changePassword.errors.passwordMinLength' | transloco }}
+                    </mat-error>
+                    }
+                    }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="field-full-width">
+                    <mat-label>{{ 'account.security.changePassword.newPassword' | transloco }}</mat-label>
+                    <input matInput type="password" autocomplete="new-password" formControlName="newPassword" />
+                    @if (changePasswordForm.controls.newPassword.touched) {
+                    @if (changePasswordForm.controls.newPassword.hasError('required')) {
+                    <mat-error>
+                        {{ 'account.security.changePassword.errors.newPasswordRequired' | transloco }}
+                    </mat-error>
+                    } @else if (changePasswordForm.controls.newPassword.hasError('minlength')) {
+                    <mat-error>
+                        {{ 'account.security.changePassword.errors.passwordMinLength' | transloco }}
+                    </mat-error>
+                    }
+                    }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="field-full-width">
+                    <mat-label>{{ 'account.security.changePassword.confirmPassword' | transloco }}</mat-label>
+                    <input matInput type="password" autocomplete="new-password" formControlName="confirmPassword" />
+                    @if (changePasswordForm.controls.confirmPassword.touched) {
+                    @if (changePasswordForm.controls.confirmPassword.hasError('required')) {
+                    <mat-error>
+                        {{ 'account.security.changePassword.errors.confirmPasswordRequired' | transloco }}
+                    </mat-error>
+                    } @else if (changePasswordForm.hasError('passwordMismatch')) {
+                    <mat-error>
+                        {{ 'account.security.changePassword.errors.passwordMismatch' | transloco }}
+                    </mat-error>
+                    }
+                    }
+                </mat-form-field>
+
+                <div class="form-actions">
+                    <button mat-button type="button" (click)="closeChangePasswordForm()"
+                        [disabled]="changePasswordInFlight()">
+                        {{ 'common.cancel' | transloco }}
+                    </button>
+                    <button mat-flat-button color="primary" type="submit" [disabled]="changePasswordInFlight()">
+                        @if (changePasswordInFlight()) {
+                        <mat-progress-spinner diameter="18" mode="indeterminate" aria-hidden="true" />
+                        } @else {
+                        {{ 'account.security.changePassword.submit' | transloco }}
+                        }
+                    </button>
+                </div>
+            </form>
+            }
         </mat-card-content>
     </mat-card>
 </section>
