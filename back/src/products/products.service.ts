@@ -699,6 +699,15 @@ export class ProductsService {
               description: true,
               saleUnit: true,
               priceInCents: true,
+              imageAsset: {
+                select: {
+                  id: true,
+                  cdnUrl: true,
+                  altText: true,
+                  width: true,
+                  height: true,
+                },
+              },
               category: {
                 select: {
                   id: true,
@@ -1790,6 +1799,15 @@ export class ProductsService {
               description: true,
               saleUnit: true,
               priceInCents: true,
+              imageAsset: {
+                select: {
+                  id: true,
+                  cdnUrl: true,
+                  altText: true,
+                  width: true,
+                  height: true,
+                },
+              },
               category: {
                 select: {
                   id: true,
@@ -1993,6 +2011,15 @@ export class ProductsService {
               description: true,
               saleUnit: true,
               priceInCents: true,
+              imageAsset: {
+                select: {
+                  id: true,
+                  cdnUrl: true,
+                  altText: true,
+                  width: true,
+                  height: true,
+                },
+              },
               category: {
                 select: {
                   id: true,
@@ -2061,6 +2088,15 @@ export class ProductsService {
               description: true,
               saleUnit: true,
               priceInCents: true,
+              imageAsset: {
+                select: {
+                  id: true,
+                  cdnUrl: true,
+                  altText: true,
+                  width: true,
+                  height: true,
+                },
+              },
               category: {
                 select: {
                   id: true,
@@ -2158,6 +2194,15 @@ export class ProductsService {
               description: true,
               saleUnit: true,
               priceInCents: true,
+              imageAsset: {
+                select: {
+                  id: true,
+                  cdnUrl: true,
+                  altText: true,
+                  width: true,
+                  height: true,
+                },
+              },
               category: {
                 select: {
                   id: true,
@@ -2209,6 +2254,15 @@ export class ProductsService {
             description: true,
             saleUnit: true,
             priceInCents: true,
+            imageAsset: {
+              select: {
+                id: true,
+                cdnUrl: true,
+                altText: true,
+                width: true,
+                height: true,
+              },
+            },
             category: {
               select: {
                 id: true,

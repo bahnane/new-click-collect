@@ -33,6 +33,12 @@ const FIXTURE = {
     process.env.SEED_FIXTURE_UNOFFERED_PRODUCT_PREFIX ??
     '[FIXTURE][SANS_OFFRE] Produit',
   categoryPrefix: process.env.SEED_FIXTURE_CATEGORY_PREFIX ?? 'fixture-',
+  productImageUrl:
+    process.env.SEED_FIXTURE_PRODUCT_IMAGE_URL ??
+    'https://pub-3138360c3ea4422d844af86b6617cbc6.r2.dev/images/products/2026/5/a4089325-6468-4414-8805-c15f45fdfa32.jpg',
+  productImageStorageKey:
+    process.env.SEED_FIXTURE_PRODUCT_IMAGE_STORAGE_KEY ??
+    'images/products/2026/5/a4089325-6468-4414-8805-c15f45fdfa32.jpg',
 };
 
 const PICKUP_HOUR_SEEDS: Array<{
@@ -233,6 +239,22 @@ async function main() {
       select: { id: true },
     });
 
+    const fixtureProductImageAsset = await prisma.imageAsset.upsert({
+      where: { storageKey: FIXTURE.productImageStorageKey },
+      update: {
+        cdnUrl: FIXTURE.productImageUrl,
+        altText: 'Image produit fixture',
+      },
+      create: {
+        storageProvider: 'r2',
+        storageKey: FIXTURE.productImageStorageKey,
+        cdnUrl: FIXTURE.productImageUrl,
+        altText: 'Image produit fixture',
+        mimeType: 'image/jpeg',
+      },
+      select: { id: true },
+    });
+
     // 3) Pickup hours fixture
     for (const pickupHour of PICKUP_HOUR_SEEDS) {
       await prisma.merchantPickupHour.upsert({
@@ -327,14 +349,20 @@ async function main() {
       // Product.name n'est pas unique: on évite les doublons via findFirst + create.
       const existing = await prisma.product.findFirst({
         where: { name, categoryId: category.id },
-        select: { id: true, subCategoryId: true },
+        select: { id: true, subCategoryId: true, imageAssetId: true },
       });
 
       if (existing) {
-        if ((existing.subCategoryId ?? null) !== subCategoryId) {
+        if (
+          (existing.subCategoryId ?? null) !== subCategoryId ||
+          (existing.imageAssetId ?? null) !== fixtureProductImageAsset.id
+        ) {
           await prisma.product.update({
             where: { id: existing.id },
-            data: { subCategoryId },
+            data: {
+              subCategoryId,
+              imageAssetId: fixtureProductImageAsset.id,
+            },
           });
         }
 
@@ -354,6 +382,7 @@ async function main() {
           priceInCents: priceInCentsFor(i),
           categoryId: category.id,
           subCategoryId,
+          imageAssetId: fixtureProductImageAsset.id,
           isActive: true,
         },
         select: { id: true },
@@ -383,14 +412,20 @@ async function main() {
 
       const existing = await prisma.product.findFirst({
         where: { name, categoryId: category.id },
-        select: { id: true, subCategoryId: true },
+        select: { id: true, subCategoryId: true, imageAssetId: true },
       });
 
       if (existing) {
-        if ((existing.subCategoryId ?? null) !== subCategoryId) {
+        if (
+          (existing.subCategoryId ?? null) !== subCategoryId ||
+          (existing.imageAssetId ?? null) !== fixtureProductImageAsset.id
+        ) {
           await prisma.product.update({
             where: { id: existing.id },
-            data: { subCategoryId },
+            data: {
+              subCategoryId,
+              imageAssetId: fixtureProductImageAsset.id,
+            },
           });
         }
 
@@ -411,6 +446,7 @@ async function main() {
           priceInCents: priceInCentsFor(i + FIXTURE.productsCount),
           categoryId: category.id,
           subCategoryId,
+          imageAssetId: fixtureProductImageAsset.id,
           isActive: true,
         },
         select: { id: true },
