@@ -124,26 +124,48 @@
 
 .products-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
   gap: var(--space-lg);
   margin-block-end: var(--space-3xl);
 }
 
-@media (min-width: 600px) {
-  .products-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .products-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
 .product-card {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  max-inline-size: 20rem;
+  justify-self: center;
+  align-self: start;
   border-radius: var(--radius-md);
   overflow: hidden;
+}
+
+.product-media {
+  display: grid;
+  place-items: center;
+  padding: var(--space-xs);
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+}
+
+.product-image {
+  max-inline-size: min(100%, 7rem);
+  max-block-size: 6.5rem;
+  inline-size: auto;
+  block-size: auto;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.product-card mat-card-header,
+.product-card mat-card-content,
+.product-card mat-card-actions {
+  flex-shrink: 0;
+}
+
+.product-card mat-card-content {
+  padding-block-end: var(--space-sm);
 }
 
 .product-card mat-card-title {
@@ -158,7 +180,7 @@
 
 .product-description {
   margin: 0;
-  margin-block-end: var(--space-md);
+  margin-block-end: var(--space-sm);
   font-size: 0.8125rem;
   line-height: 1.4;
   color: var(--color-text-secondary);
@@ -173,7 +195,7 @@
   display: flex;
   align-items: baseline;
   gap: var(--space-sm);
-  margin-block: var(--space-md);
+  margin-block: var(--space-sm);
 }
 
 .product-details .price {
@@ -191,8 +213,20 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
+  margin-block-start: var(--space-xs);
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
+}
+
+.product-card mat-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  padding-block-start: 0;
+  padding-block-end: var(--space-sm);
+  margin-block-start: 0;
 }
 
 .quantity-info small {

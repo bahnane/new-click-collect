@@ -97,6 +97,15 @@
         <div class="products-grid">
             @for (offer of filteredOffers(); track offer.id) {
             <mat-card class="product-card">
+                @if (offer.product.imageAsset?.cdnUrl) {
+                <div class="product-media">
+                    <img class="product-image" [src]="offer.product.imageAsset!.cdnUrl"
+                        [alt]="offer.product.imageAsset!.altText || offer.product.name" loading="lazy" decoding="async"
+                        [attr.width]="offer.product.imageAsset!.width || null"
+                        [attr.height]="offer.product.imageAsset!.height || null" />
+                </div>
+                }
+
                 <mat-card-header>
                     <mat-card-title>{{ offer.product.name }}</mat-card-title>
                     <mat-card-subtitle>
