@@ -11,6 +11,10 @@ const FIXTURE = {
     process.env.SEED_FIXTURE_UNOFFERED_PRODUCT_PREFIX ??
     '[FIXTURE][SANS_OFFRE] Produit',
   categoryPrefix: process.env.SEED_FIXTURE_CATEGORY_PREFIX ?? 'fixture-',
+  emptyShopSlugPrefix:
+    process.env.SEED_FIXTURE_EMPTY_SHOP_SLUG_PREFIX ?? 'fixture-casa-shop',
+  emptyShopEmailPrefix:
+    process.env.SEED_FIXTURE_EMPTY_SHOP_EMAIL_PREFIX ?? 'fixture-casa-shop',
 };
 
 async function main() {
@@ -78,6 +82,94 @@ async function main() {
       console.log('✓ Merchant fixture data removed');
     } else {
       console.log('No fixture merchant found, skipping merchant cleanup.');
+    }
+
+    const extraFixtureMerchants = await prisma.merchantProfile.findMany({
+      where: {
+        slug: {
+          startsWith: FIXTURE.emptyShopSlugPrefix,
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
+
+    if (extraFixtureMerchants.length > 0) {
+      const extraFixtureMerchantIds = extraFixtureMerchants.map(
+        (entry) => entry.id,
+      );
+      const extraFixtureUserIds = extraFixtureMerchants.map(
+        (entry) => entry.userId,
+      );
+
+      await prisma.$transaction(async (tx) => {
+        await tx.cartItem.deleteMany({
+          where: {
+            storeOffer: {
+              merchantId: { in: extraFixtureMerchantIds },
+            },
+          },
+        });
+
+        await tx.order.deleteMany({
+          where: {
+            merchantId: { in: extraFixtureMerchantIds },
+          },
+        });
+
+        await tx.storeOffer.deleteMany({
+          where: {
+            merchantId: { in: extraFixtureMerchantIds },
+          },
+        });
+
+        await tx.productSubmission.deleteMany({
+          where: {
+            merchantId: { in: extraFixtureMerchantIds },
+          },
+        });
+
+        await tx.pickupSlot.deleteMany({
+          where: {
+            merchantId: { in: extraFixtureMerchantIds },
+          },
+        });
+
+        await tx.cart.deleteMany({
+          where: {
+            merchantId: { in: extraFixtureMerchantIds },
+          },
+        });
+
+        await tx.merchantProfile.deleteMany({
+          where: {
+            id: { in: extraFixtureMerchantIds },
+          },
+        });
+
+        await tx.user.deleteMany({
+          where: {
+            OR: [
+              {
+                id: { in: extraFixtureUserIds },
+              },
+              {
+                email: {
+                  startsWith: FIXTURE.emptyShopEmailPrefix,
+                },
+              },
+            ],
+          },
+        });
+      });
+
+      console.log(
+        `✓ Extra Casablanca fixture merchants removed: ${extraFixtureMerchants.length}`,
+      );
+    } else {
+      console.log('No extra Casablanca fixture merchants found.');
     }
 
     // Soumissions fixtures restantes par catégories fixture

@@ -39,7 +39,30 @@ const FIXTURE = {
   productImageStorageKey:
     process.env.SEED_FIXTURE_PRODUCT_IMAGE_STORAGE_KEY ??
     'images/products/2026/5/a4089325-6468-4414-8805-c15f45fdfa32.jpg',
+  emptyShopsCount: Number(process.env.SEED_FIXTURE_EMPTY_SHOPS_COUNT ?? 10),
+  emptyShopSlugPrefix:
+    process.env.SEED_FIXTURE_EMPTY_SHOP_SLUG_PREFIX ?? 'fixture-casa-shop',
+  emptyShopEmailPrefix:
+    process.env.SEED_FIXTURE_EMPTY_SHOP_EMAIL_PREFIX ?? 'fixture-casa-shop',
 };
+
+const CASABLANCA_CENTER = {
+  latitude: 33.5731,
+  longitude: -7.5898,
+};
+
+const CASABLANCA_STORE_NAMES = [
+  'Hanout Maarif Test',
+  'Epicerie Racine Test',
+  'Boutique Gauthier Test',
+  'Hanout Bourgogne Test',
+  'Epicerie Palmier Test',
+  'Boutique Anfa Test',
+  'Hanout Oasis Test',
+  'Epicerie Sidi Maarouf Test',
+  'Boutique Ain Diab Test',
+  'Hanout Californie Test',
+];
 
 const PICKUP_HOUR_SEEDS: Array<{
   dayOfWeek: Weekday;
@@ -183,6 +206,24 @@ function pickSubCategoryId(
   return subCategoryIds[itemIndex % subCategoryIds.length] ?? null;
 }
 
+function pseudoRandom(seed: number): number {
+  const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453123;
+  return x - Math.floor(x);
+}
+
+function randomizedCasablancaCoordinates(index: number): {
+  latitude: number;
+  longitude: number;
+} {
+  const latOffset = (pseudoRandom(index + 1) - 0.5) * 0.06;
+  const lngOffset = (pseudoRandom(index + 101) - 0.5) * 0.08;
+
+  return {
+    latitude: Number((CASABLANCA_CENTER.latitude + latOffset).toFixed(6)),
+    longitude: Number((CASABLANCA_CENTER.longitude + lngOffset).toFixed(6)),
+  };
+}
+
 async function main() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error('DATABASE_URL is not defined');
@@ -238,6 +279,69 @@ async function main() {
       where: { userId: merchantUser.id },
       select: { id: true },
     });
+
+    // 2.b) Empty shops fixtures for dashboard map/list testing in Casablanca
+    let emptyShopsUpserted = 0;
+
+    for (let index = 0; index < FIXTURE.emptyShopsCount; index++) {
+      const shopNumber = index + 1;
+      const userEmail = `${FIXTURE.emptyShopEmailPrefix}+${pad4(shopNumber)}@mailinator.com`;
+      const userPasswordHash = await argon2.hash(FIXTURE.merchantPassword);
+
+      const user = await prisma.user.upsert({
+        where: { email: userEmail },
+        update: {
+          role: Role.MERCHANT,
+          status: UserStatus.ACTIVE,
+          preferredLanguage: AppLanguage.fr,
+          passwordHash: userPasswordHash,
+        },
+        create: {
+          email: userEmail,
+          passwordHash: userPasswordHash,
+          role: Role.MERCHANT,
+          status: UserStatus.ACTIVE,
+          preferredLanguage: AppLanguage.fr,
+        },
+      });
+
+      const storeName =
+        CASABLANCA_STORE_NAMES[index] ??
+        `Boutique Casablanca Test ${pad4(shopNumber)}`;
+      const slug = `${FIXTURE.emptyShopSlugPrefix}-${pad4(shopNumber)}`;
+      const coordinates = randomizedCasablancaCoordinates(shopNumber);
+
+      await prisma.merchantProfile.upsert({
+        where: { userId: user.id },
+        update: {
+          slug,
+          storeName,
+          businessType:
+            index % 2 === 0 ? BusinessType.HANOUTE : BusinessType.PATISSERIE,
+          description: 'Boutique vide de fixture pour tests dashboard.',
+          city: 'Casablanca',
+          address: `${10 + shopNumber} Rue de test, Casablanca`,
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
+          isActive: true,
+        },
+        create: {
+          userId: user.id,
+          slug,
+          storeName,
+          businessType:
+            index % 2 === 0 ? BusinessType.HANOUTE : BusinessType.PATISSERIE,
+          description: 'Boutique vide de fixture pour tests dashboard.',
+          city: 'Casablanca',
+          address: `${10 + shopNumber} Rue de test, Casablanca`,
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
+          isActive: true,
+        },
+      });
+
+      emptyShopsUpserted++;
+    }
 
     const fixtureProductImageAsset = await prisma.imageAsset.upsert({
       where: { storageKey: FIXTURE.productImageStorageKey },
@@ -545,6 +649,7 @@ async function main() {
 
     console.log('✓ Fixture seed completed');
     console.log(`  Merchant slug: ${FIXTURE.merchantSlug}`);
+    console.log(`  Empty Casablanca shops upserted: ${emptyShopsUpserted}`);
     console.log(`  Products target (offer pool): ${FIXTURE.productsCount}`);
     console.log(
       `  Products linked to sub-categories (offer pool): ${offeredProductsLinkedToSubCategory}`,
