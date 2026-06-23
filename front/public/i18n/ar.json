@@ -323,8 +323,21 @@
       "roleLabel": "الدور",
       "home": {
         "listLabel": "قائمة المتاجر",
+        "searchLabel": "بحث",
+        "searchPlaceholder": "الاسم أو المدينة أو العنوان",
+        "cityFilterLabel": "المدينة",
+        "cityFilterAll": "كل المدن",
+        "sort": {
+          "nameAsc": "الاسم (أ-ي)",
+          "cityAsc": "المدينة (أ-ي)"
+        },
+        "openMap": "الخريطة",
+        "showList": "القائمة",
+        "mapTitle": "خريطة المتاجر",
+        "mapNoLocations": "لا توجد إحداثيات متاحة للمتاجر حالياً.",
         "loading": "جار تحميل المتاجر...",
         "empty": "لا توجد متاجر متاحة حالياً.",
+        "emptySearch": "لا توجد متاجر مطابقة لبحثك.",
         "openShop": "عرض المتجر",
         "errors": {
           "loadFailed": "تعذر تحميل قائمة المتاجر."

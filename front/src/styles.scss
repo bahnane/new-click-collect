@@ -27,6 +27,7 @@
 // custom components at https://material.angular.dev/guide/theming
 @use "@angular/material" as mat;
 @use "styles/design-tokens" as *;
+@import "leaflet/dist/leaflet.css";
 
 html {
   height: 100%;

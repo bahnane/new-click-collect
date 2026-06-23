@@ -323,8 +323,21 @@
       "roleLabel": "Rôle",
       "home": {
         "listLabel": "Liste des boutiques",
+        "searchLabel": "Rechercher",
+        "searchPlaceholder": "Nom, ville ou adresse",
+        "cityFilterLabel": "Ville",
+        "cityFilterAll": "Toutes les villes",
+        "sort": {
+          "nameAsc": "Nom (A-Z)",
+          "cityAsc": "Ville (A-Z)"
+        },
+        "openMap": "Carte",
+        "showList": "Liste",
+        "mapTitle": "Carte des boutiques",
+        "mapNoLocations": "Aucune boutique n'a encore de coordonnées disponibles.",
         "loading": "Chargement des boutiques...",
         "empty": "Aucune boutique disponible pour le moment.",
+        "emptySearch": "Aucune boutique ne correspond à votre recherche.",
         "openShop": "Voir la boutique",
         "errors": {
           "loadFailed": "Impossible de charger la liste des boutiques."

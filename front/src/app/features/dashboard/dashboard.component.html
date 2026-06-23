@@ -14,31 +14,141 @@
             } @else if (merchants().length === 0) {
             <p class="orders-empty">{{ 'shell.dashboard.home.empty' | transloco }}</p>
             } @else {
-            <div class="merchant-grid" role="list" [attr.aria-label]="'shell.dashboard.home.listLabel' | transloco">
-                @for (merchant of merchants(); track merchant.id) {
-                <article class="merchant-card" role="listitem">
-                    <div>
-                        <h2>{{ merchant.storeName }}</h2>
-                        <p class="merchant-meta">{{ 'shop.businessType.' + merchant.businessType.toLowerCase() |
-                            transloco }}</p>
-                        @if (merchant.description) {
-                        <p class="merchant-description">{{ merchant.description }}</p>
+            <div class="merchant-toolbar">
+                <div class="merchant-toolbar-field">
+                    <label for="merchant-search-input">{{ 'shell.dashboard.home.searchLabel' | transloco }}</label>
+                    <input id="merchant-search-input" type="search" [value]="merchantSearchQuery()"
+                        [attr.placeholder]="'shell.dashboard.home.searchPlaceholder' | transloco"
+                        (input)="onMerchantSearchQueryChange(($any($event.target).value ?? '').toString())" />
+                </div>
+
+                <div class="merchant-toolbar-field is-select">
+                    <label for="merchant-city-filter-select">{{ 'shell.dashboard.home.cityFilterLabel' | transloco
+                        }}</label>
+                    <select id="merchant-city-filter-select" [value]="merchantCityFilter()"
+                        (change)="onMerchantCityFilterChange(($any($event.target).value ?? '').toString())">
+                        <option value="all">{{ 'shell.dashboard.home.cityFilterAll' | transloco }}</option>
+                        @for (city of merchantCityOptions(); track city) {
+                        <option [value]="city">{{ city }}</option>
                         }
-                        @if (getMerchantAddress(merchant.city, merchant.address); as address) {
-                        <p class="merchant-meta">{{ address }}</p>
+                    </select>
+                </div>
+
+                <button class="merchant-map-toggle" mat-stroked-button type="button" (click)="openMerchantMap()">
+                    <mat-icon aria-hidden="true">map</mat-icon>
+                    {{ 'shell.dashboard.home.openMap' | transloco }}
+                </button>
+            </div>
+
+            <div class="merchant-layout">
+                <div class="merchant-layout-list">
+                    @if (filteredMerchants().length === 0) {
+                    <p class="orders-empty">{{ 'shell.dashboard.home.emptySearch' | transloco }}</p>
+                    } @else {
+                    <div class="merchant-grid" role="list"
+                        [attr.aria-label]="'shell.dashboard.home.listLabel' | transloco">
+                        @for (merchant of filteredMerchants(); track merchant.id) {
+                        <article class="merchant-card"
+                            [class.is-selected]="selectedMapMerchantSlug() === merchant.slug && merchant.latitude !== null && merchant.longitude !== null"
+                            [class.is-map-linkable]="merchant.latitude !== null && merchant.longitude !== null"
+                            role="listitem" (click)="focusMerchantOnMap(merchant.slug)">
+                            <div>
+                                <h2>{{ merchant.storeName }}</h2>
+                                <p class="merchant-meta">{{ 'shop.businessType.' + merchant.businessType.toLowerCase() |
+                                    transloco }}</p>
+                                @if (merchant.description) {
+                                <p class="merchant-description">{{ merchant.description }}</p>
+                                }
+                                @if (getMerchantAddress(merchant.city, merchant.address); as address) {
+                                <p class="merchant-meta">{{ address }}</p>
+                                }
+                            </div>
+
+                            <button mat-stroked-button type="button"
+                                (click)="$event.stopPropagation(); goToMerchantShop(merchant.slug)"
+                                [disabled]="isMerchantOpening(merchant.slug)">
+                                {{ 'shell.dashboard.home.openShop' | transloco }}
+                            </button>
+                        </article>
                         }
                     </div>
+                    }
+                </div>
 
-                    <button mat-stroked-button type="button" (click)="goToMerchantShop(merchant.slug)"
-                        [disabled]="isMerchantOpening(merchant.slug)">
-                        {{ 'shell.dashboard.home.openShop' | transloco }}
-                    </button>
-                </article>
-                }
+                <aside class="merchant-desktop-map-panel"
+                    [attr.aria-label]="'shell.dashboard.home.mapTitle' | transloco">
+                    @if (mappedMerchants().length === 0) {
+                    <div class="merchant-map-empty merchant-map-empty-desktop">
+                        <mat-icon aria-hidden="true">location_off</mat-icon>
+                        <p>{{ 'shell.dashboard.home.mapNoLocations' | transloco }}</p>
+                    </div>
+                    } @else {
+                    <div class="merchant-desktop-map-stage">
+                        <div class="merchant-desktop-map-canvas" #merchantDesktopMapContainer></div>
+
+                        @if (selectedMapMerchant(); as selectedMerchant) {
+                        <article class="merchant-map-sheet merchant-map-sheet-desktop" role="region">
+                            <h3>{{ selectedMerchant.storeName }}</h3>
+                            <p class="merchant-meta">{{ 'shop.businessType.' +
+                                selectedMerchant.businessType.toLowerCase() |
+                                transloco }}</p>
+                            @if (getMerchantAddress(selectedMerchant.city, selectedMerchant.address); as address) {
+                            <p class="merchant-meta">{{ address }}</p>
+                            }
+                            <button mat-stroked-button type="button" (click)="goToMerchantShop(selectedMerchant.slug)"
+                                [disabled]="isMerchantOpening(selectedMerchant.slug)">
+                                {{ 'shell.dashboard.home.openShop' | transloco }}
+                            </button>
+                        </article>
+                        }
+                    </div>
+                    }
+                </aside>
             </div>
             }
         </mat-card-content>
     </mat-card>
+
+    @if (isMapOpen()) {
+    <section class="merchant-map-overlay" [attr.aria-label]="'shell.dashboard.home.mapTitle' | transloco" role="dialog"
+        aria-modal="true">
+        <div class="merchant-map-overlay-header">
+            <h2>{{ 'shell.dashboard.home.mapTitle' | transloco }}</h2>
+        </div>
+
+        @if (mappedMerchants().length === 0) {
+        <div class="merchant-map-empty">
+            <mat-icon aria-hidden="true">location_off</mat-icon>
+            <p>{{ 'shell.dashboard.home.mapNoLocations' | transloco }}</p>
+        </div>
+        } @else {
+        <div class="merchant-map-stage">
+            <div class="merchant-map-canvas" #merchantMapContainer></div>
+
+            @if (selectedMapMerchant(); as selectedMerchant) {
+            <article class="merchant-map-sheet" role="region">
+                <h3>{{ selectedMerchant.storeName }}</h3>
+                <p class="merchant-meta">{{ 'shop.businessType.' + selectedMerchant.businessType.toLowerCase() |
+                    transloco
+                    }}</p>
+                @if (getMerchantAddress(selectedMerchant.city, selectedMerchant.address); as address) {
+                <p class="merchant-meta">{{ address }}</p>
+                }
+                <button mat-stroked-button type="button" (click)="goToMerchantShop(selectedMerchant.slug)"
+                    [disabled]="isMerchantOpening(selectedMerchant.slug)">
+                    {{ 'shell.dashboard.home.openShop' | transloco }}
+                </button>
+            </article>
+            }
+
+            <button class="merchant-map-back" mat-fab extended type="button" (click)="closeMerchantMap()">
+                <mat-icon aria-hidden="true">list</mat-icon>
+                {{ 'shell.dashboard.home.showList' | transloco }}
+            </button>
+        </div>
+        }
+    </section>
+    }
     }
 
     @if (isCustomer() && isOrdersView()) {
