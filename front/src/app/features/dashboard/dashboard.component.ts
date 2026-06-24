@@ -573,11 +573,18 @@ export class DashboardComponent implements OnDestroy {
       return;
     }
 
-    const icon = this.leaflet.divIcon({
+    const defaultIcon = this.leaflet.divIcon({
       className: 'merchant-map-pin',
       html: '<span></span>',
       iconSize: [22, 22],
       iconAnchor: [11, 11],
+    });
+
+    const selectedIcon = this.leaflet.divIcon({
+      className: 'merchant-map-pin',
+      html: '<span style="inline-size:1.1rem;block-size:1.1rem;background:var(--color-error);box-shadow:0 0 0 6px color-mix(in srgb, var(--color-error) 22%, transparent),0 2px 12px color-mix(in srgb, var(--color-error) 45%, transparent);"></span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
     });
 
     runtime.markersLayer.clearLayers();
@@ -587,15 +594,19 @@ export class DashboardComponent implements OnDestroy {
       return;
     }
 
+    const selectedSlug = this.selectedMapMerchantSlug();
+
     const positions: Array<[number, number]> = [];
 
     for (const merchant of mapMerchants) {
       const latitude = merchant.latitude!;
       const longitude = merchant.longitude!;
       positions.push([latitude, longitude]);
+      const markerIcon =
+        merchant.slug === selectedSlug ? selectedIcon : defaultIcon;
 
       const marker = this.leaflet
-        .marker([latitude, longitude], { icon })
+        .marker([latitude, longitude], { icon: markerIcon })
         .on('click', () => {
           this.selectedMapMerchantSlug.set(merchant.slug);
           this.centerMapOnMerchant('desktop', latitude, longitude);
