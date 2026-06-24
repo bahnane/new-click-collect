@@ -104,6 +104,8 @@ export class DashboardComponent implements OnDestroy {
   private readonly uiFeedback = inject(UiFeedbackService);
   private readonly document = inject(DOCUMENT);
   private originalBodyOverflow: string | null = null;
+  private merchantDesktopListContainer: ElementRef<HTMLDivElement> | null =
+    null;
 
   @ViewChild('merchantMapContainer')
   set merchantMapContainerRef(
@@ -123,6 +125,13 @@ export class DashboardComponent implements OnDestroy {
     if (this.mapRuntimes.desktop.container) {
       this.initializeMap('desktop');
     }
+  }
+
+  @ViewChild('merchantDesktopListContainer')
+  set merchantDesktopListContainerRef(
+    container: ElementRef<HTMLDivElement> | undefined,
+  ) {
+    this.merchantDesktopListContainer = container ?? null;
   }
 
   readonly currentUser = this.authService.currentUser;
@@ -262,6 +271,19 @@ export class DashboardComponent implements OnDestroy {
 
       queueMicrotask(() => {
         this.refreshAllMaps();
+      });
+    });
+
+    effect(() => {
+      const selectedSlug = this.selectedMapMerchantSlug();
+      this.filteredMerchants();
+
+      if (!selectedSlug) {
+        return;
+      }
+
+      queueMicrotask(() => {
+        this.scrollSelectedMerchantIntoView(selectedSlug);
       });
     });
 
@@ -634,6 +656,23 @@ export class DashboardComponent implements OnDestroy {
     const runtime = this.mapRuntimes[context];
     runtime.instance?.flyTo([latitude, longitude], 15, {
       duration: 0.35,
+    });
+  }
+
+  private scrollSelectedMerchantIntoView(selectedSlug: string): void {
+    const listContainer = this.merchantDesktopListContainer?.nativeElement;
+    if (!listContainer) {
+      return;
+    }
+
+    const selectedRow = Array.from(
+      listContainer.querySelectorAll<HTMLElement>('[data-merchant-row-slug]'),
+    ).find((row) => row.dataset['merchantRowSlug'] === selectedSlug);
+
+    selectedRow?.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest',
+      behavior: 'smooth',
     });
   }
 

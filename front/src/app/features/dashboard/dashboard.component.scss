@@ -40,16 +40,12 @@
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
 }
 
-.merchant-layout {
+.merchant-mobile-content {
   display: grid;
   gap: var(--space-md);
 }
 
-.merchant-layout-list {
-  min-inline-size: 0;
-}
-
-.merchant-desktop-map-panel {
+.merchant-desktop-stage {
   display: none;
 }
 
@@ -131,28 +127,6 @@
   margin: var(--space-xs) 0 0;
   color: var(--color-text-primary);
   font: var(--font-body-small);
-}
-
-.user-meta {
-  margin: 0;
-  display: grid;
-  gap: var(--space-md);
-}
-
-.user-meta div {
-  display: grid;
-  gap: 0.125rem;
-}
-
-.user-meta dt {
-  color: var(--color-text-secondary);
-  font: var(--font-label-medium);
-}
-
-.user-meta dd {
-  margin: 0;
-  color: var(--color-text-primary);
-  font: var(--font-body-medium);
 }
 
 .orders-card {
@@ -366,26 +340,61 @@
   inline-size: 100%;
 }
 
-.merchant-desktop-map-stage {
-  position: sticky;
-  inset-block-start: var(--space-md);
-  block-size: min(70vh, 44rem);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: color-mix(in srgb, var(--color-bg-secondary) 88%, transparent);
-}
-
 .merchant-desktop-map-canvas {
   block-size: 100%;
   inline-size: 100%;
 }
 
 .merchant-map-empty-desktop {
-  min-block-size: 24rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  min-block-size: 100%;
+  border: 0;
+  border-radius: 0;
   background: color-mix(in srgb, var(--color-bg-secondary) 88%, transparent);
+}
+
+.merchant-desktop-overlay-panel {
+  display: none;
+}
+
+.merchant-desktop-list {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.merchant-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-bg-secondary) 92%, transparent);
+}
+
+.merchant-row-main {
+  min-inline-size: 0;
+}
+
+.merchant-row h2 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font: var(--font-title-small);
+  text-align: var(--text-align-start);
+}
+
+.merchant-row.is-map-linkable {
+  cursor: pointer;
+}
+
+.merchant-row.is-selected {
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-border)
+  );
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 
 .merchant-map-sheet {
@@ -409,11 +418,6 @@
   color: var(--color-text-primary);
   font: var(--font-title-medium);
   text-align: var(--text-align-start);
-}
-
-.merchant-map-sheet-desktop {
-  inset-inline: var(--space-sm);
-  inset-block-end: var(--space-sm);
 }
 
 .merchant-map-sheet button {
@@ -468,13 +472,47 @@
 }
 
 @media (min-width: 72rem) {
-  .merchant-layout {
-    grid-template-columns: minmax(0, 1.2fr) minmax(22rem, 32rem);
-    align-items: start;
+  .merchant-mobile-content {
+    display: none;
   }
 
-  .merchant-desktop-map-panel {
+  .merchant-desktop-stage {
     display: block;
+    position: relative;
+    block-size: clamp(34rem, calc(100dvh - 15rem), 52rem);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: color-mix(in srgb, var(--color-bg-secondary) 88%, transparent);
+  }
+
+  .merchant-desktop-overlay-panel {
+    position: absolute;
+    inset-block-start: var(--space-md);
+    inset-inline-start: var(--space-md);
+    z-index: 1000;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    inline-size: min(28rem, calc(100% - (2 * var(--space-md))));
+    block-size: calc(100% - (2 * var(--space-md)));
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--color-bg-primary) 94%, transparent);
+    backdrop-filter: blur(2px);
+    box-shadow: 0 8px 24px
+      color-mix(in srgb, var(--color-text-primary) 10%, transparent);
+  }
+
+  .merchant-toolbar-desktop {
+    margin-block-end: var(--space-sm);
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .merchant-desktop-list {
+    min-block-size: 0;
+    overflow: auto;
   }
 
   .merchant-map-toggle {
