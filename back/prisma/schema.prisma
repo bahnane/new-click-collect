@@ -62,6 +62,13 @@ enum BusinessType {
   PATISSERIE
 }
 
+enum MerchantProfileStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  CHANGES_REQUESTED
+}
+
 model User {
   id                 String   @id @default(cuid())
   email              String   @unique @db.VarChar(191)
@@ -91,6 +98,7 @@ model MerchantProfile {
   slug        String   @unique @db.VarChar(140)
   storeName   String   @db.VarChar(120)
   businessType BusinessType
+  status      MerchantProfileStatus @default(APPROVED)
   description String?  @db.Text
   phone       String?  @db.VarChar(30)
   address     String?  @db.VarChar(255)

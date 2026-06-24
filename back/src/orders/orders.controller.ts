@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { ApprovedMerchantGuard } from '../auth/guards/approved-merchant.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
 import { ErrorCodes } from '../common/errors/api-error-codes';
@@ -55,6 +56,7 @@ export class OrdersController {
     return this.ordersService.cancelMyOrder(user.sub, id);
   }
 
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Get('merchants/me/orders')
   getMerchantOrders(
     @CurrentUser() user: JwtPayload,
@@ -71,6 +73,7 @@ export class OrdersController {
     );
   }
 
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Get('merchants/me/orders/:id')
   getMerchantOrderById(
     @CurrentUser() user: JwtPayload,
@@ -80,6 +83,7 @@ export class OrdersController {
     return this.ordersService.getMerchantOrderById(user.sub, id);
   }
 
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Patch('merchants/me/orders/:id/status')
   updateMerchantOrderStatus(
     @CurrentUser() user: JwtPayload,

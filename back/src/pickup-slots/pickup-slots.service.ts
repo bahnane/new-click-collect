@@ -6,6 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { MerchantProfileStatus } from '@prisma/client';
 import { ErrorCodes } from '../common/errors/api-error-codes';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePickupSlotDto } from './dto/create-pickup-slot.dto';
@@ -85,10 +86,19 @@ export class PickupSlotsService {
   async listPublicMerchantSlots(merchantId: string) {
     const merchant = await this.prisma.merchantProfile.findUnique({
       where: { id: merchantId },
-      select: { id: true, isActive: true, pickupSlotCapacity: true },
+      select: {
+        id: true,
+        isActive: true,
+        status: true,
+        pickupSlotCapacity: true,
+      },
     });
 
-    if (!merchant || !merchant.isActive) {
+    if (
+      !merchant ||
+      !merchant.isActive ||
+      merchant.status !== MerchantProfileStatus.APPROVED
+    ) {
       throw new NotFoundException({
         code: ErrorCodes.MERCHANT_NOT_FOUND,
         message: 'Merchant not found',
@@ -335,6 +345,11 @@ export class PickupSlotsService {
       throw new ForbiddenException({
         code: ErrorCodes.MERCHANT_ACCOUNT_INACTIVE,
         message: 'Merchant account is inactive',
+      });
+    if (profile.status !== MerchantProfileStatus.APPROVED)
+      throw new ForbiddenException({
+        code: ErrorCodes.MERCHANT_PROFILE_NOT_APPROVED,
+        message: 'Merchant profile is not approved yet',
       });
 
     return profile;

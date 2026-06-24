@@ -14,7 +14,12 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { Prisma, ProductSubmissionStatus, SaleUnit } from '@prisma/client';
+import {
+  MerchantProfileStatus,
+  Prisma,
+  ProductSubmissionStatus,
+  SaleUnit,
+} from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { extname } from 'path';
 import { compareTwoStrings } from 'string-similarity';
@@ -2477,7 +2482,11 @@ export class ProductsService {
       where: { slug: merchantSlug },
     });
 
-    if (!profile || !profile.isActive) {
+    if (
+      !profile ||
+      !profile.isActive ||
+      profile.status !== MerchantProfileStatus.APPROVED
+    ) {
       throw new NotFoundException({
         code: ErrorCodes.MERCHANT_NOT_FOUND,
         message: 'Merchant not found',
@@ -2517,6 +2526,11 @@ export class ProductsService {
       throw new ForbiddenException({
         code: ErrorCodes.MERCHANT_ACCOUNT_INACTIVE,
         message: 'Merchant account is inactive',
+      });
+    if (profile.status !== MerchantProfileStatus.APPROVED)
+      throw new ForbiddenException({
+        code: ErrorCodes.MERCHANT_PROFILE_NOT_APPROVED,
+        message: 'Merchant profile is not approved yet',
       });
 
     return profile;

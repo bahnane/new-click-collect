@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { OrderStatus, Prisma } from '@prisma/client';
+import { MerchantProfileStatus, OrderStatus, Prisma } from '@prisma/client';
 import { ErrorCodes } from '../common/errors/api-error-codes';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -536,6 +536,11 @@ export class OrdersService {
       throw new ForbiddenException({
         code: ErrorCodes.MERCHANT_ACCOUNT_INACTIVE,
         message: 'Merchant account is inactive',
+      });
+    if (profile.status !== MerchantProfileStatus.APPROVED)
+      throw new ForbiddenException({
+        code: ErrorCodes.MERCHANT_PROFILE_NOT_APPROVED,
+        message: 'Merchant profile is not approved yet',
       });
 
     return profile;

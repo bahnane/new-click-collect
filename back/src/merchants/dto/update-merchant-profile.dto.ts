@@ -15,7 +15,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { BusinessType } from '@prisma/client';
+import { BusinessType, MerchantProfileStatus } from '@prisma/client';
 import {
   MerchantOpeningHourDto,
   MerchantPickupHourDto,
@@ -94,4 +94,9 @@ export class UpdateMerchantProfileDto {
 export class UpdateMerchantStatusDto {
   @IsBoolean()
   isActive: boolean;
+}
+
+export class UpdateMerchantApprovalStatusDto {
+  @IsEnum(MerchantProfileStatus)
+  status: MerchantProfileStatus;
 }

@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { ApprovedMerchantGuard } from '../auth/guards/approved-merchant.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
 import { ErrorCodes } from '../common/errors/api-error-codes';
@@ -26,14 +27,14 @@ export class PickupSlotsController {
     return this.pickupSlotsService.listPublicMerchantSlots(merchantId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Get('merchants/me/pickup-slots')
   listMySlots(@CurrentUser() user: JwtPayload) {
     this.assertMerchant(user);
     return this.pickupSlotsService.listMySlots(user.sub);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Post('merchants/me/pickup-slots')
   createMySlot(
     @CurrentUser() user: JwtPayload,
@@ -43,7 +44,7 @@ export class PickupSlotsController {
     return this.pickupSlotsService.createMySlot(user.sub, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Patch('merchants/me/pickup-slots/:id')
   updateMySlot(
     @CurrentUser() user: JwtPayload,
@@ -54,7 +55,7 @@ export class PickupSlotsController {
     return this.pickupSlotsService.updateMySlot(user.sub, id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Patch('merchants/me/pickup-slots/:id/toggle')
   toggleMySlot(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
     this.assertMerchant(user);

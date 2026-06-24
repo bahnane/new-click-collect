@@ -1,10 +1,16 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma, Role, UserStatus } from '@prisma/client';
+import {
+  MerchantProfileStatus,
+  Prisma,
+  Role,
+  UserStatus,
+} from '@prisma/client';
 import * as argon2 from 'argon2';
 import { durationToMs } from '../common/utils/duration.util';
 import { generateOpaqueToken, hashToken } from '../common/utils/token.util';
@@ -14,6 +20,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ErrorCodes } from '../common/errors/api-error-codes';
 import { CreateMerchantDto } from './dto/create-merchant.dto';
 import {
+  UpdateMerchantApprovalStatusDto,
   UpdateMerchantProfileDto,
   UpdateMerchantStatusDto,
 } from './dto/update-merchant-profile.dto';
@@ -65,6 +72,7 @@ export class MerchantsService {
               slug,
               storeName: dto.storeName,
               businessType: dto.businessType,
+              status: MerchantProfileStatus.APPROVED,
               phone: dto.phone,
               address: dto.address,
               latitude: dto.latitude,
@@ -159,7 +167,10 @@ export class MerchantsService {
       pageSize: safePageSize,
     } = this.normalizePagination(page, pageSize);
 
-    const where = { isActive: true };
+    const where = {
+      isActive: true,
+      status: MerchantProfileStatus.APPROVED,
+    };
     const [data, total] = await this.prisma.$transaction([
       this.prisma.merchantProfile.findMany({
         where,
@@ -199,6 +210,7 @@ export class MerchantsService {
         slug: true,
         storeName: true,
         businessType: true,
+        status: true,
         description: true,
         phone: true,
         address: true,
@@ -226,14 +238,19 @@ export class MerchantsService {
       },
     });
 
-    if (!profile || !profile.isActive) {
+    if (
+      !profile ||
+      !profile.isActive ||
+      profile.status !== MerchantProfileStatus.APPROVED
+    ) {
       throw new NotFoundException({
         code: ErrorCodes.MERCHANT_NOT_FOUND,
         message: 'Merchant not found',
       });
     }
 
-    return profile;
+    const { status: _, ...publicProfile } = profile;
+    return publicProfile;
   }
 
   async updateMyProfile(userId: string, dto: UpdateMerchantProfileDto) {
@@ -257,11 +274,50 @@ export class MerchantsService {
       },
     });
 
-    if (dto.pickupHours) {
+    if (
+      dto.pickupHours &&
+      updatedProfile.status === MerchantProfileStatus.APPROVED
+    ) {
       await this.pickupSlotsService.regenerateMyFutureSlots(userId);
     }
 
     return updatedProfile;
+  }
+
+  async submitMyProfileForApproval(userId: string) {
+    const profile = await this.prisma.merchantProfile.findUnique({
+      where: { userId },
+      include: {
+        pickupHours: { select: { id: true } },
+      },
+    });
+
+    if (!profile) {
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_PROFILE_NOT_FOUND,
+        message: 'Merchant profile not found',
+      });
+    }
+
+    if (profile.pickupHours.length === 0) {
+      throw new BadRequestException({
+        code: ErrorCodes.MERCHANT_PROFILE_INCOMPLETE,
+        message: 'Merchant profile is incomplete',
+      });
+    }
+
+    if (profile.status === MerchantProfileStatus.APPROVED) {
+      return profile;
+    }
+
+    return this.prisma.merchantProfile.update({
+      where: { userId },
+      data: { status: MerchantProfileStatus.PENDING_APPROVAL },
+      include: {
+        openingHours: { orderBy: { dayOfWeek: 'asc' } },
+        pickupHours: { orderBy: { dayOfWeek: 'asc' } },
+      },
+    });
   }
 
   async listAllMerchants(page = 1, pageSize = 10) {
@@ -336,6 +392,27 @@ export class MerchantsService {
     return this.prisma.merchantProfile.update({
       where: { id: merchantProfileId },
       data: { isActive: dto.isActive },
+    });
+  }
+
+  async updateMerchantApprovalStatus(
+    merchantProfileId: string,
+    dto: UpdateMerchantApprovalStatusDto,
+  ) {
+    const profile = await this.prisma.merchantProfile.findUnique({
+      where: { id: merchantProfileId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException({
+        code: ErrorCodes.MERCHANT_NOT_FOUND,
+        message: 'Merchant not found',
+      });
+    }
+
+    return this.prisma.merchantProfile.update({
+      where: { id: merchantProfileId },
+      data: { status: dto.status },
     });
   }
 

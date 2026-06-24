@@ -7,7 +7,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { AppLanguage, Role, User, UserStatus } from '@prisma/client';
+import {
+  AppLanguage,
+  MerchantProfileStatus,
+  Role,
+  User,
+  UserStatus,
+} from '@prisma/client';
 import * as argon2 from 'argon2';
 import { randomUUID } from 'crypto';
 import { CookieOptions, Request, Response } from 'express';
@@ -35,7 +41,16 @@ type AuthenticatedUser = {
   status: UserStatus;
   preferredLanguage: AppLanguage;
   mustChangePassword: boolean;
+  merchantAccessState: MerchantAccessState | null;
 };
+
+type MerchantAccessState =
+  | 'PROFILE_REQUIRED'
+  | 'DRAFT'
+  | 'PENDING_APPROVAL'
+  | 'APPROVED'
+  | 'CHANGES_REQUESTED'
+  | 'INACTIVE';
 
 type SessionResult = {
   accessToken: string;
@@ -643,11 +658,13 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user: this.toAuthenticatedUser(user),
+      user: await this.toAuthenticatedUser(user),
     };
   }
 
-  private toAuthenticatedUser(user: User): AuthenticatedUser {
+  private async toAuthenticatedUser(user: User): Promise<AuthenticatedUser> {
+    const merchantAccessState = await this.resolveMerchantAccessState(user);
+
     return {
       id: user.id,
       email: user.email,
@@ -655,7 +672,42 @@ export class AuthService {
       status: user.status,
       preferredLanguage: user.preferredLanguage,
       mustChangePassword: user.mustChangePassword,
+      merchantAccessState,
     };
+  }
+
+  private async resolveMerchantAccessState(
+    user: User,
+  ): Promise<MerchantAccessState | null> {
+    if (user.role !== Role.MERCHANT) {
+      return null;
+    }
+
+    const profile = await this.prisma.merchantProfile.findUnique({
+      where: { userId: user.id },
+      select: { status: true, isActive: true },
+    });
+
+    if (!profile) {
+      return 'PROFILE_REQUIRED';
+    }
+
+    if (!profile.isActive) {
+      return 'INACTIVE';
+    }
+
+    switch (profile.status) {
+      case MerchantProfileStatus.DRAFT:
+        return 'DRAFT';
+      case MerchantProfileStatus.PENDING_APPROVAL:
+        return 'PENDING_APPROVAL';
+      case MerchantProfileStatus.APPROVED:
+        return 'APPROVED';
+      case MerchantProfileStatus.CHANGES_REQUESTED:
+        return 'CHANGES_REQUESTED';
+      default:
+        return 'PROFILE_REQUIRED';
+    }
   }
 
   private assertCanAuthenticate(user: User): void {

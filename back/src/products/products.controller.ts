@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ProductSubmissionStatus, Role } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { ApprovedMerchantGuard } from '../auth/guards/approved-merchant.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
 import { ErrorCodes } from '../common/errors/api-error-codes';
@@ -143,7 +144,7 @@ export class ProductsController {
 
   // ── Catalogue — MERCHANT ou ADMIN (création) ────────────────────────────
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Post('products')
   createCatalogProduct(
     @CurrentUser() user: JwtPayload,
@@ -205,7 +206,7 @@ export class ProductsController {
     return this.productsService.toggleCatalogProduct(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Get('merchants/me/product-submissions')
   listMyProductSubmissions(
     @CurrentUser() user: JwtPayload,
@@ -222,7 +223,7 @@ export class ProductsController {
     );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Patch('merchants/me/product-submissions/:id')
   updateMyProductSubmission(
     @CurrentUser() user: JwtPayload,
@@ -233,7 +234,7 @@ export class ProductsController {
     return this.productsService.updateMyProductSubmission(user.sub, id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Delete('merchants/me/product-submissions/:id')
   deleteMyProductSubmission(
     @CurrentUser() user: JwtPayload,
@@ -296,7 +297,7 @@ export class ProductsController {
 
   // ── Store offers — MERCHANT ─────────────────────────────────────────────
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Post('merchants/me/offers')
   createOffer(
     @CurrentUser() user: JwtPayload,
@@ -306,7 +307,7 @@ export class ProductsController {
     return this.productsService.createOffer(user.sub, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Post('merchants/me/offers/batch')
   createOffersBatch(
     @CurrentUser() user: JwtPayload,
@@ -317,6 +318,7 @@ export class ProductsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Get('merchants/me/offers')
   getMyOffers(
     @CurrentUser() user: JwtPayload,
@@ -331,7 +333,7 @@ export class ProductsController {
     );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Patch('merchants/me/offers/:id')
   updateOffer(
     @CurrentUser() user: JwtPayload,
@@ -342,7 +344,7 @@ export class ProductsController {
     return this.productsService.updateOffer(user.sub, id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
   @Patch('merchants/me/offers/:id/toggle')
   toggleOffer(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
     this.assertMerchant(user);

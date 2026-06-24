@@ -17,6 +17,7 @@ import { ErrorCodes } from '../common/errors/api-error-codes';
 import { CreateMerchantDto } from './dto/create-merchant.dto';
 import {
   UpdateMerchantProfileDto,
+  UpdateMerchantApprovalStatusDto,
   UpdateMerchantStatusDto,
 } from './dto/update-merchant-profile.dto';
 import { MerchantsService } from './merchants.service';
@@ -55,6 +56,13 @@ export class MerchantsController {
   ) {
     this.assertRole(user, Role.MERCHANT);
     return this.merchantsService.updateMyProfile(user.sub, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('merchants/me/submit-approval')
+  submitMyProfileForApproval(@CurrentUser() user: JwtPayload) {
+    this.assertRole(user, Role.MERCHANT);
+    return this.merchantsService.submitMyProfileForApproval(user.sub);
   }
 
   // ── Routes publiques par slug ────────────────────────────────────────────
@@ -107,6 +115,17 @@ export class MerchantsController {
   ) {
     this.assertRole(user, Role.ADMIN);
     return this.merchantsService.updateMerchantStatus(id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('admin/merchants/:id/approval-status')
+  updateMerchantApprovalStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateMerchantApprovalStatusDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    this.assertRole(user, Role.ADMIN);
+    return this.merchantsService.updateMerchantApprovalStatus(id, dto);
   }
 
   // ── Helper ───────────────────────────────────────────────────────────────
