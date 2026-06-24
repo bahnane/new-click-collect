@@ -14,6 +14,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Router } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
@@ -62,6 +63,7 @@ export class MerchantProfileComponent {
   private readonly fb = inject(FormBuilder);
   private readonly merchantsService = inject(MerchantsService);
   private readonly uiFeedback = inject(UiFeedbackService);
+  private readonly router = inject(Router);
 
   readonly DAYS = DAYS;
   readonly loading = signal(true);
@@ -128,6 +130,10 @@ export class MerchantProfileComponent {
         this.loading.set(false);
       },
     });
+  }
+
+  goBack(): void {
+    this.router.navigate(['/merchant', 'account']);
   }
 
   onSubmit(): void {

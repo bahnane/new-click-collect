@@ -1,12 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { MerchantProfile } from '../../../core/models/merchant-shop.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { MerchantsService } from '../../../core/services/merchants.service';
 import { ConfirmationDialogComponent } from '../../../shared/dialogs/confirmation-dialog/confirmation-dialog.component';
 
 type AccountScope = 'customer' | 'merchant';
@@ -44,8 +46,10 @@ export class AccountHomeComponent {
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly authService = inject(AuthService);
+  private readonly merchantsService = inject(MerchantsService);
 
   readonly currentUser = this.authService.currentUser;
+  readonly merchantProfile = signal<MerchantProfile | null>(null);
 
   readonly scope = computed<AccountScope>(
     () =>
@@ -70,6 +74,9 @@ export class AccountHomeComponent {
       return [];
     }
 
+    const merchantProfile =
+      this.scope() === 'merchant' ? this.merchantProfile() : null;
+
     return [
       {
         labelKey: 'account.details.email',
@@ -83,6 +90,30 @@ export class AccountHomeComponent {
         labelKey: 'account.details.status',
         valueKey: `account.details.statuses.${user.status.toLowerCase()}`,
       },
+      ...(merchantProfile
+        ? [
+            {
+              labelKey: 'account.details.storeName',
+              value: merchantProfile.storeName,
+            },
+            {
+              labelKey: 'account.details.storeSlug',
+              value: merchantProfile.slug,
+            },
+            {
+              labelKey: 'account.details.storePhone',
+              value: merchantProfile.phone || '—',
+            },
+            {
+              labelKey: 'account.details.storeAddress',
+              value: merchantProfile.address || '—',
+            },
+            {
+              labelKey: 'account.details.storeCity',
+              value: merchantProfile.city || '—',
+            },
+          ]
+        : []),
     ];
   });
 
@@ -111,14 +142,7 @@ export class AccountHomeComponent {
       },
     ];
 
-    if (isMerchant) {
-      rows.unshift({
-        labelKey: 'account.sections.profile.title',
-        descriptionKey: 'account.sections.profile.description',
-        icon: 'store',
-        route: ['/merchant', 'profile'],
-      });
-    } else {
+    if (!isMerchant) {
       rows.unshift({
         labelKey: 'account.sections.orders.title',
         descriptionKey: 'account.sections.orders.description',
@@ -137,6 +161,20 @@ export class AccountHomeComponent {
     return rows;
   });
 
+  constructor() {
+    effect(() => {
+      if (this.scope() !== 'merchant') {
+        this.merchantProfile.set(null);
+        return;
+      }
+
+      this.merchantsService.getMyProfile().subscribe({
+        next: (profile) => this.merchantProfile.set(profile),
+        error: () => this.merchantProfile.set(null),
+      });
+    });
+  }
+
   onAction(entry: AccountEntry): void {
     if (entry.action === 'logout') {
       this.dialog.open(ConfirmationDialogComponent, {
@@ -151,6 +189,14 @@ export class AccountHomeComponent {
         },
       });
     }
+  }
+
+  goToStoreProfile(): void {
+    if (this.scope() !== 'merchant') {
+      return;
+    }
+
+    this.router.navigate(['/merchant', 'account', 'store-profile']);
   }
 
   goBack(): void {

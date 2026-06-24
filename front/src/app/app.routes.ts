@@ -112,14 +112,6 @@ export const routes: Routes = [
             title: 'routes.merchantOverview.title',
           },
           {
-            path: 'profile',
-            loadComponent: () =>
-              import('./features/merchant-space/merchant-profile/merchant-profile.component').then(
-                (m) => m.MerchantProfileComponent,
-              ),
-            title: 'routes.merchantProfile.title',
-          },
-          {
             path: 'account',
             loadComponent: () =>
               import('./features/account/account-home/account-home.component').then(
@@ -127,6 +119,14 @@ export const routes: Routes = [
               ),
             title: 'routes.account.title',
             data: { accountScope: 'merchant' },
+          },
+          {
+            path: 'account/store-profile',
+            loadComponent: () =>
+              import('./features/merchant-space/merchant-profile/merchant-profile.component').then(
+                (m) => m.MerchantProfileComponent,
+              ),
+            title: 'routes.merchantProfile.title',
           },
           {
             path: 'account/security',
@@ -147,20 +147,35 @@ export const routes: Routes = [
             data: { accountScope: 'merchant' },
           },
           {
-            path: 'store-offers/add',
-            loadComponent: () =>
-              import('./features/merchant-space/merchant-store-offers-create/merchant-store-offers-create.component').then(
-                (m) => m.MerchantStoreOffersCreateComponent,
-              ),
-            title: 'routes.merchantStoreOffersCreate.title',
-          },
-          {
             path: 'store-offers',
             loadComponent: () =>
-              import('./features/merchant-space/merchant-store-offers/merchant-store-offers.component').then(
-                (m) => m.MerchantStoreOffersComponent,
+              import('./features/merchant-space/merchant-store-offers-page/merchant-store-offers-page.component').then(
+                (m) => m.MerchantStoreOffersPageComponent,
               ),
             title: 'routes.merchantStoreOffers.title',
+            children: [
+              {
+                path: '',
+                redirectTo: 'my',
+                pathMatch: 'full',
+              },
+              {
+                path: 'my',
+                loadComponent: () =>
+                  import('./features/merchant-space/merchant-store-offers/merchant-store-offers.component').then(
+                    (m) => m.MerchantStoreOffersComponent,
+                  ),
+                title: 'routes.merchantStoreOffers.title',
+              },
+              {
+                path: 'add',
+                loadComponent: () =>
+                  import('./features/merchant-space/merchant-store-offers-create/merchant-store-offers-create.component').then(
+                    (m) => m.MerchantStoreOffersCreateComponent,
+                  ),
+                title: 'routes.merchantStoreOffersCreate.title',
+              },
+            ],
           },
           {
             path: 'product-submissions',

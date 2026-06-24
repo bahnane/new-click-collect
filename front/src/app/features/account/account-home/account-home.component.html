@@ -11,7 +11,16 @@
 
             @if (accountDetails().length > 0) {
             <section class="account-details" [attr.aria-label]="'account.details.title' | transloco">
-                <h2>{{ 'account.details.title' | transloco }}</h2>
+                <div class="account-details-header">
+                    <h2>{{ 'account.details.title' | transloco }}</h2>
+
+                    @if (scope() === 'merchant') {
+                    <button mat-stroked-button type="button" class="account-details-edit" (click)="goToStoreProfile()">
+                        <mat-icon aria-hidden="true">edit</mat-icon>
+                        {{ 'account.actions.editProfile' | transloco }}
+                    </button>
+                    }
+                </div>
                 <dl>
                     @for (detail of accountDetails(); track detail.labelKey) {
                     <div class="detail-row">

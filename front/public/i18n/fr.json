@@ -13,7 +13,7 @@
       "title": "Vue d'ensemble marchand"
     },
     "merchantProfile": {
-      "title": "Mon profil marchand"
+      "title": "Modifier le profil boutique"
     },
     "merchantStoreOffers": {
       "title": "Mes offres produits"
@@ -309,7 +309,6 @@
       "overview": "Vue d'ensemble",
       "offers": "Offres",
       "submissions": "Propositions",
-      "profile": "Profil",
       "merchants": "Marchands",
       "products": "Produits",
       "productSubmissions": "Soumissions",
@@ -460,6 +459,10 @@
         }
       },
       "storeOffers": {
+        "tabs": {
+          "myOffers": "Mes offres",
+          "addOffers": "Ajouter des offres"
+        },
         "title": "Mes offres produits",
         "subtitle": "Gérez l'inventaire et les prix de vos produits.",
         "loading": "Chargement des offres...",
@@ -820,6 +823,11 @@
       "email": "Email",
       "role": "Type de compte",
       "status": "Statut",
+      "storeName": "Nom de la boutique",
+      "storeSlug": "Slug boutique",
+      "storePhone": "Téléphone boutique",
+      "storeAddress": "Adresse boutique",
+      "storeCity": "Ville boutique",
       "roles": {
         "admin": "Administrateur",
         "merchant": "Marchand",
@@ -838,7 +846,7 @@
       },
       "profile": {
         "title": "Profil boutique",
-        "description": "Mettez à jour les informations de votre boutique."
+        "description": "Modifier les informations visibles de votre boutique."
       },
       "security": {
         "title": "Sécurité",
@@ -883,6 +891,7 @@
       "logout": "Se déconnecter",
       "logoutConfirmTitle": "Confirmer la deconnexion",
       "logoutConfirmMessage": "Voulez-vous vraiment vous deconnecter de votre compte ?",
+      "editProfile": "Modifier",
       "back": "Retour",
       "comingSoon": "Bientôt"
     }

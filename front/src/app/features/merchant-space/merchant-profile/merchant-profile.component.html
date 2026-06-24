@@ -1,4 +1,9 @@
 <section class="merchant-profile">
+    <button mat-stroked-button type="button" class="profile-back-btn" (click)="goBack()">
+        <mat-icon aria-hidden="true">arrow_back</mat-icon>
+        {{ 'account.actions.back' | transloco }}
+    </button>
+
     @if (loading()) {
     <div class="profile-state">
         <mat-spinner diameter="32" />

@@ -1,0 +1,14 @@
+<section class="store-offers-page">
+    <nav class="store-offers-tabs" [attr.aria-label]="'shell.nav.offers' | transloco">
+        <a class="store-offers-tab" routerLink="./my" routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }">
+            {{ 'shell.merchant.storeOffers.tabs.myOffers' | transloco }}
+        </a>
+        <a class="store-offers-tab" routerLink="./add" routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }">
+            {{ 'shell.merchant.storeOffers.tabs.addOffers' | transloco }}
+        </a>
+    </nav>
+
+    <router-outlet />
+</section>

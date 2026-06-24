@@ -227,7 +227,7 @@ export class AppShellComponent {
           labelKey: 'shell.nav.account',
           icon: 'person',
           route: ['/merchant', 'account'],
-          exact: true,
+          exact: false,
         },
       ];
     }

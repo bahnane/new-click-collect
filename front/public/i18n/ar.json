@@ -13,7 +13,7 @@
       "title": "نظرة عامة للتاجر"
     },
     "merchantProfile": {
-      "title": "ملفي الشخصي"
+      "title": "تعديل ملف المتجر"
     },
     "merchantStoreOffers": {
       "title": "عروضي على المنتجات"
@@ -309,7 +309,6 @@
       "overview": "نظرة عامة",
       "offers": "العروض",
       "submissions": "الاقتراحات",
-      "profile": "الملف الشخصي",
       "merchants": "التجار",
       "products": "المنتجات",
       "productSubmissions": "طلبات المنتجات",
@@ -460,6 +459,10 @@
         }
       },
       "storeOffers": {
+        "tabs": {
+          "myOffers": "عروضي",
+          "addOffers": "إضافة عروض"
+        },
         "title": "عروضي على المنتجات",
         "subtitle": "إدارة مخزونك وأسعار منتجاتك.",
         "loading": "جاري تحميل العروض...",
@@ -820,6 +823,11 @@
       "email": "البريد الإلكتروني",
       "role": "نوع الحساب",
       "status": "الحالة",
+      "storeName": "اسم المتجر",
+      "storeSlug": "معرف المتجر",
+      "storePhone": "هاتف المتجر",
+      "storeAddress": "عنوان المتجر",
+      "storeCity": "مدينة المتجر",
       "roles": {
         "admin": "مسؤول",
         "merchant": "تاجر",
@@ -838,7 +846,7 @@
       },
       "profile": {
         "title": "ملف المتجر",
-        "description": "حدّث معلومات متجرك بسهولة."
+        "description": "عدّل المعلومات الظاهرة الخاصة بمتجرك."
       },
       "security": {
         "title": "الأمان",
@@ -883,6 +891,7 @@
       "logout": "تسجيل الخروج",
       "logoutConfirmTitle": "تأكيد تسجيل الخروج",
       "logoutConfirmMessage": "هل تريد فعلاً تسجيل الخروج من حسابك؟",
+      "editProfile": "تعديل",
       "back": "رجوع",
       "comingSoon": "قريباً"
     }
