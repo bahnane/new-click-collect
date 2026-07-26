@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { merchantOnboardingGuard } from './core/guards/merchant-onboarding.guard';
 import { publicOnlyGuard } from './core/guards/public-only.guard';
 import { roleGuard } from './core/guards/role.guard';
 
@@ -7,6 +8,7 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [authGuard],
+    data: { requireApprovedMerchant: true },
     loadComponent: () =>
       import('./layouts/app-shell/app-shell.component').then(
         (m) => m.AppShellComponent,
@@ -250,6 +252,15 @@ export const routes: Routes = [
         ],
       },
     ],
+  },
+  {
+    path: 'merchant-onboarding',
+    canActivate: [authGuard, roleGuard(['MERCHANT']), merchantOnboardingGuard],
+    loadComponent: () =>
+      import('./features/merchant-space/merchant-onboarding/merchant-onboarding.component').then(
+        (m) => m.MerchantOnboardingComponent,
+      ),
+    title: 'routes.merchantOnboarding.title',
   },
   {
     path: 'activate-invite',

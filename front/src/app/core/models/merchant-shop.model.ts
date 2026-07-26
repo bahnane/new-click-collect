@@ -25,11 +25,13 @@ export interface MerchantProfile {
 
 export interface UpdateMerchantProfilePayload {
   storeName?: string;
+  businessType?: 'HANOUTE' | 'PATISSERIE';
   description?: string;
   phone?: string;
   address?: string;
   city?: string;
   zipCode?: string;
+  siret?: string;
   pickupSlotCapacity?: number;
   openingHours?: MerchantHours[];
   pickupHours?: MerchantHours[];

@@ -15,6 +15,9 @@
     "merchantProfile": {
       "title": "تعديل ملف المتجر"
     },
+    "merchantOnboarding": {
+      "title": "تهيئة حساب التاجر"
+    },
     "merchantStoreOffers": {
       "title": "عروضي على المنتجات"
     },
@@ -125,6 +128,8 @@
       "MERCHANT_NOT_FOUND": "التاجر غير موجود.",
       "MERCHANT_PROFILE_NOT_FOUND": "ملف التاجر غير موجود.",
       "MERCHANT_ACCOUNT_INACTIVE": "حساب التاجر غير نشط.",
+      "MERCHANT_PROFILE_NOT_APPROVED": "ملف التاجر لم تتم الموافقة عليه بعد.",
+      "MERCHANT_PROFILE_INCOMPLETE": "ملف التاجر غير مكتمل.",
       "PRODUCT_NOT_FOUND": "المنتج غير موجود.",
       "PRODUCT_DUPLICATE": "يوجد منتج بنفس الاسم في هذه الفئة بالفعل.",
       "PRODUCT_CATEGORY_NOT_FOUND": "فئة المنتج غير موجودة.",
@@ -456,6 +461,57 @@
         "errors": {
           "loadFailed": "تعذّر تحميل الملف الشخصي.",
           "saveFailed": "تعذّر حفظ الملف الشخصي. تحقّق من المعلومات."
+        }
+      },
+      "onboarding": {
+        "title": "أكمل إعداد مساحة التاجر",
+        "subtitle": "أدخل البيانات المطلوبة لإرسال متجرك للمراجعة والموافقة.",
+        "loading": "جار تحميل ملف التاجر...",
+        "legalHint": "أدخل رقم SIRET الخاص بك (14 رقماً).",
+        "pickupHoursHint": "حدّد أوقات الاستلام، فهي مطلوبة لتفعيل الحساب.",
+        "state": {
+          "profile_required": "تم إنشاء حسابك، لكن ملف المتجر لم يكتمل بعد.",
+          "draft": "ملفك في وضع المسودة. أكمله ثم أرسله للمراجعة.",
+          "pending_approval": "ملفك قيد المراجعة من فريق الإدارة.",
+          "changes_requested": "تم طلب تعديلات. حدّث الملف ثم أعد الإرسال.",
+          "inactive": "حساب التاجر غير نشط. تواصل مع الإدارة لإعادة التفعيل."
+        },
+        "sections": {
+          "store": "المتجر",
+          "legal": "البيانات القانونية",
+          "contact": "بيانات التواصل",
+          "openingHours": "ساعات العمل",
+          "pickupHours": "أوقات الاستلام"
+        },
+        "fields": {
+          "storeName": "اسم المتجر",
+          "businessType": "نوع النشاط",
+          "description": "الوصف (اختياري)",
+          "siret": "SIRET",
+          "phone": "الهاتف",
+          "address": "العنوان",
+          "city": "المدينة",
+          "zipCode": "الرمز البريدي",
+          "startHour": "البداية",
+          "endHour": "النهاية",
+          "pickupSlotCapacity": "الحد الأقصى لكل فترة"
+        },
+        "actions": {
+          "saveDraft": "حفظ المسودة",
+          "submit": "إرسال للمراجعة"
+        },
+        "success": {
+          "draftSaved": "تم حفظ المسودة.",
+          "submitted": "تم إرسال الملف للمراجعة بنجاح."
+        },
+        "errors": {
+          "loadFailed": "تعذّر تحميل ملف التاجر.",
+          "openingHoursRequired": "يجب تحديد يوم عمل واحد على الأقل.",
+          "pickupHoursRequired": "يجب تحديد يوم استلام واحد على الأقل.",
+          "pickupSlotRequired": "يرجى اختيار موعد.",
+          "siretRequired": "رقم SIRET مطلوب.",
+          "siretLength": "يجب أن يحتوي SIRET على 14 رقماً.",
+          "siretInvalid": "SIRET غير صالح (تحقق Luhn)."
         }
       },
       "storeOffers": {

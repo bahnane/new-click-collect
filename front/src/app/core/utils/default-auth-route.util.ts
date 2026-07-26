@@ -1,8 +1,14 @@
 import { User, UserRole } from '../models/user.model';
 
-function getRouteForRole(role: UserRole | undefined): string[] {
+function getRouteForRole(
+  role: UserRole | undefined,
+  merchantAccessState: User['merchantAccessState'] | undefined,
+): string[] {
   switch (role) {
     case 'MERCHANT':
+      if (merchantAccessState !== 'APPROVED') {
+        return ['/merchant-onboarding'];
+      }
       return ['/merchant'];
     case 'ADMIN':
       return ['/admin-space'];
@@ -13,7 +19,7 @@ function getRouteForRole(role: UserRole | undefined): string[] {
 }
 
 export function getDefaultAuthenticatedRoute(
-  user: Pick<User, 'role'> | null | undefined,
+  user: Pick<User, 'role' | 'merchantAccessState'> | null | undefined,
 ): string[] {
-  return getRouteForRole(user?.role);
+  return getRouteForRole(user?.role, user?.merchantAccessState);
 }

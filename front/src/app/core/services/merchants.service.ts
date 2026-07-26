@@ -295,6 +295,14 @@ export class MerchantsService {
     );
   }
 
+  submitMyProfileForApproval(): Observable<MerchantProfile> {
+    return this.http.post<MerchantProfile>(
+      `${environment.apiUrl}/merchants/me/submit-approval`,
+      {},
+      { withCredentials: true },
+    );
+  }
+
   // Store offers
   getCatalogProducts(
     page: number = 1,

@@ -1,0 +1,267 @@
+<section class="merchant-onboarding" aria-labelledby="merchant-onboarding-title">
+    <div class="logout-sticky">
+        <button mat-stroked-button type="button" (click)="logout()">
+            {{ 'shell.nav.logout' | transloco }}
+        </button>
+    </div>
+
+    <header class="onboarding-header">
+        <div class="header-copy">
+            <h1 id="merchant-onboarding-title">
+                {{ 'shell.merchant.onboarding.title' | transloco }}
+            </h1>
+            <p>{{ 'shell.merchant.onboarding.subtitle' | transloco }}</p>
+        </div>
+    </header>
+
+    <div class="status-banner" [attr.data-status]="accessState()">
+        <mat-icon aria-hidden="true">pending_actions</mat-icon>
+        <p>{{ ('shell.merchant.onboarding.state.' + accessState().toLowerCase()) | transloco }}</p>
+    </div>
+
+    @if (successKey(); as currentSuccessKey) {
+    <div class="success-banner" role="status" aria-live="polite">
+        <mat-icon aria-hidden="true">check_circle</mat-icon>
+        <p>{{ currentSuccessKey | transloco }}</p>
+    </div>
+    }
+
+    @if (loading()) {
+    <div class="page-state">
+        <mat-progress-spinner mode="indeterminate" diameter="34" />
+        <p>{{ 'shell.merchant.onboarding.loading' | transloco }}</p>
+    </div>
+    } @else {
+    <form [formGroup]="form" novalidate class="onboarding-form">
+        <mat-card class="onboarding-card">
+            <mat-card-header>
+                <mat-card-title>{{ 'shell.merchant.onboarding.sections.store' | transloco }}</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'shell.merchant.onboarding.fields.storeName' | transloco }}</mat-label>
+                    <input matInput formControlName="storeName" maxlength="120" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>{{ 'shell.merchant.onboarding.fields.businessType' | transloco }}</mat-label>
+                    <mat-select formControlName="businessType" [disabled]="isReadOnly()">
+                        <mat-option value="HANOUTE">{{ 'shop.businessType.hanoute' | transloco }}</mat-option>
+                        <mat-option value="PATISSERIE">{{ 'shop.businessType.patisserie' | transloco }}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'shell.merchant.onboarding.fields.description' | transloco }}</mat-label>
+                    <textarea matInput formControlName="description" rows="4" maxlength="2000"></textarea>
+                </mat-form-field>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="onboarding-card">
+            <mat-card-header>
+                <mat-card-title>{{ 'shell.merchant.onboarding.sections.legal' | transloco }}</mat-card-title>
+                <mat-card-subtitle>{{ 'shell.merchant.onboarding.legalHint' | transloco }}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>{{ 'shell.merchant.onboarding.fields.siret' | transloco }}</mat-label>
+                    <input matInput formControlName="siret" inputmode="numeric" maxlength="24" />
+                    @if (form.controls.siret.hasError('required')) {
+                    <mat-error>{{ 'shell.merchant.onboarding.errors.siretRequired' | transloco }}</mat-error>
+                    }
+                    @if (form.controls.siret.hasError('legalIdLength')) {
+                    <mat-error>{{ 'shell.merchant.onboarding.errors.siretLength' | transloco }}</mat-error>
+                    }
+                    @if (form.controls.siret.hasError('legalIdLuhn')) {
+                    <mat-error>{{ 'shell.merchant.onboarding.errors.siretInvalid' | transloco }}</mat-error>
+                    }
+                </mat-form-field>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="onboarding-card">
+            <mat-card-header>
+                <mat-card-title>{{ 'shell.merchant.onboarding.sections.contact' | transloco }}</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>{{ 'shell.merchant.onboarding.fields.phone' | transloco }}</mat-label>
+                    <input matInput formControlName="phone" type="tel" maxlength="30" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'shell.merchant.onboarding.fields.address' | transloco }}</mat-label>
+                    <input matInput formControlName="address" maxlength="255" />
+                </mat-form-field>
+
+                <div class="address-row">
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{ 'shell.merchant.onboarding.fields.city' | transloco }}</mat-label>
+                        <input matInput formControlName="city" maxlength="100" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{ 'shell.merchant.onboarding.fields.zipCode' | transloco }}</mat-label>
+                        <input matInput formControlName="zipCode" maxlength="10" />
+                    </mat-form-field>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="onboarding-card opening-hours-card" [class.has-error]="hasOpeningHoursSectionError()">
+            <mat-card-header>
+                <mat-card-title>
+                    {{ 'shell.merchant.onboarding.sections.openingHours' | transloco }}
+                    <span class="required-asterisk" aria-hidden="true">*</span>
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                @if (hasOpeningHoursSectionError()) {
+                <div class="opening-hours-error" role="alert" tabindex="-1">
+                    <mat-icon aria-hidden="true">error_outline</mat-icon>
+                    <div>
+                        <p class="opening-hours-error-title">
+                            {{ 'shell.merchant.onboarding.sections.openingHours' | transloco }}
+                        </p>
+                        <p class="inline-error inline-error--block">
+                            {{ saveErrorKey() | transloco }}
+                        </p>
+                    </div>
+                </div>
+                }
+
+                <div class="hours-grid" role="group"
+                    [attr.aria-label]="'shell.merchant.onboarding.sections.openingHours' | transloco">
+                    @for (group of openingDayGroups; track DAYS[$index]; let i = $index) {
+                    <div class="day-row">
+                        <mat-checkbox [formControl]="group.controls['enabled']" [disabled]="isReadOnly()">
+                            {{ 'shop.day.' + DAYS[i] | transloco }}
+                        </mat-checkbox>
+
+                        @if (group.controls['enabled'].value) {
+                        <div class="hour-selects">
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                <mat-label>{{ 'shell.merchant.onboarding.fields.startHour' | transloco }}</mat-label>
+                                <mat-select [formControl]="group.controls['startHour']" [disabled]="isReadOnly()">
+                                    @for (h of openingStartHours; track h) {
+                                    <mat-option [value]="h">{{ h }}h</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                <mat-label>{{ 'shell.merchant.onboarding.fields.endHour' | transloco }}</mat-label>
+                                <mat-select [formControl]="group.controls['endHour']" [disabled]="isReadOnly()">
+                                    @for (h of openingEndHours; track h) {
+                                    <mat-option [value]="h">{{ h }}h</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="onboarding-card pickup-hours-card" #pickupHoursSection
+            [class.has-error]="hasPickupHoursSectionError() || (validationRequested() && hasInvalidPickupHoursSelection())">
+            <mat-card-header>
+                <mat-card-title>
+                    {{ 'shell.merchant.onboarding.sections.pickupHours' | transloco }}
+                    <span class="required-asterisk" aria-hidden="true">*</span>
+                </mat-card-title>
+                <mat-card-subtitle>{{ 'shell.merchant.onboarding.pickupHoursHint' | transloco }}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                @if (hasPickupHoursSectionError()) {
+                <div #pickupHoursErrorAnchor id="pickup-hours-error" class="pickup-hours-error" role="alert"
+                    tabindex="-1">
+                    <mat-icon aria-hidden="true">error_outline</mat-icon>
+                    <div>
+                        <p class="pickup-hours-error-title">
+                            {{ 'shell.merchant.onboarding.sections.pickupHours' | transloco }}
+                        </p>
+                        <p class="inline-error inline-error--block">
+                            {{ saveErrorKey() | transloco }}
+                        </p>
+                    </div>
+                </div>
+                }
+
+                <div class="pickup-hours-group"
+                    [class.has-error]="hasPickupHoursSectionError() || (validationRequested() && hasInvalidPickupHoursSelection())"
+                    [attr.aria-describedby]="hasPickupHoursSectionError() ? 'pickup-hours-error' : null">
+                    <mat-form-field appearance="outline" class="half-width">
+                        <mat-label>{{ 'shell.merchant.onboarding.fields.pickupSlotCapacity' | transloco }}</mat-label>
+                        <input matInput formControlName="pickupSlotCapacity" type="number" min="1" max="999"
+                            inputmode="numeric" />
+                    </mat-form-field>
+
+                    <div class="hours-grid" role="group"
+                        [attr.aria-label]="'shell.merchant.onboarding.sections.pickupHours' | transloco">
+                        @for (group of pickupDayGroups; track DAYS[$index]; let i = $index) {
+                        <div #pickupDayRow class="day-row"
+                            [class.has-error]="validationRequested() && isPickupDayGroupInvalid(group)"
+                            tabindex="-1">
+                            <mat-checkbox [formControl]="group.controls['enabled']" [disabled]="isReadOnly()">
+                                {{ 'shop.day.' + DAYS[i] | transloco }}
+                            </mat-checkbox>
+
+                            @if (group.controls['enabled'].value) {
+                            <div class="hour-selects">
+                                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                    <mat-label>{{ 'shell.merchant.onboarding.fields.startHour' | transloco }}</mat-label>
+                                    <mat-select [formControl]="group.controls['startHour']" [disabled]="isReadOnly()">
+                                        @for (h of pickupStartHours; track h) {
+                                        <mat-option [value]="h">{{ h }}h</mat-option>
+                                        }
+                                    </mat-select>
+                                    @if (validationRequested() && group.controls.startHour.hasError('required') && group.controls.startHour.touched) {
+                                    <mat-error>{{ 'shell.merchant.onboarding.errors.pickupSlotRequired' | transloco }}</mat-error>
+                                    }
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                    <mat-label>{{ 'shell.merchant.onboarding.fields.endHour' | transloco }}</mat-label>
+                                    <mat-select [formControl]="group.controls['endHour']" [disabled]="isReadOnly()">
+                                        @for (h of pickupEndHours; track h) {
+                                        <mat-option [value]="h">{{ h }}h</mat-option>
+                                        }
+                                    </mat-select>
+                                    @if (validationRequested() && group.controls.endHour.hasError('required') && group.controls.endHour.touched) {
+                                    <mat-error>{{ 'shell.merchant.onboarding.errors.pickupSlotRequired' | transloco }}</mat-error>
+                                    }
+                                </mat-form-field>
+                            </div>
+                            }
+                        </div>
+                        }
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        @if (!isReadOnly()) {
+        <div class="form-actions">
+            <button mat-stroked-button type="button" (click)="onSaveDraft()" [disabled]="savingDraft() || submitting()">
+                @if (savingDraft()) {
+                <mat-progress-spinner mode="indeterminate" diameter="18" />
+                }
+                {{ 'shell.merchant.onboarding.actions.saveDraft' | transloco }}
+            </button>
+
+            <button mat-flat-button type="button" (click)="onSubmitForApproval()"
+                [disabled]="savingDraft() || submitting()">
+                @if (submitting()) {
+                <mat-progress-spinner mode="indeterminate" diameter="18" />
+                }
+                {{ 'shell.merchant.onboarding.actions.submit' | transloco }}
+            </button>
+        </div>
+        }
+    </form>
+    }
+</section>
