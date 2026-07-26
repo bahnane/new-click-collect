@@ -30,6 +30,9 @@ Your mission is to deliver production-ready Angular 21 UI features with simple r
 - Do not launch build after each change.
 - While implementing a feature, delete unused code, styles, and i18n keys that are directly related to the files you are touching. Do not audit unrelated files for dead code.
 - Avoid long classes and prefer using reusable utility functions.
+- Prefer using separate components for complex UI flows instead of large monolithic components.
+- Prefer separating template, style, and logic into their respective files instead of inline styles or templates.
+- When necessary, add spacing (padding or margin) for labels, inputs, and buttons to avoid cramped layouts.
 
 ## Preferred Working Style
 
