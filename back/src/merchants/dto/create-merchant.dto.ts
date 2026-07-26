@@ -45,6 +45,11 @@ export class CreateMerchantDto {
   address?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  siret?: string;
+
+  @IsOptional()
   @IsNumber({ allowInfinity: false, allowNaN: false })
   @Min(-90)
   @Max(90)

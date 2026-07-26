@@ -104,6 +104,7 @@ model MerchantProfile {
   address     String?  @db.VarChar(255)
   city        String?  @db.VarChar(100)
   zipCode     String?  @db.VarChar(10)
+  siret       String?  @db.VarChar(14)
   latitude    Float?   @db.Double
   longitude   Float?   @db.Double
   isActive             Boolean  @default(true)

@@ -72,9 +72,10 @@ export class MerchantsService {
               slug,
               storeName: dto.storeName,
               businessType: dto.businessType,
-              status: MerchantProfileStatus.APPROVED,
+              status: MerchantProfileStatus.DRAFT,
               phone: dto.phone,
               address: dto.address,
+              siret: this.normalizeSiret(dto.siret),
               latitude: dto.latitude,
               longitude: dto.longitude,
               ...(dto.openingHours?.length
@@ -287,7 +288,18 @@ export class MerchantsService {
   async submitMyProfileForApproval(userId: string) {
     const profile = await this.prisma.merchantProfile.findUnique({
       where: { userId },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        storeName: true,
+        businessType: true,
+        phone: true,
+        address: true,
+        city: true,
+        zipCode: true,
+        siret: true,
+        pickupSlotCapacity: true,
+        openingHours: { select: { id: true } },
         pickupHours: { select: { id: true } },
       },
     });
@@ -299,7 +311,7 @@ export class MerchantsService {
       });
     }
 
-    if (profile.pickupHours.length === 0) {
+    if (!this.isProfileCompleteForApproval(profile)) {
       throw new BadRequestException({
         code: ErrorCodes.MERCHANT_PROFILE_INCOMPLETE,
         message: 'Merchant profile is incomplete',
@@ -419,10 +431,11 @@ export class MerchantsService {
   private buildMerchantProfileUpdateData(
     dto: UpdateMerchantProfileDto,
   ): Prisma.MerchantProfileUpdateInput {
-    const { openingHours, pickupHours, ...profileFields } = dto;
+    const { openingHours, pickupHours, siret, ...profileFields } = dto;
 
     return {
       ...profileFields,
+      ...(siret !== undefined ? { siret: this.normalizeSiret(siret) } : {}),
       ...(openingHours
         ? {
             openingHours: {
@@ -448,6 +461,75 @@ export class MerchantsService {
           }
         : {}),
     };
+  }
+
+  private isProfileCompleteForApproval(profile: {
+    storeName: string;
+    businessType: unknown;
+    phone: string | null;
+    address: string | null;
+    city: string | null;
+    zipCode: string | null;
+    siret: string | null;
+    pickupSlotCapacity: number;
+    openingHours: Array<{ id: string }>;
+    pickupHours: Array<{ id: string }>;
+  }): boolean {
+    const normalizedSiret = this.normalizeSiret(profile.siret);
+
+    return (
+      this.hasText(profile.storeName, 2) &&
+      profile.businessType !== null &&
+      profile.businessType !== undefined &&
+      this.hasText(profile.phone) &&
+      this.hasText(profile.address) &&
+      this.hasText(profile.city) &&
+      this.hasText(profile.zipCode) &&
+      Number.isInteger(profile.pickupSlotCapacity) &&
+      profile.pickupSlotCapacity >= 1 &&
+      profile.openingHours.length > 0 &&
+      profile.pickupHours.length > 0 &&
+      !!normalizedSiret &&
+      this.isValidSiret(normalizedSiret)
+    );
+  }
+
+  private hasText(value: string | null | undefined, minLength = 1): boolean {
+    return (value?.trim().length ?? 0) >= minLength;
+  }
+
+  private normalizeSiret(value: string | null | undefined): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const digits = value.replace(/\D+/g, '');
+    return digits.length > 0 ? digits : null;
+  }
+
+  private isValidSiret(value: string): boolean {
+    return value.length === 14 && this.isValidLuhn(value);
+  }
+
+  private isValidLuhn(value: string): boolean {
+    let sum = 0;
+    let doubleDigit = false;
+
+    for (let i = value.length - 1; i >= 0; i -= 1) {
+      let digit = Number.parseInt(value.charAt(i), 10);
+
+      if (doubleDigit) {
+        digit *= 2;
+        if (digit > 9) {
+          digit -= 9;
+        }
+      }
+
+      sum += digit;
+      doubleDigit = !doubleDigit;
+    }
+
+    return sum % 10 === 0;
   }
 
   private normalizePagination(page: number, pageSize: number) {
