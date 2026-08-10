@@ -12,6 +12,7 @@ import { ProductsModule } from './products/products.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
 import { PickupSlotsModule } from './pickup-slots/pickup-slots.module';
+import { AddressSearchModule } from './address-search/address-search.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PickupSlotsModule } from './pickup-slots/pickup-slots.module';
     CartModule,
     OrdersModule,
     PickupSlotsModule,
+    AddressSearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],
