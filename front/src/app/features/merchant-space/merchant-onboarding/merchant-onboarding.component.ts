@@ -27,7 +27,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { switchMap } from 'rxjs';
+import {
+  Subject,
+  switchMap,
+  takeUntil,
+  distinctUntilChanged,
+  debounceTime,
+} from 'rxjs';
 import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18n-map';
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import {
@@ -36,6 +42,10 @@ import {
   UpdateMerchantProfilePayload,
   Weekday,
 } from '../../../core/models/merchant-shop.model';
+import {
+  AddressSearchService,
+  AddressSearchSuggestion,
+} from '../../../core/services/address-search.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { MerchantsService } from '../../../core/services/merchants.service';
 import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
@@ -132,21 +142,38 @@ export class MerchantOnboardingComponent {
   private readonly merchantsService = inject(MerchantsService);
   private readonly authService = inject(AuthService);
   private readonly uiFeedback = inject(UiFeedbackService);
+  private readonly addressSearchService = inject(AddressSearchService);
   private readonly hostElement = inject(ElementRef<HTMLElement>);
 
   private pickupHoursSectionElement: HTMLElement | null = null;
   private pickupHoursErrorAnchorElement: HTMLElement | null = null;
+  private readonly destroy$ = new Subject<void>();
+  private readonly searchInput$ = new Subject<string>();
+  private leaflet: typeof import('leaflet') | null = null;
+  private mapInstance: import('leaflet').Map | null = null;
+  private markerInstance: import('leaflet').Marker | null = null;
+  private mapContainerElement: HTMLElement | null = null;
 
   readonly DAYS = DAYS;
   readonly loading = signal(true);
   readonly savingDraft = signal(false);
   readonly submitting = signal(false);
   readonly validationRequested = signal(false);
+  readonly searchQuery = signal('');
+  readonly searchResults = signal<AddressSearchSuggestion[]>([]);
+  readonly isSearchingAddress = signal(false);
+  readonly selectedAddress = signal<AddressSearchSuggestion | null>(null);
+  readonly mapPreviewVisible = signal(false);
+  readonly mapPreviewReady = signal(false);
+  readonly mapPreviewError = signal<string | null>(null);
+  readonly mapOverlayVisible = signal(false);
   readonly loadErrorKey = signal<string | null>(null);
   readonly saveErrorKey = signal<string | null>(null);
   readonly successKey = signal<string | null>(null);
   readonly profile = signal<MerchantProfile | null>(null);
-  readonly isReadOnly = computed(() => this.accessState() === 'PENDING_APPROVAL');
+  readonly isReadOnly = computed(
+    () => this.accessState() === 'PENDING_APPROVAL',
+  );
 
   readonly openingStartHours = Array.from({ length: 24 }, (_, i) => i);
   readonly openingEndHours = Array.from({ length: 24 }, (_, i) => i + 1);
@@ -179,32 +206,23 @@ export class MerchantOnboardingComponent {
     return 'DRAFT';
   });
 
-  readonly form = this.fb.nonNullable.group(
-    {
-      storeName: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(2),
-          Validators.maxLength(120),
-        ],
-      ],
-      businessType: [
-        'HANOUTE' as 'HANOUTE' | 'PATISSERIE',
-        Validators.required,
-      ],
-      description: ['', [Validators.maxLength(2000)]],
-      phone: ['', [Validators.required, Validators.maxLength(30)]],
-      address: ['', [Validators.required, Validators.maxLength(255)]],
-      city: ['', [Validators.required, Validators.maxLength(100)]],
-      zipCode: ['', [Validators.required, Validators.maxLength(10)]],
-      pickupSlotCapacity: [
-        10,
-        [Validators.required, Validators.min(1), Validators.max(999)],
-      ],
-      siret: ['', [Validators.required, luhnFieldValidator(14)]],
-    },
-  );
+  readonly form = this.fb.nonNullable.group({
+    storeName: [
+      '',
+      [Validators.required, Validators.minLength(2), Validators.maxLength(120)],
+    ],
+    businessType: ['HANOUTE' as 'HANOUTE' | 'PATISSERIE', Validators.required],
+    description: ['', [Validators.maxLength(2000)]],
+    phone: ['', [Validators.required, Validators.maxLength(30)]],
+    address: ['', [Validators.required, Validators.maxLength(255)]],
+    city: ['', [Validators.required, Validators.maxLength(100)]],
+    zipCode: ['', [Validators.required, Validators.maxLength(10)]],
+    pickupSlotCapacity: [
+      10,
+      [Validators.required, Validators.min(1), Validators.max(999)],
+    ],
+    siret: ['', [Validators.required, luhnFieldValidator(14)]],
+  });
 
   readonly openingHoursArray: FormArray<DayHoursGroup> = this.fb.array(
     DAYS.map(() => this.buildDayGroup(false, 8, 18)),
@@ -236,7 +254,32 @@ export class MerchantOnboardingComponent {
   }
 
   constructor() {
-    this.pickupDayGroups.forEach((group) => this.configurePickupDayGroup(group));
+    this.pickupDayGroups.forEach((group) =>
+      this.configurePickupDayGroup(group),
+    );
+
+    this.searchInput$
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((query) => {
+        const normalized = query.trim();
+        if (!normalized) {
+          this.searchResults.set([]);
+          this.isSearchingAddress.set(false);
+          return;
+        }
+
+        this.isSearchingAddress.set(true);
+        this.addressSearchService.search(normalized).subscribe({
+          next: (results) => {
+            this.searchResults.set(results);
+            this.isSearchingAddress.set(false);
+          },
+          error: () => {
+            this.searchResults.set([]);
+            this.isSearchingAddress.set(false);
+          },
+        });
+      });
 
     effect(() => {
       if (this.isReadOnly()) {
@@ -251,8 +294,12 @@ export class MerchantOnboardingComponent {
       }
 
       this.form.enable({ emitEvent: false });
-      this.openingDayGroups.forEach((group) => this.syncOpeningDayGroupState(group));
-      this.pickupDayGroups.forEach((group) => this.syncPickupDayGroupState(group));
+      this.openingDayGroups.forEach((group) =>
+        this.syncOpeningDayGroupState(group),
+      );
+      this.pickupDayGroups.forEach((group) =>
+        this.syncPickupDayGroupState(group),
+      );
     });
 
     effect(() => {
@@ -274,6 +321,185 @@ export class MerchantOnboardingComponent {
         this.loadErrorKey.set('shell.merchant.onboarding.errors.loadFailed');
         this.loading.set(false);
       },
+    });
+  }
+
+  onAddressInputChange(value: string): void {
+    this.searchQuery.set(value);
+    this.searchInput$.next(value);
+  }
+
+  onSelectAddress(suggestion: AddressSearchSuggestion): void {
+    this.selectedAddress.set(suggestion);
+    this.searchResults.set([]);
+    this.searchQuery.set(suggestion.label);
+    this.applyAddressSelectionToForm(suggestion);
+    this.mapPreviewVisible.set(true);
+    this.mapOverlayVisible.set(true);
+    this.mapPreviewReady.set(false);
+    this.mapPreviewError.set(null);
+    requestAnimationFrame(() => {
+      void this.initializeMapPreview(suggestion.latitude, suggestion.longitude);
+    });
+  }
+
+  onConfirmAddressSelection(): void {
+    if (!this.selectedAddress()) {
+      return;
+    }
+
+    const selected = this.selectedAddress()!;
+    this.form.patchValue({
+      address: selected.addressLine,
+      city: selected.city ?? '',
+      zipCode: selected.zipCode ?? '',
+    });
+    this.searchResults.set([]);
+    this.mapOverlayVisible.set(false);
+    this.mapPreviewVisible.set(false);
+    this.mapPreviewReady.set(false);
+  }
+
+  onBackToAddressForm(): void {
+    this.resetAddressSelection();
+  }
+
+  @ViewChild('addressMap')
+  set addressMapElement(element: ElementRef<HTMLElement> | undefined) {
+    this.mapContainerElement = element?.nativeElement ?? null;
+    if (this.selectedAddress()) {
+      void this.initializeMapPreview(
+        this.selectedAddress()!.latitude,
+        this.selectedAddress()!.longitude,
+      );
+    }
+  }
+
+  private resetAddressSelection(): void {
+    this.form.patchValue({
+      address: '',
+      city: '',
+      zipCode: '',
+    });
+    this.searchQuery.set('');
+    this.searchResults.set([]);
+    this.selectedAddress.set(null);
+    this.mapPreviewVisible.set(false);
+    this.mapOverlayVisible.set(false);
+    this.mapPreviewReady.set(false);
+    this.mapPreviewError.set(null);
+
+    if (this.mapInstance) {
+      this.mapInstance.remove();
+      this.mapInstance = null;
+    }
+    this.markerInstance = null;
+  }
+
+  private applyAddressSelectionToForm(
+    selection: AddressSearchSuggestion | null,
+  ): void {
+    if (!selection) {
+      return;
+    }
+
+    this.form.patchValue({
+      address: selection.addressLine,
+      city: selection.city ?? '',
+      zipCode: selection.zipCode ?? '',
+    });
+  }
+
+  private updateAddressFromMarker(latitude: number, longitude: number): void {
+    this.addressSearchService.reverseGeocode(latitude, longitude).subscribe({
+      next: (selection) => {
+        if (!selection) {
+          return;
+        }
+
+        const normalizedSelection: AddressSearchSuggestion = {
+          ...selection,
+          latitude,
+          longitude,
+        };
+
+        this.selectedAddress.set(normalizedSelection);
+        this.applyAddressSelectionToForm(normalizedSelection);
+        this.searchQuery.set(normalizedSelection.label);
+      },
+      error: () => {
+        this.mapPreviewError.set(
+          'shell.merchant.onboarding.addressMap.geocodeFailed',
+        );
+      },
+    });
+  }
+
+  private async initializeMapPreview(
+    latitude: number,
+    longitude: number,
+  ): Promise<void> {
+    if (!this.mapContainerElement) {
+      requestAnimationFrame(() => {
+        void this.initializeMapPreview(latitude, longitude);
+      });
+      return;
+    }
+
+    if (!this.leaflet) {
+      this.leaflet = await import('leaflet');
+    }
+
+    if (this.mapInstance) {
+      this.mapInstance.remove();
+      this.mapInstance = null;
+    }
+    this.markerInstance = null;
+
+    this.mapInstance = this.leaflet.map(this.mapContainerElement, {
+      zoomControl: true,
+    });
+    this.leaflet
+      .tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors',
+      })
+      .addTo(this.mapInstance);
+
+    this.mapInstance.setView([latitude, longitude], 15);
+
+    const markerIcon = this.leaflet.icon({
+      iconUrl:
+        'data:image/svg+xml;charset=UTF-8,' +
+        encodeURIComponent(`
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+            <path fill="#d32f2f" d="M24 4c-8.8 0-16 7.2-16 16 0 11.7 16 24 16 24s16-12.3 16-24c0-8.8-7.2-16-16-16z"/>
+            <circle cx="24" cy="20" r="8" fill="#ffffff"/>
+          </svg>
+        `),
+      iconSize: [28, 28],
+      iconAnchor: [14, 28],
+      popupAnchor: [0, -28],
+    });
+
+    this.markerInstance = this.leaflet
+      .marker([latitude, longitude], { draggable: true, icon: markerIcon })
+      .addTo(this.mapInstance);
+
+    this.markerInstance.on('dragend', () => {
+      const position = this.markerInstance?.getLatLng();
+      if (position) {
+        this.mapPreviewError.set(null);
+        this.updateAddressFromMarker(position.lat, position.lng);
+      }
+    });
+
+    this.updateAddressFromMarker(latitude, longitude);
+    this.mapPreviewReady.set(true);
+    this.mapPreviewError.set(null);
+    requestAnimationFrame(() => {
+      this.mapInstance?.invalidateSize();
+      this.mapInstance?.setView([latitude, longitude], 15);
     });
   }
 
@@ -461,7 +687,9 @@ export class MerchantOnboardingComponent {
         endHour: (group as DayHoursGroup).controls.endHour.value,
       }))
       .filter(
-        (day): day is {
+        (
+          day,
+        ): day is {
           enabled: true;
           dayOfWeek: Weekday;
           startHour: number;
@@ -570,14 +798,19 @@ export class MerchantOnboardingComponent {
   }
 
   private scrollToPickupHoursSection(): void {
-    const element = this.pickupHoursErrorAnchorElement ?? this.pickupHoursSectionElement;
+    const element =
+      this.pickupHoursErrorAnchorElement ?? this.pickupHoursSectionElement;
     if (!element) {
       return;
     }
 
     window.requestAnimationFrame(() => {
       element.focus({ preventScroll: true });
-      element.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest',
+      });
     });
   }
 
@@ -602,7 +835,10 @@ export class MerchantOnboardingComponent {
               return leftTop - rightTop;
             }
 
-            return left.getBoundingClientRect().left - right.getBoundingClientRect().left;
+            return (
+              left.getBoundingClientRect().left -
+              right.getBoundingClientRect().left
+            );
           })[0];
 
         if (!element) {
@@ -610,7 +846,11 @@ export class MerchantOnboardingComponent {
         }
 
         element.focus({ preventScroll: true });
-        element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        element.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest',
+        });
       });
     });
   }

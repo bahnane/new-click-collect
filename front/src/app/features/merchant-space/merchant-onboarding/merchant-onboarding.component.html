@@ -90,10 +90,44 @@
                     <input matInput formControlName="phone" type="tel" maxlength="30" />
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>{{ 'shell.merchant.onboarding.fields.address' | transloco }}</mat-label>
-                    <input matInput formControlName="address" maxlength="255" />
-                </mat-form-field>
+                <div class="address-search-card">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>{{ 'shell.merchant.onboarding.fields.address' | transloco }}</mat-label>
+                        <input matInput formControlName="address" maxlength="255" [value]="searchQuery()"
+                            (input)="onAddressInputChange($any($event.target).value)" />
+                        @if (isSearchingAddress()) {
+                        <mat-spinner matSuffix diameter="18" />
+                        }
+                    </mat-form-field>
+
+                    @if (searchResults().length) {
+                    <div class="address-search-results" role="listbox">
+                        @for (result of searchResults(); track result.id) {
+                        <button type="button" class="address-search-result" (click)="onSelectAddress(result)">
+                            <span class="address-search-result__label">{{ result.label }}</span>
+                            <span class="address-search-result__meta">{{ result.city || result.country || '' }}</span>
+                        </button>
+                        }
+                    </div>
+                    }
+
+                    @if (selectedAddress() && mapPreviewVisible()) {
+                    <div class="address-map-panel" [class.address-map-panel--overlay]="mapOverlayVisible()">
+                        <div class="address-map-panel__header">
+                            <p>{{ 'shell.merchant.onboarding.addressMap.title' | transloco }}</p>
+                            <div class="address-map-panel__actions">
+                                <button mat-stroked-button type="button" (click)="onBackToAddressForm()">
+                                    {{ 'common.cancel' | transloco }}
+                                </button>
+                                <button mat-flat-button type="button" (click)="onConfirmAddressSelection()">
+                                    {{ 'shell.merchant.onboarding.addressMap.confirm' | transloco }}
+                                </button>
+                            </div>
+                        </div>
+                        <div #addressMap class="address-map"></div>
+                    </div>
+                    }
+                </div>
 
                 <div class="address-row">
                     <mat-form-field appearance="outline">
@@ -204,8 +238,7 @@
                         [attr.aria-label]="'shell.merchant.onboarding.sections.pickupHours' | transloco">
                         @for (group of pickupDayGroups; track DAYS[$index]; let i = $index) {
                         <div #pickupDayRow class="day-row"
-                            [class.has-error]="validationRequested() && isPickupDayGroupInvalid(group)"
-                            tabindex="-1">
+                            [class.has-error]="validationRequested() && isPickupDayGroupInvalid(group)" tabindex="-1">
                             <mat-checkbox [formControl]="group.controls['enabled']" [disabled]="isReadOnly()">
                                 {{ 'shop.day.' + DAYS[i] | transloco }}
                             </mat-checkbox>
@@ -213,14 +246,17 @@
                             @if (group.controls['enabled'].value) {
                             <div class="hour-selects">
                                 <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                                    <mat-label>{{ 'shell.merchant.onboarding.fields.startHour' | transloco }}</mat-label>
+                                    <mat-label>{{ 'shell.merchant.onboarding.fields.startHour' | transloco
+                                        }}</mat-label>
                                     <mat-select [formControl]="group.controls['startHour']" [disabled]="isReadOnly()">
                                         @for (h of pickupStartHours; track h) {
                                         <mat-option [value]="h">{{ h }}h</mat-option>
                                         }
                                     </mat-select>
-                                    @if (validationRequested() && group.controls.startHour.hasError('required') && group.controls.startHour.touched) {
-                                    <mat-error>{{ 'shell.merchant.onboarding.errors.pickupSlotRequired' | transloco }}</mat-error>
+                                    @if (validationRequested() && group.controls.startHour.hasError('required') &&
+                                    group.controls.startHour.touched) {
+                                    <mat-error>{{ 'shell.merchant.onboarding.errors.pickupSlotRequired' | transloco
+                                        }}</mat-error>
                                     }
                                 </mat-form-field>
 
@@ -231,8 +267,10 @@
                                         <mat-option [value]="h">{{ h }}h</mat-option>
                                         }
                                     </mat-select>
-                                    @if (validationRequested() && group.controls.endHour.hasError('required') && group.controls.endHour.touched) {
-                                    <mat-error>{{ 'shell.merchant.onboarding.errors.pickupSlotRequired' | transloco }}</mat-error>
+                                    @if (validationRequested() && group.controls.endHour.hasError('required') &&
+                                    group.controls.endHour.touched) {
+                                    <mat-error>{{ 'shell.merchant.onboarding.errors.pickupSlotRequired' | transloco
+                                        }}</mat-error>
                                     }
                                 </mat-form-field>
                             </div>
@@ -244,7 +282,7 @@
             </mat-card-content>
         </mat-card>
 
-        @if (!isReadOnly()) {
+        @if (!isReadOnly() && !mapOverlayVisible()) {
         <div class="form-actions">
             <button mat-stroked-button type="button" (click)="onSaveDraft()" [disabled]="savingDraft() || submitting()">
                 @if (savingDraft()) {

@@ -500,6 +500,10 @@
           "saveDraft": "Enregistrer le brouillon",
           "submit": "Soumettre à validation"
         },
+        "addressMap": {
+          "title": "Confirmez l’emplacement du commerce sur la carte",
+          "confirm": "Valider cet emplacement"
+        },
         "success": {
           "draftSaved": "Brouillon enregistré.",
           "submitted": "Profil soumis à validation avec succès."
