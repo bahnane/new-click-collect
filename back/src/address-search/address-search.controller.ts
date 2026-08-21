@@ -43,7 +43,7 @@ export class AddressSearchController {
     }
 
     const response = await fetch(
-      `https://api.geoapify.com/v1/geocode/reverse?lat=${encodeURIComponent(latitude.toString())}&lon=${encodeURIComponent(longitude.toString())}&lang=fr&limit=1&apiKey=${encodeURIComponent(apiKey)}`,
+      `https://api.geoapify.com/v1/geocode/reverse?lat=${encodeURIComponent(latitude.toString())}&lon=${encodeURIComponent(longitude.toString())}&lang=fr&limit=5&apiKey=${encodeURIComponent(apiKey)}`,
     );
 
     if (!response.ok) {
