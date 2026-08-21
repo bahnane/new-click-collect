@@ -22,6 +22,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
 import { LanguageService } from '../../core/i18n/language.service';
 import { AuthService } from '../../core/services/auth.service';
+import { MerchantsService } from '../../core/services/merchants.service';
 import { MerchantShopService } from '../../core/services/merchant-shop.service';
 import { ShopShellContextService } from '../../core/services/shop-shell-context.service';
 import { UiFeedbackService } from '../../core/services/ui-feedback.service';
@@ -52,6 +53,7 @@ type ShellContext = 'customer' | 'merchant' | 'admin' | 'shop';
 })
 export class AppShellComponent {
   private readonly authService = inject(AuthService);
+  private readonly merchantsService = inject(MerchantsService);
   private readonly merchantShopService = inject(MerchantShopService);
   private readonly shopShellContext = inject(ShopShellContextService);
   private readonly uiFeedback = inject(UiFeedbackService);
@@ -85,6 +87,8 @@ export class AppShellComponent {
     getDefaultAuthenticatedRoute(this.currentUser()),
   );
   readonly globalErrorKey = this.uiFeedback.errorKey;
+  readonly merchantOwnShopSlug = signal<string | null>(null);
+  readonly merchantOwnShopSlugLoaded = signal(false);
   readonly isShopContext = computed(() => this.shellContext() === 'shop');
   readonly isShopRoute = computed(() =>
     this.currentPath().startsWith('/shop/'),
@@ -138,6 +142,24 @@ export class AppShellComponent {
     return 'customer';
   });
 
+  readonly isMerchantShopReadonlyMode = computed(
+    () => this.isMerchant() && this.isShopContext(),
+  );
+
+  readonly isViewingOwnShopAsMerchant = computed(() => {
+    if (!this.isMerchantShopReadonlyMode()) {
+      return false;
+    }
+
+    const ownSlug = this.merchantOwnShopSlug();
+    const currentShopSlug = this.merchantShopSlug();
+    return !!ownSlug && ownSlug === currentShopSlug;
+  });
+
+  readonly canPreviewOwnShop = computed(
+    () => this.isMerchant() && !!this.merchantOwnShopSlug(),
+  );
+
   readonly primaryTabs = computed<ShellTab[]>(() => {
     if (this.shellContext() === 'shop') {
       const merchantSlug = this.merchantShopSlug();
@@ -145,7 +167,7 @@ export class AppShellComponent {
         return [];
       }
 
-      return [
+      const tabs: ShellTab[] = [
         {
           labelKey: 'shell.nav.shopHome',
           icon: 'storefront',
@@ -158,21 +180,28 @@ export class AppShellComponent {
           route: ['/shop', merchantSlug, 'categories'],
           exact: true,
         },
-        {
-          labelKey: 'shell.nav.cart',
-          icon: 'shopping_cart',
-          route: ['/cart'],
-          exact: true,
-          queryParams: { merchantSlug },
-        },
-        {
-          labelKey: 'shell.nav.repeat',
-          icon: 'history',
-          route: ['/dashboard', 'orders'],
-          exact: true,
-          queryParams: { merchantSlug },
-        },
       ];
+
+      if (!this.isMerchant()) {
+        tabs.push(
+          {
+            labelKey: 'shell.nav.cart',
+            icon: 'shopping_cart',
+            route: ['/cart'],
+            exact: true,
+            queryParams: { merchantSlug },
+          },
+          {
+            labelKey: 'shell.nav.repeat',
+            icon: 'history',
+            route: ['/dashboard', 'orders'],
+            exact: true,
+            queryParams: { merchantSlug },
+          },
+        );
+      }
+
+      return tabs;
     }
 
     if (this.isCustomer()) {
@@ -260,6 +289,29 @@ export class AppShellComponent {
 
   constructor() {
     effect(() => {
+      if (!this.isMerchant()) {
+        this.merchantOwnShopSlug.set(null);
+        this.merchantOwnShopSlugLoaded.set(false);
+        return;
+      }
+
+      if (this.merchantOwnShopSlugLoaded()) {
+        return;
+      }
+
+      this.merchantsService.getMyProfile().subscribe({
+        next: (profile) => {
+          this.merchantOwnShopSlug.set(profile.slug);
+          this.merchantOwnShopSlugLoaded.set(true);
+        },
+        error: () => {
+          this.merchantOwnShopSlug.set(null);
+          this.merchantOwnShopSlugLoaded.set(true);
+        },
+      });
+    });
+
+    effect(() => {
       const merchantSlug = this.merchantShopSlug();
 
       if (!merchantSlug || this.shellContext() !== 'shop') {
@@ -296,6 +348,19 @@ export class AppShellComponent {
       this.isShopSearchVisible();
       this.currentPath();
       this.scheduleShellTopOffsetUpdate();
+    });
+
+    effect(() => {
+      const user = this.currentUser();
+      const path = this.currentPath();
+
+      if (!user || user.role !== 'MERCHANT') {
+        return;
+      }
+
+      if (this.isMerchantForbiddenPath(path)) {
+        this.router.navigate(['/merchant', 'overview']);
+      }
     });
   }
 
@@ -360,6 +425,19 @@ export class AppShellComponent {
     this.uiFeedback.clearError();
   }
 
+  openOwnShopPreview(): void {
+    const slug = this.merchantOwnShopSlug();
+    if (!slug) {
+      return;
+    }
+
+    this.router.navigate(['/shop', slug]);
+  }
+
+  exitMerchantPreview(): void {
+    this.router.navigate(['/merchant', 'overview']);
+  }
+
   private scheduleShellTopOffsetUpdate(): void {
     setTimeout(() => {
       this.updateShellTopOffset();
@@ -370,5 +448,33 @@ export class AppShellComponent {
     this.shellTopOffset.set(
       this.topChromeElement ? `${this.topChromeElement.offsetHeight}px` : '0px',
     );
+  }
+
+  private isMerchantForbiddenPath(path: string): boolean {
+    if (path === '/dashboard') {
+      return true;
+    }
+
+    if (path === '/dashboard/orders') {
+      return true;
+    }
+
+    if (path === '/cart') {
+      return true;
+    }
+
+    if (path === '/account' || path.startsWith('/account/')) {
+      return true;
+    }
+
+    if (path.startsWith('/order-confirmation/')) {
+      return true;
+    }
+
+    if (path.startsWith('/detail-commande/')) {
+      return true;
+    }
+
+    return false;
   }
 }

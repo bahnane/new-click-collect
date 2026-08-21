@@ -169,16 +169,19 @@
                         <div class="quantity-control">
                             <button mat-icon-button type="button"
                                 [attr.aria-label]="'common.quantity.decrease' | transloco"
+                                [disabled]="areCartActionsDisabled()"
                                 (click)="decreaseQuantityInput(quantityInput, offer.minOrderQty, offer.stepQty, offer.maxOrderQty)">
                                 <mat-icon>remove</mat-icon>
                             </button>
 
                             <input [id]="'quantity-' + offer.id" class="quantity-input" type="number"
                                 [min]="offer.minOrderQty" [step]="offer.stepQty" [value]="offer.minOrderQty"
-                                [max]="offer.maxOrderQty ?? null" inputmode="decimal" #quantityInput />
+                                [max]="offer.maxOrderQty ?? null" inputmode="decimal" #quantityInput
+                                [disabled]="areCartActionsDisabled()" />
 
                             <button mat-icon-button type="button"
                                 [attr.aria-label]="'common.quantity.increase' | transloco"
+                                [disabled]="areCartActionsDisabled()"
                                 (click)="increaseQuantityInput(quantityInput, offer.minOrderQty, offer.stepQty, offer.maxOrderQty)">
                                 <mat-icon>add</mat-icon>
                             </button>
@@ -187,7 +190,7 @@
 
                     <button mat-stroked-button color="primary" type="button"
                         (click)="addToCart(offer.id, offer.minOrderQty, offer.stepQty, quantityInput.value, offer.maxOrderQty)"
-                        [disabled]="addingOfferId() === offer.id">
+                        [disabled]="addingOfferId() === offer.id || areCartActionsDisabled()">
                         @if (addingOfferId() === offer.id) {
                         {{ 'shop.addingToCart' | transloco }}
                         } @else {

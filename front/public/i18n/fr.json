@@ -309,6 +309,8 @@
       "home": "Accueil",
       "orders": "Commandes",
       "shopHome": "Boutique",
+      "previewMyShop": "Voir ma boutique",
+      "exitPreview": "Quitter la vue client",
       "categories": "Catégories",
       "cart": "Panier",
       "account": "Compte",
@@ -538,6 +540,7 @@
           "message": "Commencez par ajouter vos premiers produits et créer des offres."
         },
         "columns": {
+          "image": "Image",
           "product": "Produit",
           "category": "Catégorie",
           "price": "Prix",
@@ -620,9 +623,11 @@
           "saleUnit": "Unité de vente",
           "price": "Prix (optionnel)",
           "priceHint": "Laissez vide si le prix n'est pas défini.",
-          "description": "Description"
+          "description": "Description",
+          "imageOptional": "Image du produit (optionnel)"
         },
         "columns": {
+          "image": "Image",
           "name": "Produit",
           "category": "Catégorie",
           "saleUnit": "Unité",
@@ -640,7 +645,9 @@
           "submit": "Envoyer la proposition",
           "edit": "Modifier",
           "delete": "Supprimer",
-          "createOffer": "Créer une offre"
+          "createOffer": "Créer une offre",
+          "uploadImage": "Ajouter une image",
+          "removeImage": "Retirer l'image"
         },
         "editor": {
           "createTitle": "Nouvelle proposition produit",
@@ -1020,7 +1027,13 @@
     "quantityInvalid": "Quantité invalide. Respectez la quantité minimale et le pas.",
     "goToCart": "Voir le panier",
     "requiresCustomerRole": "Vous devez être connecté en tant que client pour ajouter au panier.",
-    "addToCartFailed": "Impossible d'ajouter cet article au panier."
+    "addToCartFailed": "Impossible d'ajouter cet article au panier.",
+    "previewMode": {
+      "summary": "Vous visualisez votre boutique en vue client.",
+      "title": "Aperçu client de votre boutique",
+      "text": "Les actions de panier sont désactivées dans ce mode.",
+      "cartDisabled": "Le panier est désactivé pendant l'aperçu marchand."
+    }
   },
   "cart": {
     "title": "Votre panier",

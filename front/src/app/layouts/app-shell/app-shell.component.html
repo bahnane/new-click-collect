@@ -34,6 +34,12 @@
             </a>
 
             <div class="shell-header-actions">
+                @if (canPreviewOwnShop()) {
+                <button mat-stroked-button type="button" (click)="openOwnShopPreview()">
+                    {{ 'shell.nav.previewMyShop' | transloco }}
+                </button>
+                }
+
                 @if (isAuthenticated() && isAdmin()) {
                 <button mat-stroked-button type="button" class="logout-button" (click)="logout()">
                     {{ 'shell.nav.logout' | transloco }}
@@ -42,6 +48,15 @@
             </div>
             }
         </header>
+
+        @if (isViewingOwnShopAsMerchant()) {
+        <div class="shell-preview-strip" role="status" aria-live="polite">
+            <span>{{ 'shop.previewMode.summary' | transloco }}</span>
+            <button mat-stroked-button type="button" (click)="exitMerchantPreview()">
+                {{ 'shell.nav.exitPreview' | transloco }}
+            </button>
+        </div>
+        }
 
         @if (isShopContext() && isShopRoute() && isShopSearchVisible()) {
         <div class="shell-shop-search" role="search">

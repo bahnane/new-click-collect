@@ -93,6 +93,15 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
   readonly selectedSubCategoryId = signal<string>('all');
   readonly requestedRootCategory = signal<string | null>(null);
   readonly categoryBarsVisible = signal(true);
+  readonly authContextResolved = signal(false);
+  readonly isMerchantReadonlyMode = computed(
+    () =>
+      this.authContextResolved() &&
+      this.authService.currentUser()?.role === 'MERCHANT',
+  );
+  readonly areCartActionsDisabled = computed(
+    () => !this.authContextResolved() || this.isMerchantReadonlyMode(),
+  );
   readonly merchantSlug = signal('');
   readonly isAuthenticated = this.authService.isAuthenticated;
 
@@ -299,6 +308,7 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
     }
 
     this.merchantSlug.set(merchantSlug);
+    this.resolveAuthContext();
 
     this.queryParamsSubscription = this.route.queryParamMap.subscribe(
       (queryParams) => {
@@ -561,6 +571,15 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
   ): void {
     this.addToCartErrorKey.set(null);
 
+    if (!this.authContextResolved()) {
+      return;
+    }
+
+    if (this.isMerchantReadonlyMode()) {
+      this.addToCartErrorKey.set('shop.previewMode.cartDisabled');
+      return;
+    }
+
     if (!this.isAuthenticated()) {
       const merchantSlug = this.route.snapshot.paramMap.get('merchantSlug');
       this.router.navigate(['/login'], {
@@ -686,6 +705,17 @@ export class MerchantShopComponent implements OnInit, OnDestroy {
   private disconnectObserver(): void {
     this.observer?.disconnect();
     this.observer = null;
+  }
+
+  private resolveAuthContext(): void {
+    this.authService.refreshAccessToken().subscribe({
+      next: () => {
+        this.authContextResolved.set(true);
+      },
+      error: () => {
+        this.authContextResolved.set(true);
+      },
+    });
   }
 
   private handleWindowScroll(): void {
