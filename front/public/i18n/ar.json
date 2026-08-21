@@ -352,6 +352,7 @@
         "title": "طلباتي",
         "subtitle": "تابع طلباتك واعرض التفاصيل الكاملة لكل طلب.",
         "loading": "جار تحميل الطلبات...",
+        "addressSelectionRequired": "يرجى اختيار موقع على الخريطة قبل الحفظ.",
         "empty": "لا توجد لديك طلبات حتى الآن.",
         "viewDetail": "عرض التفاصيل",
         "cancel": "إلغاء",
@@ -462,7 +463,8 @@
         "pickupHoursRequired": "يجب تحديد يوم استلام واحد على الأقل.",
         "errors": {
           "loadFailed": "تعذّر تحميل الملف الشخصي.",
-          "saveFailed": "تعذّر حفظ الملف الشخصي. تحقّق من المعلومات."
+          "saveFailed": "تعذّر حفظ الملف الشخصي. تحقّق من المعلومات.",
+          "addressSelectionRequired": "يرجى اختيار موقع على الخريطة قبل الحفظ."
         }
       },
       "onboarding": {
@@ -515,6 +517,7 @@
           "loadFailed": "تعذّر تحميل ملف التاجر.",
           "openingHoursRequired": "يجب تحديد يوم عمل واحد على الأقل.",
           "pickupHoursRequired": "يجب تحديد يوم استلام واحد على الأقل.",
+          "addressSelectionRequired": "يرجى اختيار موقع على الخريطة قبل الحفظ.",
           "pickupSlotRequired": "يرجى اختيار موعد.",
           "siretRequired": "رقم SIRET مطلوب.",
           "siretLength": "يجب أن يحتوي SIRET على 14 رقماً.",

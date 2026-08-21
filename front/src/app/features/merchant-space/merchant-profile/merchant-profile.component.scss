@@ -86,6 +86,140 @@
   max-width: 24rem;
 }
 
+.address-search-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.address-search-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.address-search-card__header p,
+.address-search-card__help {
+  margin: 0;
+}
+
+.address-search-card__header p {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.address-search-card__help {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+
+.address-search-results {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 0.875rem;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.address-search-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 0.75rem 0.875rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+}
+
+.address-search-result:hover,
+.address-search-result:focus-visible {
+  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+  outline: none;
+}
+
+.address-search-result__label {
+  font: var(--mat-sys-body-medium);
+}
+
+.address-search-result__meta {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+
+.address-map-panel {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 1rem;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.address-map-panel--overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sticky);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0;
+  background: var(--mat-sys-surface);
+}
+
+.address-map-panel__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.address-map-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.address-map-panel__header p {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+}
+
+.address-map {
+  inline-size: 100%;
+  block-size: min(24rem, 60vh);
+  border-radius: 0.875rem;
+  overflow: hidden;
+}
+
+.address-map-panel--overlay .address-map {
+  block-size: 100%;
+  min-block-size: 0;
+}
+
+:global(.merchant-address-pin) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--mat-sys-primary);
+  box-shadow: 0 0 0 6px
+    color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
+}
+
+:global(.merchant-address-pin span) {
+  inline-size: 0.9rem;
+  block-size: 0.9rem;
+  border-radius: 999px;
+  background: var(--mat-sys-on-primary);
+}
+
 .address-row {
   display: grid;
   grid-template-columns: 1fr auto;

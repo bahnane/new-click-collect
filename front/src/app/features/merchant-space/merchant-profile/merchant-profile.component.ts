@@ -1,4 +1,11 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import {
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -17,6 +24,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import {
+  AddressSearchService,
+  AddressSearchSuggestion,
+} from '../../../core/services/address-search.service';
 import {
   MerchantHours,
   MerchantProfile,
@@ -31,6 +43,10 @@ type DayHoursGroup = FormGroup<{
   startHour: FormControl<number>;
   endHour: FormControl<number>;
 }>;
+
+function normalizeText(value: string): string {
+  return value.trim();
+}
 
 const DAYS: Weekday[] = [
   'MONDAY',
@@ -62,8 +78,15 @@ const DAYS: Weekday[] = [
 export class MerchantProfileComponent {
   private readonly fb = inject(FormBuilder);
   private readonly merchantsService = inject(MerchantsService);
+  private readonly addressSearchService = inject(AddressSearchService);
   private readonly uiFeedback = inject(UiFeedbackService);
   private readonly router = inject(Router);
+  private readonly destroy$ = new Subject<void>();
+  private readonly searchInput$ = new Subject<string>();
+  private leaflet: typeof import('leaflet') | null = null;
+  private mapInstance: import('leaflet').Map | null = null;
+  private markerInstance: import('leaflet').Marker | null = null;
+  private mapContainerElement: HTMLElement | null = null;
 
   readonly DAYS = DAYS;
   readonly loading = signal(true);
@@ -71,6 +94,19 @@ export class MerchantProfileComponent {
   readonly loadErrorKey = signal<string | null>(null);
   readonly saveErrorKey = signal<string | null>(null);
   readonly profile = signal<MerchantProfile | null>(null);
+  readonly searchQuery = signal('');
+  readonly searchResults = signal<AddressSearchSuggestion[]>([]);
+  readonly isSearchingAddress = signal(false);
+  readonly selectedAddress = signal<AddressSearchSuggestion | null>(null);
+  readonly selectedAddressCoordinates = signal<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  readonly addressFieldsLocked = signal(false);
+  readonly mapPreviewVisible = signal(false);
+  readonly mapOverlayVisible = signal(false);
+  readonly mapPreviewReady = signal(false);
+  readonly mapPreviewError = signal<string | null>(null);
 
   readonly openingStartHours = Array.from({ length: 24 }, (_, i) => i);
   readonly openingEndHours = Array.from({ length: 24 }, (_, i) => i + 1);
@@ -109,7 +145,48 @@ export class MerchantProfileComponent {
     return this.pickupHoursArray.controls as DayHoursGroup[];
   }
 
+  @ViewChild('addressMap')
+  set addressMapElement(element: ElementRef<HTMLElement> | undefined) {
+    this.mapContainerElement = element?.nativeElement ?? null;
+    if (this.selectedAddress()) {
+      void this.initializeMapPreview(
+        this.selectedAddress()!.latitude,
+        this.selectedAddress()!.longitude,
+      );
+    }
+  }
+
+  @ViewChild('addressSection')
+  set addressSection(element: ElementRef<HTMLElement> | undefined) {
+    this.addressSectionElement = element?.nativeElement ?? null;
+  }
+
+  private addressSectionElement: HTMLElement | null = null;
+
   constructor() {
+    this.searchInput$
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((query) => {
+        const normalized = normalizeText(query);
+        if (!normalized) {
+          this.searchResults.set([]);
+          this.isSearchingAddress.set(false);
+          return;
+        }
+
+        this.isSearchingAddress.set(true);
+        this.addressSearchService.search(normalized).subscribe({
+          next: (results) => {
+            this.searchResults.set(results);
+            this.isSearchingAddress.set(false);
+          },
+          error: () => {
+            this.searchResults.set([]);
+            this.isSearchingAddress.set(false);
+          },
+        });
+      });
+
     effect(() => {
       const currentError = this.loadErrorKey() ?? this.saveErrorKey();
       if (currentError) {
@@ -136,6 +213,55 @@ export class MerchantProfileComponent {
     this.router.navigate(['/merchant', 'account']);
   }
 
+  onAddressInputChange(value: string): void {
+    this.searchQuery.set(value);
+    this.searchInput$.next(value);
+  }
+
+  onSelectAddress(suggestion: AddressSearchSuggestion): void {
+    this.selectedAddress.set(suggestion);
+    this.selectedAddressCoordinates.set({
+      latitude: suggestion.latitude,
+      longitude: suggestion.longitude,
+    });
+    this.setAddressFieldsLocked(true);
+    this.searchResults.set([]);
+    this.searchQuery.set(suggestion.label);
+    this.applyAddressSelectionToForm(suggestion);
+    this.mapPreviewVisible.set(true);
+    this.mapOverlayVisible.set(true);
+    this.mapPreviewReady.set(false);
+    this.mapPreviewError.set(null);
+    requestAnimationFrame(() => {
+      void this.initializeMapPreview(suggestion.latitude, suggestion.longitude);
+    });
+  }
+
+  onConfirmAddressSelection(): void {
+    if (!this.selectedAddress()) {
+      return;
+    }
+
+    const selected = this.selectedAddress()!;
+    this.form.patchValue({
+      address: selected.addressLine,
+      city: selected.city ?? '',
+      zipCode: selected.zipCode ?? '',
+    });
+    this.searchResults.set([]);
+    this.mapOverlayVisible.set(false);
+    this.mapPreviewVisible.set(false);
+    this.mapPreviewReady.set(false);
+  }
+
+  onEditAddressSelection(): void {
+    this.resetAddressSelection();
+  }
+
+  onBackToAddressForm(): void {
+    this.resetAddressSelection();
+  }
+
   onSubmit(): void {
     if (this.form.invalid || this.saving()) return;
 
@@ -147,7 +273,17 @@ export class MerchantProfileComponent {
       return;
     }
 
+    if (!this.isAddressSelectionComplete()) {
+      this.saveErrorKey.set(
+        'shell.merchant.profile.errors.addressSelectionRequired',
+      );
+      this.scrollToAddressSection();
+      return;
+    }
+
     const raw = this.form.getRawValue();
+    const selectedAddressCoordinates =
+      this.selectedAddressCoordinates() ?? this.getProfileCoordinates();
     const payload: UpdateMerchantProfilePayload = {
       storeName: raw.storeName,
       description: raw.description || undefined,
@@ -155,6 +291,8 @@ export class MerchantProfileComponent {
       address: raw.address || undefined,
       city: raw.city || undefined,
       zipCode: raw.zipCode || undefined,
+      latitude: selectedAddressCoordinates?.latitude,
+      longitude: selectedAddressCoordinates?.longitude,
       pickupSlotCapacity: raw.pickupSlotCapacity,
       openingHours: this.extractEnabledHours(this.openingHoursArray),
       pickupHours: this.extractEnabledHours(this.pickupHoursArray),
@@ -172,6 +310,189 @@ export class MerchantProfileComponent {
         this.saveErrorKey.set('shell.merchant.profile.errors.saveFailed');
         this.saving.set(false);
       },
+    });
+  }
+
+  private resetAddressSelection(): void {
+    this.form.patchValue({
+      address: '',
+      city: '',
+      zipCode: '',
+    });
+    this.searchQuery.set('');
+    this.searchResults.set([]);
+    this.selectedAddress.set(null);
+    this.selectedAddressCoordinates.set(null);
+    this.setAddressFieldsLocked(false);
+    this.mapPreviewVisible.set(false);
+    this.mapOverlayVisible.set(false);
+    this.mapPreviewReady.set(false);
+    this.mapPreviewError.set(null);
+
+    if (this.mapInstance) {
+      this.mapInstance.remove();
+      this.mapInstance = null;
+    }
+    this.markerInstance = null;
+  }
+
+  private applyAddressSelectionToForm(
+    selection: AddressSearchSuggestion | null,
+  ): void {
+    if (!selection) {
+      return;
+    }
+
+    this.form.patchValue({
+      address: selection.addressLine,
+      city: selection.city ?? '',
+      zipCode: selection.zipCode ?? '',
+    });
+  }
+
+  private updateAddressFromMarker(latitude: number, longitude: number): void {
+    this.selectedAddressCoordinates.set({ latitude, longitude });
+    this.addressSearchService.reverseGeocode(latitude, longitude).subscribe({
+      next: (selection) => {
+        if (!selection) {
+          return;
+        }
+
+        const normalizedSelection: AddressSearchSuggestion = {
+          ...selection,
+          latitude,
+          longitude,
+        };
+
+        this.selectedAddress.set(normalizedSelection);
+        this.applyAddressSelectionToForm(normalizedSelection);
+        this.searchQuery.set(normalizedSelection.label);
+      },
+      error: () => {
+        this.mapPreviewError.set(
+          'shell.merchant.onboarding.addressMap.geocodeFailed',
+        );
+      },
+    });
+  }
+
+  private async initializeMapPreview(
+    latitude: number,
+    longitude: number,
+  ): Promise<void> {
+    if (!this.mapContainerElement) {
+      requestAnimationFrame(() => {
+        void this.initializeMapPreview(latitude, longitude);
+      });
+      return;
+    }
+
+    if (!this.leaflet) {
+      this.leaflet = await import('leaflet');
+    }
+
+    if (this.mapInstance) {
+      this.mapInstance.remove();
+      this.mapInstance = null;
+    }
+    this.markerInstance = null;
+
+    this.mapInstance = this.leaflet.map(this.mapContainerElement, {
+      zoomControl: true,
+    });
+    this.leaflet
+      .tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors',
+      })
+      .addTo(this.mapInstance);
+
+    this.mapInstance.setView([latitude, longitude], 15);
+
+    const markerIcon = this.leaflet.icon({
+      iconUrl:
+        'data:image/svg+xml;charset=UTF-8,' +
+        encodeURIComponent(`
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+            <path fill="#d32f2f" d="M24 4c-8.8 0-16 7.2-16 16 0 11.7 16 24 16 24s16-12.3 16-24c0-8.8-7.2-16-16-16z"/>
+            <circle cx="24" cy="20" r="8" fill="#ffffff"/>
+          </svg>
+        `),
+      iconSize: [28, 28],
+      iconAnchor: [14, 28],
+      popupAnchor: [0, -28],
+    });
+
+    this.markerInstance = this.leaflet
+      .marker([latitude, longitude], { draggable: true, icon: markerIcon })
+      .addTo(this.mapInstance);
+
+    this.markerInstance.on('dragend', () => {
+      const position = this.markerInstance?.getLatLng();
+      if (position) {
+        this.mapPreviewError.set(null);
+        this.updateAddressFromMarker(position.lat, position.lng);
+      }
+    });
+
+    this.updateAddressFromMarker(latitude, longitude);
+    this.mapPreviewReady.set(true);
+    this.mapPreviewError.set(null);
+    requestAnimationFrame(() => {
+      this.mapInstance?.invalidateSize();
+      this.mapInstance?.setView([latitude, longitude], 15);
+    });
+  }
+
+  private setAddressFieldsLocked(locked: boolean): void {
+    this.addressFieldsLocked.set(locked);
+
+    const addressControls = [
+      this.form.controls.address,
+      this.form.controls.city,
+      this.form.controls.zipCode,
+    ];
+
+    if (locked) {
+      addressControls.forEach((control) =>
+        control.disable({ emitEvent: false }),
+      );
+      return;
+    }
+
+    addressControls.forEach((control) => control.enable({ emitEvent: false }));
+  }
+
+  private isAddressSelectionComplete(): boolean {
+    return Boolean(this.selectedAddressCoordinates());
+  }
+
+  private getProfileCoordinates(): {
+    latitude: number;
+    longitude: number;
+  } | null {
+    const profile = this.profile();
+    if (!profile || profile.latitude === null || profile.longitude === null) {
+      return null;
+    }
+
+    return {
+      latitude: profile.latitude,
+      longitude: profile.longitude,
+    };
+  }
+
+  private scrollToAddressSection(): void {
+    if (!this.addressSectionElement) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      this.addressSectionElement?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest',
+      });
     });
   }
 
@@ -197,6 +518,18 @@ export class MerchantProfileComponent {
       zipCode: profile.zipCode ?? '',
       pickupSlotCapacity: profile.pickupSlotCapacity ?? 10,
     });
+    this.searchQuery.set(profile.address ?? '');
+
+    if (profile.latitude !== null && profile.longitude !== null) {
+      this.selectedAddressCoordinates.set({
+        latitude: profile.latitude,
+        longitude: profile.longitude,
+      });
+      this.setAddressFieldsLocked(true);
+    } else {
+      this.selectedAddressCoordinates.set(null);
+      this.setAddressFieldsLocked(false);
+    }
 
     this.patchDayArray(this.openingHoursArray, profile.openingHours, 8, 18);
     this.patchDayArray(this.pickupHoursArray, profile.pickupHours, 8, 20);
@@ -234,5 +567,15 @@ export class MerchantProfileComponent {
         startHour,
         endHour,
       }));
+  }
+
+  private ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    if (this.mapInstance) {
+      this.mapInstance.remove();
+      this.mapInstance = null;
+    }
   }
 }

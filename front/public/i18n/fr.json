@@ -352,6 +352,7 @@
         "title": "Mes commandes",
         "subtitle": "Suivez vos commandes et consultez leur détail.",
         "loading": "Chargement des commandes...",
+        "addressSelectionRequired": "Veuillez choisir un emplacement sur la carte avant d'enregistrer.",
         "empty": "Vous n'avez pas encore de commande.",
         "viewDetail": "Afficher détail",
         "cancel": "Annuler",
@@ -462,7 +463,8 @@
         "pickupHoursRequired": "Au moins un jour de collecte est requis.",
         "errors": {
           "loadFailed": "Impossible de charger le profil.",
-          "saveFailed": "Impossible d'enregistrer le profil. Vérifiez vos informations."
+          "saveFailed": "Impossible d'enregistrer le profil. Vérifiez vos informations.",
+          "addressSelectionRequired": "Veuillez choisir un emplacement sur la carte avant d'enregistrer."
         }
       },
       "onboarding": {
@@ -515,6 +517,7 @@
           "loadFailed": "Impossible de charger votre dossier marchand.",
           "openingHoursRequired": "Au moins un jour d'ouverture est requis.",
           "pickupHoursRequired": "Au moins un jour de retrait est requis.",
+          "addressSelectionRequired": "Veuillez choisir un emplacement sur la carte avant d'enregistrer.",
           "pickupSlotRequired": "Veuillez sélectionner un créneau.",
           "siretRequired": "Le SIRET est requis.",
           "siretLength": "Le SIRET doit contenir 14 chiffres.",
