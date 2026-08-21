@@ -23,6 +23,10 @@ interface OfferDraftRow {
   productName: string;
   categoryName: string;
   saleUnit: string;
+  imageUrl: string | null;
+  imageAltText: string | null;
+  imageWidth: number | null;
+  imageHeight: number | null;
   defaultPriceInCents: number | null;
   selected: boolean;
   price: string;
@@ -61,6 +65,7 @@ export class MerchantStoreOffersCreateComponent {
   readonly pageSize = signal(10);
 
   readonly displayedColumns = [
+    'image',
     'select',
     'product',
     'price',
@@ -110,6 +115,10 @@ export class MerchantStoreOffersCreateComponent {
               ? `${product.category.name} / ${product.subCategory.name}`
               : product.category.name,
             saleUnit: product.saleUnit,
+            imageUrl: product.imageAsset?.cdnUrl ?? null,
+            imageAltText: product.imageAsset?.altText ?? null,
+            imageWidth: product.imageAsset?.width ?? null,
+            imageHeight: product.imageAsset?.height ?? null,
             defaultPriceInCents: product.priceInCents,
             selected: false,
             price: '',

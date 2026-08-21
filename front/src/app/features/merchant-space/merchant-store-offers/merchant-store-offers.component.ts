@@ -57,6 +57,7 @@ export class MerchantStoreOffersComponent {
   readonly pageSize = signal(10);
 
   readonly displayedColumns = [
+    'image',
     'product',
     'category',
     'effectivePrice',

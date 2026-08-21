@@ -108,6 +108,36 @@
   }
 }
 
+.offer-thumb {
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: 0.65rem;
+  overflow: hidden;
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.offer-thumb img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.offer-thumb--table {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+}
+
+.offer-thumb--empty .mat-icon {
+  font-size: 1.05rem;
+  inline-size: 1.05rem;
+  block-size: 1.05rem;
+}
+
 .offer-meta {
   display: grid;
   gap: 0.625rem;

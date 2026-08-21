@@ -40,6 +40,17 @@
                 </mat-card-header>
 
                 <mat-card-content>
+                    <div class="create-offer-thumb create-offer-thumb--large"
+                        [class.create-offer-thumb--empty]="!row.imageUrl">
+                        @if (row.imageUrl) {
+                        <img [src]="row.imageUrl" [alt]="row.imageAltText || row.productName" loading="lazy"
+                            decoding="async" [attr.width]="row.imageWidth || 96"
+                            [attr.height]="row.imageHeight || 96" />
+                        } @else {
+                        <mat-icon aria-hidden="true">image</mat-icon>
+                        }
+                    </div>
+
                     @if (row.defaultPriceInCents !== null) {
                     <p class="catalog-price">
                         {{ 'shell.merchant.storeOffers.create.fields.catalogPrice' | transloco }}:
@@ -90,6 +101,23 @@
         <mat-card class="create-desktop-table" aria-label="create offers table">
             <div class="table-responsive">
                 <table mat-table [dataSource]="draftRows()" class="create-table">
+                    <ng-container matColumnDef="image">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.merchant.storeOffers.columns.image' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="create-offer-thumb" [class.create-offer-thumb--empty]="!row.imageUrl">
+                                @if (row.imageUrl) {
+                                <img [src]="row.imageUrl" [alt]="row.imageAltText || row.productName" loading="lazy"
+                                    decoding="async" [attr.width]="row.imageWidth || 88"
+                                    [attr.height]="row.imageHeight || 88" />
+                                } @else {
+                                <mat-icon aria-hidden="true">image</mat-icon>
+                                }
+                            </div>
+                        </td>
+                    </ng-container>
+
                     <ng-container matColumnDef="select">
                         <th mat-header-cell *matHeaderCellDef>
                             {{ 'shell.merchant.storeOffers.create.fields.select' | transloco }}

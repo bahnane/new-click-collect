@@ -33,6 +33,17 @@
             @for (submission of page()!.data; track submission.id) {
             <mat-card class="submission-card">
                 <mat-card-header>
+                    <div mat-card-avatar class="submission-thumb"
+                        [class.submission-thumb--empty]="!submission.imageAsset?.cdnUrl">
+                        @if (submission.imageAsset?.cdnUrl) {
+                        <img [src]="submission.imageAsset!.cdnUrl"
+                            [alt]="submission.imageAsset!.altText || submission.name" loading="lazy" decoding="async"
+                            [attr.width]="submission.imageAsset!.width || 48"
+                            [attr.height]="submission.imageAsset!.height || 48" />
+                        } @else {
+                        <mat-icon aria-hidden="true">image</mat-icon>
+                        }
+                    </div>
                     <mat-card-title>{{ submission.name }}</mat-card-title>
                     <mat-card-subtitle>{{ getCategoryDisplayLabel(submission) }}</mat-card-subtitle>
                 </mat-card-header>
@@ -91,6 +102,23 @@
         <mat-card class="desktop-table" aria-label="product submissions table">
             <div class="table-responsive">
                 <table mat-table [dataSource]="page()!.data">
+                    <ng-container matColumnDef="image">
+                        <th mat-header-cell *matHeaderCellDef>{{ 'shell.merchant.productSubmissions.columns.image' |
+                            transloco }}</th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="submission-thumb submission-thumb--table"
+                                [class.submission-thumb--empty]="!row.imageAsset?.cdnUrl">
+                                @if (row.imageAsset?.cdnUrl) {
+                                <img [src]="row.imageAsset!.cdnUrl" [alt]="row.imageAsset!.altText || row.name"
+                                    loading="lazy" decoding="async" [attr.width]="row.imageAsset!.width || 44"
+                                    [attr.height]="row.imageAsset!.height || 44" />
+                                } @else {
+                                <mat-icon aria-hidden="true">image</mat-icon>
+                                }
+                            </div>
+                        </td>
+                    </ng-container>
+
                     <ng-container matColumnDef="name">
                         <th mat-header-cell *matHeaderCellDef>{{ 'shell.merchant.productSubmissions.columns.name' |
                             transloco }}</th>

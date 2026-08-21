@@ -33,6 +33,17 @@
             @for (offer of offersPage()!.data; track offer.id) {
             <mat-card class="offer-card">
                 <mat-card-header>
+                    <div mat-card-avatar class="offer-thumb"
+                        [class.offer-thumb--empty]="!offer.product.imageAsset?.cdnUrl">
+                        @if (offer.product.imageAsset?.cdnUrl) {
+                        <img [src]="offer.product.imageAsset!.cdnUrl"
+                            [alt]="offer.product.imageAsset!.altText || offer.product.name" loading="lazy"
+                            decoding="async" [attr.width]="offer.product.imageAsset!.width || 48"
+                            [attr.height]="offer.product.imageAsset!.height || 48" />
+                        } @else {
+                        <mat-icon aria-hidden="true">image</mat-icon>
+                        }
+                    </div>
                     <mat-card-title>{{ offer.product.name }}</mat-card-title>
                     <mat-card-subtitle>{{ offer.product.category.name }}</mat-card-subtitle>
                 </mat-card-header>
@@ -103,6 +114,25 @@
         <mat-card class="offers-desktop-table" aria-label="store offers table">
             <div class="table-responsive">
                 <table mat-table [dataSource]="offersPage()!.data" class="offers-table">
+                    <ng-container matColumnDef="image">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'shell.merchant.storeOffers.columns.image' | transloco }}
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            <div class="offer-thumb offer-thumb--table"
+                                [class.offer-thumb--empty]="!element.product.imageAsset?.cdnUrl">
+                                @if (element.product.imageAsset?.cdnUrl) {
+                                <img [src]="element.product.imageAsset!.cdnUrl"
+                                    [alt]="element.product.imageAsset!.altText || element.product.name" loading="lazy"
+                                    decoding="async" [attr.width]="element.product.imageAsset!.width || 44"
+                                    [attr.height]="element.product.imageAsset!.height || 44" />
+                                } @else {
+                                <mat-icon aria-hidden="true">image</mat-icon>
+                                }
+                            </div>
+                        </td>
+                    </ng-container>
+
                     <ng-container matColumnDef="product">
                         <th mat-header-cell *matHeaderCellDef>
                             {{ 'shell.merchant.storeOffers.columns.product' | transloco }}

@@ -98,6 +98,36 @@
   font: var(--mat-sys-body-small);
 }
 
+.create-offer-thumb {
+  inline-size: 5.5rem;
+  block-size: 5.5rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.create-offer-thumb--large {
+  inline-size: 6rem;
+  block-size: 6rem;
+}
+
+.create-offer-thumb img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.create-offer-thumb--empty .mat-icon {
+  font-size: 1.2rem;
+  inline-size: 1.2rem;
+  block-size: 1.2rem;
+}
+
 .field-grid {
   display: grid;
   gap: 0.625rem;
