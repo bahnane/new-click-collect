@@ -19,6 +19,16 @@
         </div>
     </div>
 
+    @if (isChangesRequested() && changeRequestReason()) {
+    <div class="profile-notice" role="status" aria-live="polite">
+        <mat-icon aria-hidden="true">info</mat-icon>
+        <div class="profile-notice__content">
+            <p class="profile-notice__label">{{ 'common.changesRequestedReasonLabel' | transloco }}</p>
+            <p class="profile-notice__text">{{ changeRequestReason() }}</p>
+        </div>
+    </div>
+    }
+
     <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="profile-form">
         <mat-card class="profile-card">
             <mat-card-header>

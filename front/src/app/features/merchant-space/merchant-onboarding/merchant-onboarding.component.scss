@@ -61,6 +61,21 @@
   background: color-mix(in srgb, var(--mat-sys-secondary) 10%, transparent);
 }
 
+.status-banner--details {
+  align-items: flex-start;
+  border-color: color-mix(in srgb, var(--mat-sys-tertiary) 35%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent);
+}
+
+.status-banner--details p {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.status-banner--details strong {
+  font: var(--mat-sys-label-medium);
+}
+
 .success-banner {
   border: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 40%, transparent);
   background: color-mix(in srgb, var(--mat-sys-tertiary) 16%, transparent);

@@ -7,11 +7,19 @@ export type Weekday =
   | 'FRIDAY'
   | 'SATURDAY';
 
+export type MerchantProfileStatus =
+  | 'DRAFT'
+  | 'PENDING_APPROVAL'
+  | 'APPROVED'
+  | 'CHANGES_REQUESTED';
+
 export interface MerchantProfile {
   id: string;
   slug: string;
   storeName: string;
   businessType: 'HANOUTE' | 'PATISSERIE';
+  status: MerchantProfileStatus;
+  changesRequestedReason: string | null;
   description: string | null;
   phone: string | null;
   address: string | null;
@@ -160,6 +168,8 @@ export interface AdminMerchantEntry {
   slug: string;
   storeName: string;
   businessType: 'HANOUTE' | 'PATISSERIE';
+  status: MerchantProfileStatus;
+  changesRequestedReason: string | null;
   description: string | null;
   phone: string | null;
   address: string | null;

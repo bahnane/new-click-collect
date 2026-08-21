@@ -19,6 +19,16 @@
         <p>{{ ('shell.merchant.onboarding.state.' + accessState().toLowerCase()) | transloco }}</p>
     </div>
 
+    @if (accessState() === 'CHANGES_REQUESTED' && changeRequestReason()) {
+    <div class="status-banner status-banner--details" role="status" aria-live="polite">
+        <mat-icon aria-hidden="true">info</mat-icon>
+        <p>
+            <strong>{{ 'common.changesRequestedReasonLabel' | transloco }}</strong>
+            <span>{{ changeRequestReason() }}</span>
+        </p>
+    </div>
+    }
+
     @if (successKey(); as currentSuccessKey) {
     <div class="success-banner" role="status" aria-live="polite">
         <mat-icon aria-hidden="true">check_circle</mat-icon>

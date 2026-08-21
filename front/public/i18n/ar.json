@@ -94,6 +94,7 @@
     "close": "إغلاق",
     "delete": "حذف",
     "pagination": "التصفح",
+    "changesRequestedReasonLabel": "سبب التعديلات:",
     "languages": {
       "label": "اللغة",
       "fr": "الفرنسية",

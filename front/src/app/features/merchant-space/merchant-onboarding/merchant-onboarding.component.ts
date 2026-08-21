@@ -176,6 +176,9 @@ export class MerchantOnboardingComponent {
   readonly saveErrorKey = signal<string | null>(null);
   readonly successKey = signal<string | null>(null);
   readonly profile = signal<MerchantProfile | null>(null);
+  readonly changeRequestReason = computed(
+    () => this.profile()?.changesRequestedReason?.trim() || null,
+  );
   readonly isReadOnly = computed(
     () => this.accessState() === 'PENDING_APPROVAL',
   );

@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   effect,
   ElementRef,
   inject,
@@ -94,6 +95,12 @@ export class MerchantProfileComponent {
   readonly loadErrorKey = signal<string | null>(null);
   readonly saveErrorKey = signal<string | null>(null);
   readonly profile = signal<MerchantProfile | null>(null);
+  readonly changeRequestReason = computed(
+    () => this.profile()?.changesRequestedReason?.trim() || null,
+  );
+  readonly isChangesRequested = computed(
+    () => this.profile()?.status === 'CHANGES_REQUESTED',
+  );
   readonly searchQuery = signal('');
   readonly searchResults = signal<AddressSearchSuggestion[]>([]);
   readonly isSearchingAddress = signal(false);

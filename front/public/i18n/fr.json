@@ -94,6 +94,7 @@
     "close": "Fermer",
     "delete": "Supprimer",
     "pagination": "Pagination",
+    "changesRequestedReasonLabel": "Motif des modifications :",
     "languages": {
       "label": "Langue",
       "fr": "Français",
