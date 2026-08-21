@@ -17,6 +17,8 @@ export interface MerchantProfile {
   address: string | null;
   city: string | null;
   zipCode: string | null;
+  latitude: number | null;
+  longitude: number | null;
   isActive: boolean;
   pickupSlotCapacity: number;
   openingHours: MerchantHours[];
@@ -32,6 +34,8 @@ export interface UpdateMerchantProfilePayload {
   city?: string;
   zipCode?: string;
   siret?: string;
+  latitude?: number;
+  longitude?: number;
   pickupSlotCapacity?: number;
   openingHours?: MerchantHours[];
   pickupHours?: MerchantHours[];
@@ -46,6 +50,8 @@ export interface MerchantShopInfo {
   address: string | null;
   city: string | null;
   zipCode: string | null;
+  latitude: number | null;
+  longitude: number | null;
   isActive: boolean;
   openingHours: MerchantHours[];
   pickupHours: MerchantHours[];

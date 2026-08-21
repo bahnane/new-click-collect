@@ -163,6 +163,11 @@ export class MerchantOnboardingComponent {
   readonly searchResults = signal<AddressSearchSuggestion[]>([]);
   readonly isSearchingAddress = signal(false);
   readonly selectedAddress = signal<AddressSearchSuggestion | null>(null);
+  readonly selectedAddressCoordinates = signal<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  readonly addressFieldsLocked = signal(false);
   readonly mapPreviewVisible = signal(false);
   readonly mapPreviewReady = signal(false);
   readonly mapPreviewError = signal<string | null>(null);
@@ -331,6 +336,11 @@ export class MerchantOnboardingComponent {
 
   onSelectAddress(suggestion: AddressSearchSuggestion): void {
     this.selectedAddress.set(suggestion);
+    this.selectedAddressCoordinates.set({
+      latitude: suggestion.latitude,
+      longitude: suggestion.longitude,
+    });
+    this.setAddressFieldsLocked(true);
     this.searchResults.set([]);
     this.searchQuery.set(suggestion.label);
     this.applyAddressSelectionToForm(suggestion);
@@ -360,6 +370,10 @@ export class MerchantOnboardingComponent {
     this.mapPreviewReady.set(false);
   }
 
+  onEditAddressSelection(): void {
+    this.resetAddressSelection();
+  }
+
   onBackToAddressForm(): void {
     this.resetAddressSelection();
   }
@@ -384,6 +398,8 @@ export class MerchantOnboardingComponent {
     this.searchQuery.set('');
     this.searchResults.set([]);
     this.selectedAddress.set(null);
+    this.selectedAddressCoordinates.set(null);
+    this.setAddressFieldsLocked(false);
     this.mapPreviewVisible.set(false);
     this.mapOverlayVisible.set(false);
     this.mapPreviewReady.set(false);
@@ -411,6 +427,7 @@ export class MerchantOnboardingComponent {
   }
 
   private updateAddressFromMarker(latitude: number, longitude: number): void {
+    this.selectedAddressCoordinates.set({ latitude, longitude });
     this.addressSearchService.reverseGeocode(latitude, longitude).subscribe({
       next: (selection) => {
         if (!selection) {
@@ -622,6 +639,8 @@ export class MerchantOnboardingComponent {
 
   private buildPayload(): UpdateMerchantProfilePayload {
     const raw = this.form.getRawValue();
+    const selectedAddressCoordinates =
+      this.selectedAddressCoordinates() ?? this.getProfileCoordinates();
 
     return {
       storeName: raw.storeName,
@@ -632,6 +651,8 @@ export class MerchantOnboardingComponent {
       city: raw.city || undefined,
       zipCode: raw.zipCode || undefined,
       siret: raw.siret || undefined,
+      latitude: selectedAddressCoordinates?.latitude,
+      longitude: selectedAddressCoordinates?.longitude,
       pickupSlotCapacity: raw.pickupSlotCapacity,
       openingHours: this.extractEnabledHours(this.openingHoursArray),
       pickupHours: this.extractEnabledHours(this.pickupHoursArray),
@@ -649,9 +670,59 @@ export class MerchantOnboardingComponent {
       zipCode: profile.zipCode ?? '',
       pickupSlotCapacity: profile.pickupSlotCapacity ?? 10,
     });
+    this.searchQuery.set(profile.address ?? '');
+
+    if (profile.latitude !== null && profile.longitude !== null) {
+      this.selectedAddressCoordinates.set({
+        latitude: profile.latitude,
+        longitude: profile.longitude,
+      });
+      this.setAddressFieldsLocked(true);
+    } else {
+      this.selectedAddressCoordinates.set(null);
+      this.setAddressFieldsLocked(false);
+    }
 
     this.patchDayArray(this.openingHoursArray, profile.openingHours, 8, 18);
     this.patchDayArray(this.pickupHoursArray, profile.pickupHours, 8, 20);
+  }
+
+  private setAddressFieldsLocked(locked: boolean): void {
+    if (this.isReadOnly()) {
+      return;
+    }
+
+    this.addressFieldsLocked.set(locked);
+
+    const addressControls = [
+      this.form.controls.address,
+      this.form.controls.city,
+      this.form.controls.zipCode,
+    ];
+
+    if (locked) {
+      addressControls.forEach((control) =>
+        control.disable({ emitEvent: false }),
+      );
+      return;
+    }
+
+    addressControls.forEach((control) => control.enable({ emitEvent: false }));
+  }
+
+  private getProfileCoordinates(): {
+    latitude: number;
+    longitude: number;
+  } | null {
+    const profile = this.profile();
+    if (!profile || profile.latitude === null || profile.longitude === null) {
+      return null;
+    }
+
+    return {
+      latitude: profile.latitude,
+      longitude: profile.longitude,
+    };
   }
 
   private patchDayArray(

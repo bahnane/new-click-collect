@@ -89,6 +89,7 @@
     "retry": "Réessayer",
     "actions": "Actions",
     "cancel": "Annuler",
+    "edit": "Modifier",
     "save": "Enregistrer",
     "close": "Fermer",
     "delete": "Supprimer",
@@ -377,6 +378,7 @@
         "overview": "Vue d'ensemble",
         "profile": "Mon profil",
         "storeOffers": "Mes offres",
+        "edit": "Modifier",
         "storeOffersAdd": "Ajouter des offres",
         "productSubmissions": "Mes propositions"
       },
@@ -502,7 +504,8 @@
         },
         "addressMap": {
           "title": "Confirmez l’emplacement du commerce sur la carte",
-          "confirm": "Valider cet emplacement"
+          "confirm": "Valider cet emplacement",
+          "help": "Sélectionnez un marqueur sur la carte pour remplir l’adresse, la ville et le code postal."
         },
         "success": {
           "draftSaved": "Brouillon enregistré.",

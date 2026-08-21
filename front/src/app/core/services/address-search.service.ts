@@ -102,7 +102,11 @@ export class AddressSearchService {
     fallbackLatitude: number,
     fallbackLongitude: number,
   ): AddressSearchSuggestion | null {
-    const feature = response.features?.[0];
+    const feature = this.pickBestReverseFeature(
+      response.features ?? [],
+      fallbackLatitude,
+      fallbackLongitude,
+    );
     if (!feature) {
       return null;
     }
@@ -118,6 +122,9 @@ export class AddressSearchService {
       resultLongitude,
     );
     const fallbackLabel = this.buildFallbackLabel(properties);
+    const city = this.extractCity(properties);
+    const zipCode = this.extractPostalCode(properties);
+    const country = this.extractCountry(properties);
 
     return {
       id: `reverse-${fallbackLatitude}-${fallbackLongitude}`,
@@ -127,12 +134,67 @@ export class AddressSearchService {
       addressLine: isPrecise
         ? (properties.address_line1 ?? properties.formatted ?? '')
         : fallbackLabel,
-      city: isPrecise ? (properties.city ?? properties.county ?? null) : null,
-      zipCode: isPrecise ? (properties.postcode ?? null) : null,
-      country: isPrecise ? (properties.country ?? null) : null,
+      city,
+      zipCode,
+      country,
       latitude: resultLatitude,
       longitude: resultLongitude,
     };
+  }
+
+  private pickBestReverseFeature(
+    features: Array<{
+      properties: any;
+      geometry?: { coordinates?: [number, number] };
+    }>,
+    markerLatitude: number,
+    markerLongitude: number,
+  ) {
+    if (!features.length) {
+      return null;
+    }
+
+    return [...features].sort((left, right) => {
+      const rightScore = this.scoreReverseFeature(
+        right,
+        markerLatitude,
+        markerLongitude,
+      );
+      const leftScore = this.scoreReverseFeature(
+        left,
+        markerLatitude,
+        markerLongitude,
+      );
+
+      return rightScore - leftScore;
+    })[0];
+  }
+
+  private scoreReverseFeature(
+    feature: {
+      properties: any;
+      geometry?: { coordinates?: [number, number] };
+    },
+    markerLatitude: number,
+    markerLongitude: number,
+  ): number {
+    const properties = feature.properties ?? {};
+    const [longitude, latitude] = feature.geometry?.coordinates ?? [];
+    const resultLatitude = latitude ?? markerLatitude;
+    const resultLongitude = longitude ?? markerLongitude;
+    const distanceMeters = this.calculateDistanceMeters(
+      markerLatitude,
+      markerLongitude,
+      resultLatitude,
+      resultLongitude,
+    );
+
+    return (
+      (this.extractPostalCode(properties) ? 1000 : 0) +
+      (this.extractCity(properties) ? 500 : 0) +
+      (this.hasReadableStreetLabel(properties) ? 250 : 0) -
+      distanceMeters / 1000
+    );
   }
 
   private isReverseGeocodePrecise(
@@ -175,6 +237,7 @@ export class AddressSearchService {
 
   private buildFallbackLabel(properties: Record<string, unknown>): string {
     const street = String(properties['street'] ?? '').trim();
+    const addressLine1 = String(properties['address_line1'] ?? '').trim();
     const neighbourhood = String(properties['suburb'] ?? '').trim();
     const locality = String(properties['city'] ?? '').trim();
     const county = String(properties['county'] ?? '').trim();
@@ -182,6 +245,10 @@ export class AddressSearchService {
 
     if (street) {
       return street;
+    }
+
+    if (addressLine1) {
+      return addressLine1.replace(/^\d+\s+/, '');
     }
 
     if (neighbourhood) {
@@ -198,5 +265,69 @@ export class AddressSearchService {
     }
 
     return 'Adresse approchée';
+  }
+
+  private hasReadableStreetLabel(properties: Record<string, unknown>): boolean {
+    return Boolean(
+      String(properties['street'] ?? '').trim() ||
+      String(properties['address_line1'] ?? '').trim() ||
+      String(properties['suburb'] ?? '').trim() ||
+      String(properties['city'] ?? '').trim() ||
+      String(properties['county'] ?? '').trim(),
+    );
+  }
+
+  private extractCity(properties: Record<string, unknown>): string | null {
+    const candidates = [
+      properties['city'],
+      properties['town'],
+      properties['village'],
+      properties['municipality'],
+      properties['district'],
+      properties['suburb'],
+      properties['county'],
+      properties['state_district'],
+    ];
+
+    for (const candidate of candidates) {
+      const value = String(candidate ?? '').trim();
+      if (value) {
+        return value;
+      }
+    }
+
+    return null;
+  }
+
+  private extractPostalCode(
+    properties: Record<string, unknown>,
+  ): string | null {
+    const candidates = [
+      properties['postcode'],
+      properties['postal_code'],
+      properties['zip'],
+    ];
+
+    for (const candidate of candidates) {
+      const value = String(candidate ?? '').trim();
+      if (value) {
+        return value;
+      }
+    }
+
+    return null;
+  }
+
+  private extractCountry(properties: Record<string, unknown>): string | null {
+    const candidates = [properties['country'], properties['country_code']];
+
+    for (const candidate of candidates) {
+      const value = String(candidate ?? '').trim();
+      if (value) {
+        return value;
+      }
+    }
+
+    return null;
   }
 }

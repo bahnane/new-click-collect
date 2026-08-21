@@ -91,6 +91,20 @@
                 </mat-form-field>
 
                 <div class="address-search-card">
+                    <div class="address-search-card__header">
+                        <p>{{ 'shell.merchant.onboarding.fields.address' | transloco }}</p>
+
+                        @if (addressFieldsLocked()) {
+                        <button mat-stroked-button type="button" (click)="onEditAddressSelection()">
+                            {{ 'common.edit' | transloco }}
+                        </button>
+                        }
+                    </div>
+
+                    <p class="address-search-card__help">
+                        {{ 'shell.merchant.onboarding.addressMap.help' | transloco }}
+                    </p>
+
                     <mat-form-field appearance="outline" class="full-width">
                         <mat-label>{{ 'shell.merchant.onboarding.fields.address' | transloco }}</mat-label>
                         <input matInput formControlName="address" maxlength="255" [value]="searchQuery()"
