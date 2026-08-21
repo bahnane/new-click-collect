@@ -157,12 +157,6 @@ export class ProductsController {
     }
 
     if (user.role === Role.MERCHANT) {
-      if (dto.imageAssetId) {
-        throw new ForbiddenException({
-          code: ErrorCodes.AUTH_FORBIDDEN,
-          message: 'Only admins can attach images during product approval',
-        });
-      }
       return this.productsService.createProductSubmission(user.sub, dto);
     }
 
@@ -232,6 +226,26 @@ export class ProductsController {
   ) {
     this.assertMerchant(user);
     return this.productsService.updateMyProductSubmission(user.sub, id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
+  @Post('merchants/me/image-assets/upload-url')
+  generateMerchantImageUploadUrl(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: GenerateImageUploadUrlDto,
+  ) {
+    this.assertMerchant(user);
+    return this.productsService.generateImageUploadUrl(dto);
+  }
+
+  @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)
+  @Post('merchants/me/image-assets/finalize')
+  finalizeMerchantImageUpload(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: FinalizeImageUploadDto,
+  ) {
+    this.assertMerchant(user);
+    return this.productsService.finalizeImageUpload(dto);
   }
 
   @UseGuards(JwtAuthGuard, ApprovedMerchantGuard)

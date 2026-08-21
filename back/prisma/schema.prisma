@@ -247,6 +247,7 @@ model ImageAsset {
   variants         ImageAssetVariant[]
   productCategories ProductCategory[] @relation("CategoryImageAsset")
   products         Product[]          @relation("ProductImageAsset")
+  submissions      ProductSubmission[] @relation("SubmissionImageAsset")
 
   @@index([storageProvider])
   @@map("image_assets")
@@ -277,6 +278,7 @@ model ProductSubmission {
   id                String                  @id @default(cuid())
   merchantId        String
   name              String                  @db.VarChar(191)
+  imageAssetId      String?
   subCategoryId     String?
   description       String?                 @db.Text
   saleUnit          SaleUnit                @default(UNIT)
@@ -292,6 +294,7 @@ model ProductSubmission {
 
   merchant        MerchantProfile @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   category        ProductCategory @relation("SubmissionMainCategory", fields: [categoryId], references: [id], onDelete: Restrict)
+  imageAsset      ImageAsset?     @relation("SubmissionImageAsset", fields: [imageAssetId], references: [id], onDelete: SetNull)
   subCategory     ProductCategory? @relation("SubmissionSubCategory", fields: [subCategoryId], references: [id], onDelete: SetNull)
   reviewedByUser  User?           @relation("SubmissionReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
   approvedProduct Product?        @relation(fields: [approvedProductId], references: [id], onDelete: SetNull)
@@ -300,6 +303,7 @@ model ProductSubmission {
   @@index([merchantId, status])
   @@index([status, createdAt])
   @@index([categoryId])
+  @@index([imageAssetId])
   @@index([subCategoryId])
   @@index([reviewedByUserId])
   @@index([approvedProductId])

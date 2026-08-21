@@ -577,6 +577,9 @@ export class ProductsService {
   async createProductSubmission(userId: string, dto: CreateProductDto) {
     const profile = await this.resolveMerchantProfile(userId);
     await this.assertCategoryIsRoot(dto.categoryId);
+    if (dto.imageAssetId) {
+      await this.assertImageAssetExists(dto.imageAssetId);
+    }
     if (dto.subCategoryId) {
       await this.assertSubCategoryBelongsToCategory(
         dto.subCategoryId,
@@ -606,6 +609,7 @@ export class ProductsService {
         data: {
           merchantId: profile.id,
           name: dto.name,
+          imageAssetId: dto.imageAssetId,
           subCategoryId: dto.subCategoryId,
           description: dto.description,
           saleUnit: dto.saleUnit,
@@ -618,6 +622,15 @@ export class ProductsService {
               id: true,
               name: true,
               slug: true,
+            },
+          },
+          imageAsset: {
+            select: {
+              id: true,
+              cdnUrl: true,
+              altText: true,
+              width: true,
+              height: true,
             },
           },
           subCategory: {
@@ -687,6 +700,15 @@ export class ProductsService {
               name: true,
               slug: true,
               parentId: true,
+            },
+          },
+          imageAsset: {
+            select: {
+              id: true,
+              cdnUrl: true,
+              altText: true,
+              width: true,
+              height: true,
             },
           },
           approvedProduct: {

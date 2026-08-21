@@ -38,5 +38,10 @@ export class UpdateProductSubmissionDto {
   @IsOptional()
   @IsString()
   @MinLength(1)
+  imageAssetId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
   categoryId?: string;
 }
