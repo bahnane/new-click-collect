@@ -324,7 +324,10 @@ export class MerchantsService {
 
     return this.prisma.merchantProfile.update({
       where: { userId },
-      data: { status: MerchantProfileStatus.PENDING_APPROVAL },
+      data: {
+        status: MerchantProfileStatus.PENDING_APPROVAL,
+        changesRequestedReason: null,
+      },
       include: {
         openingHours: { orderBy: { dayOfWeek: 'asc' } },
         pickupHours: { orderBy: { dayOfWeek: 'asc' } },

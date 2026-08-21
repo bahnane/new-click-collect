@@ -99,6 +99,7 @@ model MerchantProfile {
   storeName   String   @db.VarChar(120)
   businessType BusinessType
   status      MerchantProfileStatus @default(APPROVED)
+  changesRequestedReason String? @db.VarChar(2000)
   description String?  @db.Text
   phone       String?  @db.VarChar(30)
   address     String?  @db.VarChar(255)
