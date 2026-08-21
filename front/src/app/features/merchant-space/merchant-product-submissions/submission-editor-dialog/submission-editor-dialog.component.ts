@@ -1,4 +1,12 @@
-import { Component, DestroyRef, Inject, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  Inject,
+  OnInit,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormControl,
@@ -204,6 +212,74 @@ export interface SubmissionEditorDialogResult {
           }}</mat-label>
           <textarea matInput rows="3" formControlName="description"></textarea>
         </mat-form-field>
+
+        <div class="image-field full-width">
+          <div class="image-field__header">
+            <p>
+              {{
+                'shell.merchant.productSubmissions.fields.imageOptional'
+                  | transloco
+              }}
+            </p>
+            <div class="image-field__actions">
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="imageUploading || saving"
+                (click)="onPickImage()"
+              >
+                @if (imageUploading) {
+                  <mat-spinner diameter="16"></mat-spinner>
+                } @else {
+                  <mat-icon aria-hidden="true">upload</mat-icon>
+                }
+                {{
+                  'shell.merchant.productSubmissions.actions.uploadImage'
+                    | transloco
+                }}
+              </button>
+
+              @if (imageAssetId) {
+                <button
+                  mat-button
+                  type="button"
+                  [disabled]="imageUploading || saving"
+                  (click)="onClearImage()"
+                >
+                  {{
+                    'shell.merchant.productSubmissions.actions.removeImage'
+                      | transloco
+                  }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <input
+            #imageInput
+            type="file"
+            accept="image/*"
+            hidden
+            (change)="onImageSelected($event)"
+          />
+
+          @if (imagePreviewUrl) {
+            <div class="image-field__preview">
+              <img
+                [src]="imagePreviewUrl"
+                [alt]="form.controls.name.value || ''"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          }
+
+          @if (imageUploadErrorKey) {
+            <p class="image-field__error">
+              {{ imageUploadErrorKey | transloco }}
+            </p>
+          }
+        </div>
       </form>
     </mat-dialog-content>
 
@@ -249,6 +325,46 @@ export interface SubmissionEditorDialogResult {
 
       .editor-form mat-form-field:has(mat-hint) {
         margin-block-end: 0.5rem;
+      }
+
+      .image-field {
+        display: grid;
+        gap: 0.6rem;
+      }
+
+      .image-field__header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem;
+      }
+
+      .image-field__header p {
+        margin: 0;
+        font: var(--mat-sys-body-medium);
+        color: var(--mat-sys-on-surface-variant);
+      }
+
+      .image-field__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .image-field__preview img {
+        display: block;
+        inline-size: 100%;
+        max-inline-size: 13rem;
+        block-size: auto;
+        border-radius: 0.65rem;
+        border: 1px solid var(--mat-sys-outline-variant);
+      }
+
+      .image-field__error {
+        margin: 0;
+        color: var(--mat-sys-error);
+        font: var(--mat-sys-body-small);
       }
 
       .similar-products {
@@ -330,6 +446,10 @@ export class SubmissionEditorDialogComponent implements OnInit {
   apiErrorKey: string | null = null;
   similarProducts: SimilarCatalogProduct[] = [];
   creatingOfferForId: string | null = null;
+  imageUploading = false;
+  imageUploadErrorKey: string | null = null;
+  imagePreviewUrl: string | null = null;
+  imageAssetId: string | null = null;
 
   form = new FormGroup({
     name: new FormControl('', {
@@ -352,6 +472,8 @@ export class SubmissionEditorDialogComponent implements OnInit {
     price: new FormControl('', { nonNullable: true }),
     description: new FormControl('', { nonNullable: true }),
   });
+
+  @ViewChild('imageInput') imageInput?: ElementRef<HTMLInputElement>;
 
   constructor(
     public dialogRef: MatDialogRef<SubmissionEditorDialogComponent>,
@@ -385,6 +507,8 @@ export class SubmissionEditorDialogComponent implements OnInit {
         price: s.priceInCents == null ? '' : (s.priceInCents / 100).toFixed(2),
         description: s.description ?? '',
       });
+      this.imageAssetId = s.imageAsset?.id ?? null;
+      this.imagePreviewUrl = s.imageAsset?.cdnUrl ?? null;
     } else if (this.rootCategories.length > 0) {
       this.form.patchValue({
         categoryId: this.rootCategories[0].id,
@@ -414,6 +538,7 @@ export class SubmissionEditorDialogComponent implements OnInit {
       saleUnit: this.form.controls.saleUnit.value,
       description: this.form.controls.description.value.trim() || undefined,
       priceInCents: priceInCents ?? undefined,
+      ...(this.imageAssetId ? { imageAssetId: this.imageAssetId } : {}),
     };
 
     this.saving = true;
@@ -453,6 +578,63 @@ export class SubmissionEditorDialogComponent implements OnInit {
 
   cancel(): void {
     this.dialogRef.close();
+  }
+
+  onPickImage(): void {
+    this.imageInput?.nativeElement.click();
+  }
+
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.item(0);
+    input.value = '';
+
+    if (!file || this.imageUploading || this.saving) {
+      return;
+    }
+
+    this.imageUploading = true;
+    this.imageUploadErrorKey = null;
+
+    this.merchantsService
+      .generateMerchantImageUploadUrl({
+        fileName: file.name,
+        mimeType: file.type,
+        sizeBytes: file.size,
+        targetFolder: 'products/submissions',
+      })
+      .pipe(
+        switchMap((upload) =>
+          this.merchantsService
+            .uploadImageToStorage(upload.uploadUrl, file, upload.headers)
+            .pipe(
+              switchMap(() =>
+                this.merchantsService.finalizeMerchantImageUpload({
+                  storageKey: upload.storageKey,
+                  altText: this.form.controls.name.value.trim() || undefined,
+                }),
+              ),
+            ),
+        ),
+      )
+      .subscribe({
+        next: (imageAsset) => {
+          this.imageUploading = false;
+          this.imageUploadErrorKey = null;
+          this.imageAssetId = imageAsset.id;
+          this.imagePreviewUrl = imageAsset.cdnUrl;
+        },
+        error: (error) => {
+          this.imageUploading = false;
+          this.imageUploadErrorKey = this.mapApiError(error);
+        },
+      });
+  }
+
+  onClearImage(): void {
+    this.imageAssetId = null;
+    this.imagePreviewUrl = null;
+    this.imageUploadErrorKey = null;
   }
 
   get rootCategories(): ProductCategory[] {

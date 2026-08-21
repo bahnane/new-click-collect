@@ -23,6 +23,7 @@ export interface ProductSubmission {
   name: string;
   description: string | null;
   saleUnit: Product['saleUnit'];
+  imageAsset?: ImageAsset | null;
   priceInCents: number | null;
   status: ProductSubmissionStatus;
   rejectionReason: string | null;
@@ -159,6 +160,7 @@ export interface CreateProductSubmissionPayload {
   priceInCents?: number;
   categoryId: string;
   subCategoryId?: string;
+  imageAssetId?: string;
 }
 
 export interface UpdateProductSubmissionPayload {
@@ -168,6 +170,7 @@ export interface UpdateProductSubmissionPayload {
   priceInCents?: number | null;
   categoryId?: string;
   subCategoryId?: string | null;
+  imageAssetId?: string | null;
 }
 
 export interface SimilarCatalogProduct {
@@ -417,6 +420,26 @@ export class MerchantsService {
   ): Observable<ProductSubmission> {
     return this.http.patch<ProductSubmission>(
       `${environment.apiUrl}/merchants/me/product-submissions/${submissionId}`,
+      payload,
+      { withCredentials: true },
+    );
+  }
+
+  generateMerchantImageUploadUrl(
+    payload: GenerateAdminImageUploadUrlPayload,
+  ): Observable<GenerateAdminImageUploadUrlResponse> {
+    return this.http.post<GenerateAdminImageUploadUrlResponse>(
+      `${environment.apiUrl}/merchants/me/image-assets/upload-url`,
+      payload,
+      { withCredentials: true },
+    );
+  }
+
+  finalizeMerchantImageUpload(
+    payload: FinalizeAdminImageUploadPayload,
+  ): Observable<ImageAsset> {
+    return this.http.post<ImageAsset>(
+      `${environment.apiUrl}/merchants/me/image-assets/finalize`,
       payload,
       { withCredentials: true },
     );
