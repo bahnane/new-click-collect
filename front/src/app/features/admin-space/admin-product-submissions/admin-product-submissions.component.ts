@@ -478,11 +478,7 @@ export class AdminProductSubmissionsComponent {
 
   canApprove(submission: AdminProductSubmission): boolean {
     const draft = this.getDraft(submission);
-    return (
-      this.canReview(submission) &&
-      !draft.imageUploading &&
-      !!draft.imageAssetId
-    );
+    return this.canReview(submission) && !draft.imageUploading;
   }
 
   hasApprovedDiff(submission: AdminProductSubmission): boolean {
@@ -631,11 +627,11 @@ export class AdminProductSubmissionsComponent {
       price: this.formatDraftPrice(submission.priceInCents),
       description: submission.description ?? '',
       rejectionReason: submission.rejectionReason ?? '',
-      imageAssetId: '',
-      imagePreviewUrl: '',
+      imageAssetId: submission.imageAsset?.id ?? '',
+      imagePreviewUrl: submission.imageAsset?.cdnUrl ?? '',
       imageUploading: false,
       imageErrorKey: null,
-      imageAltText: submission.name,
+      imageAltText: submission.imageAsset?.altText ?? submission.name,
       imageDominantColor: '',
     };
   }
@@ -718,17 +714,11 @@ export class AdminProductSubmissionsComponent {
       return null;
     }
 
-    if (!draft.imageAssetId) {
-      this.actionErrorKey.set(
-        'shell.adminSpace.productSubmissions.errors.imageRequired',
-      );
-      return null;
-    }
+    const payload: ReviewAdminProductSubmissionPayload = { status: 'APPROVED' };
 
-    const payload: ReviewAdminProductSubmissionPayload = {
-      status: 'APPROVED',
-      imageAssetId: draft.imageAssetId,
-    };
+    if (draft.imageAssetId) {
+      payload.imageAssetId = draft.imageAssetId;
+    }
 
     if (name !== submission.name) {
       payload.name = name;

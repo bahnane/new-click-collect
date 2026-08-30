@@ -830,7 +830,7 @@
           "saleUnit": "Unité de vente",
           "price": "Prix (DZD)",
           "description": "Description",
-          "imageHint": "Une image est obligatoire avant l'approbation. Les champs SEO/accessibilité sont préremplis automatiquement et modifiables.",
+          "imageHint": "L'image est facultative. Les champs SEO/accessibilité sont préremplis automatiquement et modifiables.",
           "imageAltText": "Texte alternatif",
           "imageDominantColor": "Couleur dominante (hex)",
           "rejectionReason": "Motif de refus",
@@ -868,7 +868,6 @@
         "errors": {
           "rejectionReasonRequired": "Le motif de refus doit contenir au moins 3 caractères.",
           "rejectionReasonRequiredForSelected": "Renseignez un motif de refus (3 caractères minimum) pour chaque soumission sélectionnée.",
-          "imageRequired": "Ajoutez une image avant d'approuver cette soumission.",
           "imageUploadInProgress": "Patientez pendant le téléversement de l'image avant d'approuver."
         },
         "diff": {

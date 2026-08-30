@@ -830,7 +830,7 @@
           "saleUnit": "وحدة البيع",
           "price": "السعر (دج)",
           "description": "الوصف",
-          "imageHint": "الصورة مطلوبة قبل قبول الطلب. يتم ملء حقول SEO/إتاحة الوصول تلقائيًا ويمكن تعديلها.",
+          "imageHint": "الصورة اختيارية. يتم ملء حقول SEO/إتاحة الوصول تلقائيًا ويمكن تعديلها.",
           "imageAltText": "النص البديل",
           "imageDominantColor": "اللون الغالب (hex)",
           "rejectionReason": "سبب الرفض",
@@ -868,7 +868,6 @@
         "errors": {
           "rejectionReasonRequired": "سبب الرفض يجب أن يحتوي على 3 أحرف على الأقل.",
           "rejectionReasonRequiredForSelected": "يرجى إدخال سبب رفض (3 أحرف على الأقل) لكل طلب محدد.",
-          "imageRequired": "أضف صورة قبل قبول هذا الطلب.",
           "imageUploadInProgress": "يرجى انتظار انتهاء رفع الصورة قبل القبول."
         },
         "diff": {

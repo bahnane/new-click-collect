@@ -72,6 +72,7 @@ export interface AdminProductSubmission {
   };
   category: ProductCategory;
   subCategory: ProductCategory | null;
+  imageAsset?: ImageAsset | null;
   reviewedByUser: {
     id: string;
     email: string;

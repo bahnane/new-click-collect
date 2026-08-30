@@ -53,6 +53,36 @@
   gap: 0.75rem;
 }
 
+.submission-thumb {
+  inline-size: 3rem;
+  block-size: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 0.65rem;
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.submission-thumb img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.submission-thumb--table {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+}
+
+.submission-thumb--empty .mat-icon {
+  inline-size: 1.05rem;
+  block-size: 1.05rem;
+  font-size: 1.05rem;
+}
+
 .submission-card dl {
   margin: 0;
   display: grid;
@@ -76,12 +106,32 @@
   inline-size: 7.2rem;
 }
 
+.category-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sale-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.sale-details > div {
+  min-inline-size: 0;
+}
+
 .inline-field ::ng-deep .mat-mdc-form-field-subscript-wrapper {
   display: none;
 }
 
+.inline-reject-field ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
 .inline-reject-field {
-  min-inline-size: 12rem;
+  inline-size: min(100%, 10rem);
 }
 
 .inline-description-field {
@@ -129,6 +179,7 @@
 .image-upload-hint {
   margin: 0;
   color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
 }
 
 .image-upload-status {
@@ -140,6 +191,15 @@
 .image-upload-error {
   margin: 0;
   color: var(--mat-sys-error);
+}
+
+.review-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline-end: 0.75rem;
+  border-inline-end: 1px solid var(--mat-sys-outline-variant);
 }
 
 .visually-hidden {
@@ -172,7 +232,7 @@
 }
 
 .desktop-table .mat-column-image {
-  min-inline-size: 13rem;
+  min-inline-size: 10rem;
 }
 
 .desktop-table .mat-column-saleUnit,
@@ -221,10 +281,19 @@
 
 .desktop-table {
   display: none;
+  min-inline-size: 0;
+  max-inline-size: 100%;
 }
 
 .table-responsive {
+  max-inline-size: 100%;
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.desktop-table table {
+  inline-size: max-content;
+  min-inline-size: 66rem;
 }
 
 .actions-cell {
@@ -237,6 +306,146 @@
 .list-stack {
   display: grid;
   gap: 1rem;
+  min-inline-size: 0;
+}
+
+.mobile-cards .inline-field,
+.mobile-cards .inline-reject-field {
+  --mat-form-field-container-height: 2.5rem;
+  --mat-form-field-container-vertical-padding: 0.5rem;
+}
+
+.mobile-cards .inline-field ::ng-deep .mat-mdc-input-element,
+.mobile-cards .inline-field ::ng-deep .mat-mdc-select-value-text,
+.mobile-cards .inline-field ::ng-deep .mat-mdc-floating-label,
+.mobile-cards .inline-reject-field ::ng-deep .mat-mdc-input-element,
+.mobile-cards .inline-reject-field ::ng-deep .mat-mdc-floating-label {
+  font-size: 0.8125rem;
+}
+
+.mobile-cards .category-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.mobile-cards .category-fields .compact-field,
+.mobile-cards .sale-details .compact-field {
+  inline-size: 100%;
+  width: 100%;
+}
+
+.mobile-cards .image-upload-block {
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  align-items: start;
+}
+
+.mobile-cards .image-upload-content {
+  min-inline-size: 0;
+}
+
+.mobile-cards mat-card-actions {
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mobile-cards .review-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 8rem) max-content;
+  align-items: center;
+  gap: 0.625rem;
+  padding-inline-end: 1rem;
+  margin-inline-end: 0.25rem;
+}
+
+.mobile-cards .inline-reject-field {
+  inline-size: 8rem;
+  margin: 0;
+}
+
+.mobile-cards .review-actions button {
+  align-self: center;
+}
+
+.mobile-cards .review-actions + button {
+  margin-inline-start: 0.5rem;
+}
+
+.mobile-cards .review-actions {
+  flex: 1 1 100%;
+}
+
+.desktop-table .mat-column-name .inline-field {
+  inline-size: 9rem;
+}
+
+.desktop-table .inline-field,
+.desktop-table .inline-reject-field {
+  --mat-form-field-container-height: 2.5rem;
+  --mat-form-field-container-vertical-padding: 0.5rem;
+}
+
+.desktop-table .inline-field ::ng-deep .mat-mdc-input-element,
+.desktop-table .inline-field ::ng-deep .mat-mdc-select-value-text,
+.desktop-table .inline-field ::ng-deep .mat-mdc-floating-label,
+.desktop-table .inline-reject-field ::ng-deep .mat-mdc-input-element,
+.desktop-table .inline-reject-field ::ng-deep .mat-mdc-floating-label {
+  font-size: 0.8125rem;
+}
+
+.desktop-table .mat-column-category .category-fields {
+  display: grid;
+  gap: 0.5rem;
+  inline-size: 8rem;
+}
+
+.desktop-table .mat-column-category .category-fields > mat-form-field {
+  inline-size: 8rem;
+  width: 8rem;
+}
+
+.desktop-table .mat-column-price .inline-field {
+  inline-size: 5.75rem;
+}
+
+.desktop-table .mat-column-description .inline-field {
+  inline-size: 11rem;
+}
+
+.desktop-table .inline-reject-field {
+  inline-size: 8rem;
+}
+
+.desktop-table .actions-cell {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  grid-template-rows: max-content max-content;
+  justify-items: start;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.desktop-table .actions-cell .inline-reject-field {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.desktop-table .image-upload-block.compact {
+  min-inline-size: 8rem;
+}
+
+.desktop-table .image-preview-tile {
+  inline-size: 3.5rem;
+}
+
+.desktop-table .image-upload-content .inline-field {
+  inline-size: 8rem;
+}
+
+.desktop-table .image-upload-hint {
+  max-inline-size: 10rem;
+  font-size: 0.75rem;
+  line-height: 1.25;
 }
 
 @media (min-width: 900px) {

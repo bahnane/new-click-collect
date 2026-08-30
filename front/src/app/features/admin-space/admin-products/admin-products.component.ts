@@ -59,6 +59,7 @@ export class AdminProductsComponent {
   readonly pageSize = signal(10);
 
   readonly displayedColumns = [
+    'image',
     'name',
     'category',
     'saleUnit',
