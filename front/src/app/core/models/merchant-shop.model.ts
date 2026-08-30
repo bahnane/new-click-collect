@@ -13,11 +13,16 @@ export type MerchantProfileStatus =
   | 'APPROVED'
   | 'CHANGES_REQUESTED';
 
+export interface BusinessType {
+  id: string;
+  code: string;
+}
+
 export interface MerchantProfile {
   id: string;
   slug: string;
   storeName: string;
-  businessType: 'HANOUTE' | 'PATISSERIE';
+  businessType: BusinessType;
   status: MerchantProfileStatus;
   changesRequestedReason: string | null;
   description: string | null;
@@ -35,7 +40,7 @@ export interface MerchantProfile {
 
 export interface UpdateMerchantProfilePayload {
   storeName?: string;
-  businessType?: 'HANOUTE' | 'PATISSERIE';
+  businessTypeId?: string;
   description?: string;
   phone?: string;
   address?: string;

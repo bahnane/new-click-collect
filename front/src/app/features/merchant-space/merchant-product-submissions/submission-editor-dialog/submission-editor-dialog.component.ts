@@ -57,6 +57,7 @@ import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../../core/errors/auth-error-
 export interface SubmissionEditorDialogData {
   submission?: ProductSubmission;
   categories: ProductCategory[];
+  businessTypeId: string | null;
   isEditMode: boolean;
 }
 
@@ -703,7 +704,11 @@ export class SubmissionEditorDialogComponent implements OnInit {
             return of([] as SimilarCatalogProduct[]);
           }
           return this.merchantsService
-            .searchSimilarCatalogProducts(label, 6)
+            .searchSimilarCatalogProducts(
+              label,
+              6,
+              this.data.businessTypeId ?? undefined,
+            )
             .pipe(catchError(() => of([] as SimilarCatalogProduct[])));
         }),
         takeUntilDestroyed(this.destroyRef),

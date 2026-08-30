@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { SKIP_AUTH_INTERCEPTOR } from '../http/auth-context';
 import {
   ImageAsset,
+  BusinessType,
   MerchantProfile,
   ProductCategory,
   Product,
@@ -289,6 +290,15 @@ export class MerchantsService {
     );
   }
 
+  getBusinessTypes(): Observable<BusinessType[]> {
+    return this.http.get<BusinessType[]>(
+      `${environment.apiUrl}/business-types`,
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
   updateMyProfile(
     payload: UpdateMerchantProfilePayload,
   ): Observable<MerchantProfile> {
@@ -311,12 +321,17 @@ export class MerchantsService {
   getCatalogProducts(
     page: number = 1,
     pageSize: number = 50,
+    businessTypeId?: string,
   ): Observable<CatalogProductsPaginatedResponse> {
     return this.http.get<CatalogProductsPaginatedResponse>(
       `${environment.apiUrl}/products`,
       {
         withCredentials: true,
-        params: { page: page.toString(), pageSize: pageSize.toString() },
+        params: {
+          page: page.toString(),
+          pageSize: pageSize.toString(),
+          ...(businessTypeId ? { businessTypeId } : {}),
+        },
       },
     );
   }
@@ -371,11 +386,12 @@ export class MerchantsService {
     );
   }
 
-  getProductCategories(): Observable<ProductCategory[]> {
+  getProductCategories(businessTypeId?: string): Observable<ProductCategory[]> {
     return this.http.get<ProductCategory[]>(
       `${environment.apiUrl}/product-categories`,
       {
         withCredentials: true,
+        params: businessTypeId ? { businessTypeId } : {},
       },
     );
   }
@@ -458,6 +474,7 @@ export class MerchantsService {
   searchSimilarCatalogProducts(
     label: string,
     limit: number = 5,
+    businessTypeId?: string,
   ): Observable<SimilarCatalogProduct[]> {
     return this.http.get<SimilarCatalogProduct[]>(
       `${environment.apiUrl}/products/similar`,
@@ -466,6 +483,7 @@ export class MerchantsService {
         params: {
           q: label,
           limit: limit.toString(),
+          ...(businessTypeId ? { businessTypeId } : {}),
         },
       },
     );

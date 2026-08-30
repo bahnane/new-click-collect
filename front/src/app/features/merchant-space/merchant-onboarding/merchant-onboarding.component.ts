@@ -29,6 +29,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
   Subject,
+  forkJoin,
   switchMap,
   takeUntil,
   distinctUntilChanged,
@@ -38,6 +39,7 @@ import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18
 import { extractApiErrorCode } from '../../../core/errors/api-error.util';
 import {
   MerchantHours,
+  BusinessType,
   MerchantProfile,
   UpdateMerchantProfilePayload,
   Weekday,
@@ -176,6 +178,7 @@ export class MerchantOnboardingComponent {
   readonly saveErrorKey = signal<string | null>(null);
   readonly successKey = signal<string | null>(null);
   readonly profile = signal<MerchantProfile | null>(null);
+  readonly businessTypes = signal<BusinessType[]>([]);
   readonly changeRequestReason = computed(
     () => this.profile()?.changesRequestedReason?.trim() || null,
   );
@@ -219,7 +222,7 @@ export class MerchantOnboardingComponent {
       '',
       [Validators.required, Validators.minLength(2), Validators.maxLength(120)],
     ],
-    businessType: ['HANOUTE' as 'HANOUTE' | 'PATISSERIE', Validators.required],
+    businessTypeId: ['', Validators.required],
     description: ['', [Validators.maxLength(2000)]],
     phone: ['', [Validators.required, Validators.maxLength(30)]],
     address: ['', [Validators.required, Validators.maxLength(255)]],
@@ -319,9 +322,13 @@ export class MerchantOnboardingComponent {
       }
     });
 
-    this.merchantsService.getMyProfile().subscribe({
-      next: (profile) => {
+    forkJoin({
+      profile: this.merchantsService.getMyProfile(),
+      businessTypes: this.merchantsService.getBusinessTypes(),
+    }).subscribe({
+      next: ({ profile, businessTypes }) => {
         this.profile.set(profile);
+        this.businessTypes.set(businessTypes);
         this.patchForm(profile);
         this.loading.set(false);
       },
@@ -647,7 +654,7 @@ export class MerchantOnboardingComponent {
 
     return {
       storeName: raw.storeName,
-      businessType: raw.businessType,
+      businessTypeId: raw.businessTypeId,
       description: raw.description || undefined,
       phone: raw.phone || undefined,
       address: raw.address || undefined,
@@ -665,7 +672,7 @@ export class MerchantOnboardingComponent {
   private patchForm(profile: MerchantProfile): void {
     this.form.patchValue({
       storeName: profile.storeName,
-      businessType: profile.businessType,
+      businessTypeId: profile.businessType.id,
       description: profile.description ?? '',
       phone: profile.phone ?? '',
       address: profile.address ?? '',

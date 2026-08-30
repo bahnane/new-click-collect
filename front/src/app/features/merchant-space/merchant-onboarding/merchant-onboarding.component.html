@@ -55,9 +55,11 @@
 
                 <mat-form-field appearance="outline" class="half-width">
                     <mat-label>{{ 'shell.merchant.onboarding.fields.businessType' | transloco }}</mat-label>
-                    <mat-select formControlName="businessType" [disabled]="isReadOnly()">
-                        <mat-option value="HANOUTE">{{ 'shop.businessType.hanoute' | transloco }}</mat-option>
-                        <mat-option value="PATISSERIE">{{ 'shop.businessType.patisserie' | transloco }}</mat-option>
+                    <mat-select formControlName="businessTypeId" [disabled]="isReadOnly()">
+                        @for (businessType of businessTypes(); track businessType.id) {
+                        <mat-option [value]="businessType.id">{{ 'shop.businessType.' + businessType.code.toLowerCase()
+                            | transloco }}</mat-option>
+                        }
                     </mat-select>
                 </mat-form-field>
 

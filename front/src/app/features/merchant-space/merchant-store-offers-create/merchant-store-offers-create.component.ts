@@ -60,6 +60,7 @@ export class MerchantStoreOffersCreateComponent {
   readonly creatingOffer = signal(false);
   readonly errorKey = signal<string | null>(null);
   readonly catalogPage = signal<CatalogProductsPaginatedResponse | null>(null);
+  readonly businessTypeId = signal<string | null>(null);
   readonly draftRows = signal<OfferDraftRow[]>([]);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
@@ -92,7 +93,23 @@ export class MerchantStoreOffersCreateComponent {
         this.uiFeedback.clearError();
       }
     });
-    this.loadCatalogProducts();
+    this.loadMerchantProfile();
+  }
+
+  private loadMerchantProfile(): void {
+    this.loading.set(true);
+    this.errorKey.set(null);
+
+    this.merchantsService.getMyProfile().subscribe({
+      next: (profile) => {
+        this.businessTypeId.set(profile.businessType.id);
+        this.loadCatalogProducts();
+      },
+      error: (error) => {
+        this.errorKey.set(this.mapApiError(error));
+        this.loading.set(false);
+      },
+    });
   }
 
   loadCatalogProducts(
@@ -102,42 +119,45 @@ export class MerchantStoreOffersCreateComponent {
     this.loading.set(true);
     this.errorKey.set(null);
 
-    this.merchantsService.getCatalogProducts(page, pageSize).subscribe({
-      next: (response) => {
-        this.catalogPage.set(response);
-        this.currentPage.set(response.page);
-        this.pageSize.set(response.pageSize);
-        this.draftRows.set(
-          response.data.map((product) => ({
-            productId: product.id,
-            productName: product.name,
-            categoryName: product.subCategory
-              ? `${product.category.name} / ${product.subCategory.name}`
-              : product.category.name,
-            saleUnit: product.saleUnit,
-            imageUrl: product.imageAsset?.cdnUrl ?? null,
-            imageAltText: product.imageAsset?.altText ?? null,
-            imageWidth: product.imageAsset?.width ?? null,
-            imageHeight: product.imageAsset?.height ?? null,
-            defaultPriceInCents: product.priceInCents,
-            selected: false,
-            price: '',
-            minOrderQty: '1',
-            stepQty: '1',
-            maxOrderQty: '',
-          })),
-        );
-        this.loading.set(false);
-      },
-      error: (error) => {
-        const errorCode = extractApiErrorCode(error) || 'INTERNAL_SERVER_ERROR';
-        const translatedKey =
-          AUTH_ERROR_I18N_KEY_BY_CODE[errorCode] ||
-          'auth.apiErrors.INTERNAL_SERVER_ERROR';
-        this.errorKey.set(translatedKey);
-        this.loading.set(false);
-      },
-    });
+    const businessTypeId = this.businessTypeId();
+    if (!businessTypeId) {
+      return;
+    }
+
+    this.merchantsService
+      .getCatalogProducts(page, pageSize, businessTypeId)
+      .subscribe({
+        next: (response) => {
+          this.catalogPage.set(response);
+          this.currentPage.set(response.page);
+          this.pageSize.set(response.pageSize);
+          this.draftRows.set(
+            response.data.map((product) => ({
+              productId: product.id,
+              productName: product.name,
+              categoryName: product.subCategory
+                ? `${product.category.name} / ${product.subCategory.name}`
+                : product.category.name,
+              saleUnit: product.saleUnit,
+              imageUrl: product.imageAsset?.cdnUrl ?? null,
+              imageAltText: product.imageAsset?.altText ?? null,
+              imageWidth: product.imageAsset?.width ?? null,
+              imageHeight: product.imageAsset?.height ?? null,
+              defaultPriceInCents: product.priceInCents,
+              selected: false,
+              price: '',
+              minOrderQty: '1',
+              stepQty: '1',
+              maxOrderQty: '',
+            })),
+          );
+          this.loading.set(false);
+        },
+        error: (error) => {
+          this.errorKey.set(this.mapApiError(error));
+          this.loading.set(false);
+        },
+      });
   }
 
   onCatalogPageChange(event: PageEvent): void {
@@ -264,5 +284,13 @@ export class MerchantStoreOffersCreateComponent {
     }
 
     return Math.round(parsed * 100);
+  }
+
+  private mapApiError(error: unknown): string {
+    const errorCode = extractApiErrorCode(error) || 'INTERNAL_SERVER_ERROR';
+    return (
+      AUTH_ERROR_I18N_KEY_BY_CODE[errorCode] ||
+      'auth.apiErrors.INTERNAL_SERVER_ERROR'
+    );
   }
 }

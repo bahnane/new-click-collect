@@ -59,6 +59,7 @@ export class MerchantProductSubmissionsComponent {
 
   readonly page = signal<ProductSubmissionsPaginatedResponse | null>(null);
   readonly categories = signal<ProductCategory[]>([]);
+  readonly businessTypeId = signal<string | null>(null);
 
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
@@ -94,7 +95,20 @@ export class MerchantProductSubmissionsComponent {
     this.loading.set(true);
     this.errorKey.set(null);
 
-    this.merchantsService.getProductCategories().subscribe({
+    this.merchantsService.getMyProfile().subscribe({
+      next: (profile) => {
+        this.businessTypeId.set(profile.businessType.id);
+        this.loadCategories(profile.businessType.id);
+      },
+      error: (error) => {
+        this.errorKey.set(this.mapApiError(error));
+        this.loading.set(false);
+      },
+    });
+  }
+
+  private loadCategories(businessTypeId: string): void {
+    this.merchantsService.getProductCategories(businessTypeId).subscribe({
       next: (categories) => {
         this.categories.set(categories);
         this.loadSubmissions();
@@ -136,6 +150,7 @@ export class MerchantProductSubmissionsComponent {
       maxWidth: '95vw',
       data: {
         categories: this.categories(),
+        businessTypeId: this.businessTypeId(),
         isEditMode: false,
       },
     });
@@ -166,6 +181,7 @@ export class MerchantProductSubmissionsComponent {
       data: {
         submission,
         categories: this.categories(),
+        businessTypeId: this.businessTypeId(),
         isEditMode: true,
       },
     });
