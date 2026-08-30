@@ -904,16 +904,6 @@ export class ProductsService {
       await this.assertCategoryIsRoot(approvedProductOverrides.categoryId);
     }
 
-    if (
-      status === ProductSubmissionStatus.APPROVED &&
-      !approvedProductOverrides?.imageAssetId
-    ) {
-      throw new BadRequestException({
-        code: ErrorCodes.BAD_REQUEST,
-        message: 'imageAssetId is required when approving a product submission',
-      });
-    }
-
     const effectiveCategoryId =
       approvedProductOverrides?.categoryId ?? submission.categoryId;
     const effectiveSubCategoryId =
@@ -953,7 +943,10 @@ export class ProductsService {
                 submission.priceInCents,
               categoryId:
                 approvedProductOverrides?.categoryId ?? submission.categoryId,
-              imageAssetId: approvedProductOverrides.imageAssetId,
+              imageAssetId:
+                approvedProductOverrides?.imageAssetId === undefined
+                  ? submission.imageAssetId
+                  : approvedProductOverrides.imageAssetId,
               isActive: true,
             },
           });
@@ -1189,14 +1182,6 @@ export class ProductsService {
           const item = itemsById.get(submission.id);
           if (!item) continue;
 
-          if (!item.imageAssetId) {
-            throw new BadRequestException({
-              code: ErrorCodes.BAD_REQUEST,
-              message:
-                'imageAssetId is required for each approved submission item',
-            });
-          }
-
           const effectiveCategoryId = item.categoryId ?? submission.categoryId;
           const effectiveSubCategoryId =
             item.subCategoryId === undefined
@@ -1228,7 +1213,10 @@ export class ProductsService {
               saleUnit: item.saleUnit ?? submission.saleUnit,
               priceInCents: item.priceInCents ?? submission.priceInCents,
               categoryId: item.categoryId ?? submission.categoryId,
-              imageAssetId: item.imageAssetId,
+              imageAssetId:
+                item.imageAssetId === undefined
+                  ? submission.imageAssetId
+                  : item.imageAssetId,
               isActive: true,
             },
             select: { id: true },
