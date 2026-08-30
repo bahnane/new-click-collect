@@ -376,21 +376,30 @@ export class ProductsService {
   // ── Categories ──────────────────────────────────────────────────────────
 
   async createCategory(dto: CreateProductCategoryDto) {
+    const { businessTypeIds, ...categoryData } = dto;
     if (dto.parentId) {
+      if (businessTypeIds?.length) {
+        throw new BadRequestException({
+          code: ErrorCodes.PRODUCT_CATEGORY_MUST_BE_ROOT,
+          message: 'Only root categories can be assigned to business types',
+        });
+      }
       await this.assertCategoryCanBeParent(dto.parentId);
     }
     if (dto.imageAssetId) {
       await this.assertImageAssetExists(dto.imageAssetId);
     }
+    await this.assertActiveBusinessTypes(businessTypeIds ?? []);
 
     try {
       return await this.prisma.productCategory.create({
         data: {
-          parentId: dto.parentId,
-          name: dto.name,
-          slug: dto.slug,
-          description: dto.description,
-          imageAssetId: dto.imageAssetId,
+          ...categoryData,
+          businessTypes: {
+            create: (businessTypeIds ?? []).map((businessTypeId) => ({
+              businessTypeId,
+            })),
+          },
         },
       });
     } catch (error) {
@@ -407,9 +416,23 @@ export class ProductsService {
     }
   }
 
-  async listActiveCategories() {
+  async listActiveCategories(businessTypeId?: string) {
     return this.prisma.productCategory.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+        ...(businessTypeId
+          ? {
+              OR: [
+                { businessTypes: { some: { businessTypeId } } },
+                {
+                  parent: {
+                    businessTypes: { some: { businessTypeId } },
+                  },
+                },
+              ],
+            }
+          : {}),
+      },
       orderBy: { name: 'asc' },
       select: {
         id: true,
@@ -417,6 +440,7 @@ export class ProductsService {
         name: true,
         slug: true,
         description: true,
+        businessTypes: { select: { businessTypeId: true } },
         imageAsset: {
           select: {
             id: true,
@@ -463,6 +487,11 @@ export class ProductsService {
             children: true,
           },
         },
+        businessTypes: {
+          select: {
+            businessType: { select: { id: true, code: true, isActive: true } },
+          },
+        },
         imageAsset: {
           select: {
             id: true,
@@ -491,7 +520,8 @@ export class ProductsService {
   }
 
   async updateCategory(categoryId: string, dto: UpdateProductCategoryDto) {
-    await this.findCategoryOrFail(categoryId);
+    const { businessTypeIds, ...categoryData } = dto;
+    const category = await this.findCategoryOrFail(categoryId);
 
     if (dto.parentId !== undefined) {
       if (dto.parentId === categoryId) {
@@ -509,11 +539,32 @@ export class ProductsService {
     if (dto.imageAssetId !== undefined && dto.imageAssetId !== null) {
       await this.assertImageAssetExists(dto.imageAssetId);
     }
+    if (businessTypeIds !== undefined) {
+      if (dto.parentId || category.parentId !== null) {
+        throw new BadRequestException({
+          code: ErrorCodes.PRODUCT_CATEGORY_MUST_BE_ROOT,
+          message: 'Only root categories can be assigned to business types',
+        });
+      }
+      await this.assertActiveBusinessTypes(businessTypeIds);
+    }
 
     try {
       return await this.prisma.productCategory.update({
         where: { id: categoryId },
-        data: dto,
+        data: {
+          ...categoryData,
+          ...(businessTypeIds !== undefined
+            ? {
+                businessTypes: {
+                  deleteMany: {},
+                  create: businessTypeIds.map((businessTypeId) => ({
+                    businessTypeId,
+                  })),
+                },
+              }
+            : {}),
+        },
       });
     } catch (error) {
       if (
@@ -577,6 +628,10 @@ export class ProductsService {
   async createProductSubmission(userId: string, dto: CreateProductDto) {
     const profile = await this.resolveMerchantProfile(userId);
     await this.assertCategoryIsRoot(dto.categoryId);
+    await this.assertCategoryAvailableForBusinessType(
+      dto.categoryId,
+      profile.businessTypeId,
+    );
     if (dto.imageAssetId) {
       await this.assertImageAssetExists(dto.imageAssetId);
     }
@@ -1256,7 +1311,7 @@ export class ProductsService {
     }
   }
 
-  async listCatalogProducts(page = 1, pageSize = 10) {
+  async listCatalogProducts(page = 1, pageSize = 10, businessTypeId?: string) {
     const {
       skip,
       take,
@@ -1264,7 +1319,16 @@ export class ProductsService {
       pageSize: safePageSize,
     } = this.normalizePagination(page, pageSize);
 
-    const where = { isActive: true };
+    const where: Prisma.ProductWhereInput = {
+      isActive: true,
+      ...(businessTypeId
+        ? {
+            category: {
+              businessTypes: { some: { businessTypeId } },
+            },
+          }
+        : {}),
+    };
     const [data, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
         where,
@@ -1341,7 +1405,11 @@ export class ProductsService {
     };
   }
 
-  async listSimilarCatalogProducts(query: string, limit = 5) {
+  async listSimilarCatalogProducts(
+    query: string,
+    limit = 5,
+    businessTypeId?: string,
+  ) {
     const normalized = query.trim().toLowerCase();
     if (normalized.length < 2) {
       return [];
@@ -1353,6 +1421,13 @@ export class ProductsService {
     const strictMatches = await this.prisma.product.findMany({
       where: {
         isActive: true,
+        ...(businessTypeId
+          ? {
+              category: {
+                businessTypes: { some: { businessTypeId } },
+              },
+            }
+          : {}),
         name: {
           contains: query.trim(),
         },
@@ -1421,6 +1496,13 @@ export class ProductsService {
     const allProducts = await this.prisma.product.findMany({
       where: {
         isActive: true,
+        ...(businessTypeId
+          ? {
+              category: {
+                businessTypes: { some: { businessTypeId } },
+              },
+            }
+          : {}),
       },
       select: {
         id: true,
@@ -1765,6 +1847,10 @@ export class ProductsService {
   async createOffer(userId: string, dto: CreateStoreOfferDto) {
     const profile = await this.resolveMerchantProfile(userId);
     const product = await this.findProductOrFail(dto.productId);
+    await this.assertCategoryAvailableForBusinessType(
+      product.categoryId,
+      profile.businessTypeId,
+    );
 
     const existing = await this.prisma.storeOffer.findUnique({
       where: {
@@ -1890,6 +1976,7 @@ export class ProductsService {
               id: true,
               name: true,
               slug: true,
+              businessTypes: { select: { businessTypeId: true } },
             },
           },
         },
@@ -1915,6 +2002,19 @@ export class ProductsService {
       throw new NotFoundException({
         code: ErrorCodes.PRODUCT_NOT_FOUND,
         message: `Product not found: ${missingProductIds.join(', ')}`,
+      });
+    }
+
+    const unavailableProduct = products.find(
+      (product) =>
+        !product.category.businessTypes.some(
+          (mapping) => mapping.businessTypeId === profile.businessTypeId,
+        ),
+    );
+    if (unavailableProduct) {
+      throw new BadRequestException({
+        code: ErrorCodes.PRODUCT_CATEGORY_BUSINESS_TYPE_MISMATCH,
+        message: `Product ${unavailableProduct.id} is not available for this business type`,
       });
     }
 
@@ -2553,6 +2653,36 @@ export class ProductsService {
       });
 
     return profile;
+  }
+
+  private async assertActiveBusinessTypes(businessTypeIds: string[]) {
+    if (businessTypeIds.length === 0) return;
+    const businessTypes = await this.prisma.businessType.findMany({
+      where: { id: { in: businessTypeIds }, isActive: true },
+      select: { id: true },
+    });
+    if (businessTypes.length !== businessTypeIds.length) {
+      throw new BadRequestException({
+        code: ErrorCodes.BUSINESS_TYPE_NOT_FOUND,
+        message: 'Business type not found or inactive',
+      });
+    }
+  }
+
+  private async assertCategoryAvailableForBusinessType(
+    categoryId: string,
+    businessTypeId: string,
+  ) {
+    const mapping = await this.prisma.businessTypeCategory.findUnique({
+      where: { businessTypeId_categoryId: { businessTypeId, categoryId } },
+      select: { businessTypeId: true },
+    });
+    if (!mapping) {
+      throw new BadRequestException({
+        code: ErrorCodes.PRODUCT_CATEGORY_BUSINESS_TYPE_MISMATCH,
+        message: 'Product category is not available for this business type',
+      });
+    }
   }
 
   private async findProductOrFail(productId: string) {

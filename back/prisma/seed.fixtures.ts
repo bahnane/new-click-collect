@@ -3,7 +3,6 @@ import * as argon2 from 'argon2';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import {
   AppLanguage,
-  BusinessType,
   PrismaClient,
   ProductSubmissionStatus,
   Role,
@@ -234,6 +233,21 @@ async function main() {
   try {
     await prisma.$connect();
 
+    const [hanouteBusinessType, patisserieBusinessType] = await Promise.all([
+      prisma.businessType.upsert({
+        where: { code: 'HANOUTE' },
+        update: {},
+        create: { code: 'HANOUTE' },
+        select: { id: true },
+      }),
+      prisma.businessType.upsert({
+        where: { code: 'PATISSERIE' },
+        update: {},
+        create: { code: 'PATISSERIE' },
+        select: { id: true },
+      }),
+    ]);
+
     // 1) Merchant fixture user
     const merchantEmail = FIXTURE.merchantEmail.trim().toLowerCase();
     const merchantPasswordHash = await argon2.hash(FIXTURE.merchantPassword);
@@ -261,7 +275,7 @@ async function main() {
       update: {
         slug: FIXTURE.merchantSlug,
         storeName: FIXTURE.merchantStoreName,
-        businessType: BusinessType.HANOUTE,
+        businessTypeId: hanouteBusinessType.id,
         isActive: true,
         description: 'Marchand de test pagination (fixture).',
       },
@@ -269,7 +283,7 @@ async function main() {
         userId: merchantUser.id,
         slug: FIXTURE.merchantSlug,
         storeName: FIXTURE.merchantStoreName,
-        businessType: BusinessType.HANOUTE,
+        businessTypeId: hanouteBusinessType.id,
         isActive: true,
         description: 'Marchand de test pagination (fixture).',
       },
@@ -316,8 +330,10 @@ async function main() {
         update: {
           slug,
           storeName,
-          businessType:
-            index % 2 === 0 ? BusinessType.HANOUTE : BusinessType.PATISSERIE,
+          businessTypeId:
+            index % 2 === 0
+              ? hanouteBusinessType.id
+              : patisserieBusinessType.id,
           description: 'Boutique vide de fixture pour tests dashboard.',
           city: 'Casablanca',
           address: `${10 + shopNumber} Rue de test, Casablanca`,
@@ -329,8 +345,10 @@ async function main() {
           userId: user.id,
           slug,
           storeName,
-          businessType:
-            index % 2 === 0 ? BusinessType.HANOUTE : BusinessType.PATISSERIE,
+          businessTypeId:
+            index % 2 === 0
+              ? hanouteBusinessType.id
+              : patisserieBusinessType.id,
           description: 'Boutique vide de fixture pour tests dashboard.',
           city: 'Casablanca',
           address: `${10 + shopNumber} Rue de test, Casablanca`,
@@ -397,6 +415,20 @@ async function main() {
           description: 'Categorie fixture pour tests pagination',
           isActive: true,
         },
+      });
+
+      await prisma.businessTypeCategory.createMany({
+        data: [
+          {
+            businessTypeId: hanouteBusinessType.id,
+            categoryId: category.id,
+          },
+          {
+            businessTypeId: patisserieBusinessType.id,
+            categoryId: category.id,
+          },
+        ],
+        skipDuplicates: true,
       });
 
       categories.push(category);

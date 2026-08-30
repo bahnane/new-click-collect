@@ -1,4 +1,6 @@
 import {
+  ArrayUnique,
+  IsArray,
   IsBoolean,
   IsOptional,
   IsString,
@@ -7,6 +9,13 @@ import {
 } from 'class-validator';
 
 export class UpdateProductCategoryDto {
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsString({ each: true })
+  @MinLength(1, { each: true })
+  businessTypeIds?: string[];
+
   @IsOptional()
   @IsString()
   @MinLength(1)

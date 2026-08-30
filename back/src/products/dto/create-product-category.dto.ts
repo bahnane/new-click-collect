@@ -1,6 +1,20 @@
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  ArrayUnique,
+  IsArray,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class CreateProductCategoryDto {
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsString({ each: true })
+  @MinLength(1, { each: true })
+  businessTypeIds?: string[];
+
   @IsOptional()
   @IsString()
   @MinLength(1)

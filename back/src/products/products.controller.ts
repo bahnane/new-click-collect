@@ -39,8 +39,8 @@ export class ProductsController {
   // ── Categories — public ─────────────────────────────────────────────────
 
   @Get('product-categories')
-  listProductCategories() {
-    return this.productsService.listActiveCategories();
+  listProductCategories(@Query('businessTypeId') businessTypeId?: string) {
+    return this.productsService.listActiveCategories(businessTypeId);
   }
 
   // ── Categories — ADMIN ──────────────────────────────────────────────────
@@ -119,10 +119,12 @@ export class ProductsController {
   listCatalogProducts(
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('businessTypeId') businessTypeId?: string,
   ) {
     return this.productsService.listCatalogProducts(
       this.toPositiveInt(page, 1),
       this.toPositiveInt(pageSize, 10),
+      businessTypeId?.trim(),
     );
   }
 
@@ -130,6 +132,7 @@ export class ProductsController {
   listSimilarCatalogProducts(
     @Query('q') query?: string,
     @Query('limit') limit?: string,
+    @Query('businessTypeId') businessTypeId?: string,
   ) {
     const normalizedQuery = query?.trim() ?? '';
     if (!normalizedQuery) {
@@ -139,6 +142,7 @@ export class ProductsController {
     return this.productsService.listSimilarCatalogProducts(
       normalizedQuery,
       this.toPositiveInt(limit, 5),
+      businessTypeId?.trim(),
     );
   }
 

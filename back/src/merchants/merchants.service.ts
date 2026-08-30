@@ -48,6 +48,8 @@ export class MerchantsService {
       });
     }
 
+    await this.assertActiveBusinessType(dto.businessTypeId);
+
     const temporaryPasswordHash = await argon2.hash(generateOpaqueToken(24));
     const rawInviteToken = generateOpaqueToken();
     const inviteTokenHash = hashToken(rawInviteToken);
@@ -71,7 +73,7 @@ export class MerchantsService {
             create: {
               slug,
               storeName: dto.storeName,
-              businessType: dto.businessType,
+              businessTypeId: dto.businessTypeId,
               status: MerchantProfileStatus.DRAFT,
               phone: dto.phone,
               address: dto.address,
@@ -145,6 +147,7 @@ export class MerchantsService {
     const profile = await this.prisma.merchantProfile.findUnique({
       where: { userId },
       include: {
+        businessType: { select: { id: true, code: true } },
         openingHours: { orderBy: { dayOfWeek: 'asc' } },
         pickupHours: { orderBy: { dayOfWeek: 'asc' } },
       },
@@ -182,7 +185,7 @@ export class MerchantsService {
           id: true,
           slug: true,
           storeName: true,
-          businessType: true,
+          businessType: { select: { id: true, code: true } },
           description: true,
           city: true,
           zipCode: true,
@@ -210,7 +213,7 @@ export class MerchantsService {
         id: true,
         slug: true,
         storeName: true,
-        businessType: true,
+        businessType: { select: { id: true, code: true } },
         status: true,
         description: true,
         phone: true,
@@ -266,10 +269,15 @@ export class MerchantsService {
       });
     }
 
+    if (dto.businessTypeId !== undefined) {
+      await this.assertActiveBusinessType(dto.businessTypeId);
+    }
+
     const updatedProfile = await this.prisma.merchantProfile.update({
       where: { userId },
       data: this.buildMerchantProfileUpdateData(dto),
       include: {
+        businessType: { select: { id: true, code: true } },
         openingHours: { orderBy: { dayOfWeek: 'asc' } },
         pickupHours: { orderBy: { dayOfWeek: 'asc' } },
       },
@@ -292,7 +300,7 @@ export class MerchantsService {
         id: true,
         status: true,
         storeName: true,
-        businessType: true,
+        businessTypeId: true,
         phone: true,
         address: true,
         city: true,
@@ -329,6 +337,7 @@ export class MerchantsService {
         changesRequestedReason: null,
       },
       include: {
+        businessType: { select: { id: true, code: true } },
         openingHours: { orderBy: { dayOfWeek: 'asc' } },
         pickupHours: { orderBy: { dayOfWeek: 'asc' } },
       },
@@ -466,9 +475,24 @@ export class MerchantsService {
     };
   }
 
+  private async assertActiveBusinessType(
+    businessTypeId: string,
+  ): Promise<void> {
+    const businessType = await this.prisma.businessType.findFirst({
+      where: { id: businessTypeId, isActive: true },
+      select: { id: true },
+    });
+    if (!businessType) {
+      throw new BadRequestException({
+        code: ErrorCodes.BUSINESS_TYPE_NOT_FOUND,
+        message: 'Business type not found or inactive',
+      });
+    }
+  }
+
   private isProfileCompleteForApproval(profile: {
     storeName: string;
-    businessType: unknown;
+    businessTypeId: string | null;
     phone: string | null;
     address: string | null;
     city: string | null;
@@ -482,8 +506,8 @@ export class MerchantsService {
 
     return (
       this.hasText(profile.storeName, 2) &&
-      profile.businessType !== null &&
-      profile.businessType !== undefined &&
+      profile.businessTypeId !== null &&
+      profile.businessTypeId !== undefined &&
       this.hasText(profile.phone) &&
       this.hasText(profile.address) &&
       this.hasText(profile.city) &&

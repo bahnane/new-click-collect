@@ -13,6 +13,7 @@ import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
 import { PickupSlotsModule } from './pickup-slots/pickup-slots.module';
 import { AddressSearchModule } from './address-search/address-search.module';
+import { BusinessTypesModule } from './business-types/business-types.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AddressSearchModule } from './address-search/address-search.module';
     OrdersModule,
     PickupSlotsModule,
     AddressSearchModule,
+    BusinessTypesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
