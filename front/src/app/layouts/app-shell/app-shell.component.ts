@@ -270,10 +270,10 @@ export class AppShellComponent {
           exact: true,
         },
         {
-          labelKey: 'shell.nav.products',
+          labelKey: 'shell.nav.catalog',
           icon: 'inventory',
-          route: ['/admin-space', 'products'],
-          exact: true,
+          route: ['/admin-space', 'catalog'],
+          exact: false,
         },
         {
           labelKey: 'shell.nav.productSubmissions',

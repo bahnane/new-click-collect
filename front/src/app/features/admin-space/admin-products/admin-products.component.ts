@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -7,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -16,6 +18,7 @@ import { Product } from '../../../core/models/merchant-shop.model';
 import {
   AdminCatalogProduct,
   AdminCatalogProductsPaginatedResponse,
+  AdminBusinessType,
   AdminProductCategory,
   MerchantsService,
 } from '../../../core/services/merchants.service';
@@ -29,11 +32,15 @@ import {
   selector: 'app-admin-products',
   imports: [
     MatButtonModule,
+    RouterLink,
+    RouterLinkActive,
+    MatFormFieldModule,
     MatCardModule,
     MatDialogModule,
     MatIconModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
+    MatSelectModule,
     MatSlideToggleModule,
     MatTableModule,
     TranslocoPipe,
@@ -54,6 +61,8 @@ export class AdminProductsComponent {
 
   readonly page = signal<AdminCatalogProductsPaginatedResponse | null>(null);
   readonly categories = signal<AdminProductCategory[]>([]);
+  readonly businessTypes = signal<AdminBusinessType[]>([]);
+  readonly selectedBusinessTypeId = signal<string | null>(null);
 
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
@@ -93,7 +102,16 @@ export class AdminProductsComponent {
     this.merchantsService.listAdminProductCategories().subscribe({
       next: (categories) => {
         this.categories.set(categories);
-        this.loadProducts();
+        this.merchantsService.listAdminBusinessTypes().subscribe({
+          next: (businessTypes) => {
+            this.businessTypes.set(businessTypes);
+            this.loadProducts();
+          },
+          error: (error) => {
+            this.errorKey.set(this.mapApiError(error));
+            this.loading.set(false);
+          },
+        });
       },
       error: (error) => {
         this.errorKey.set(this.mapApiError(error));
@@ -106,18 +124,29 @@ export class AdminProductsComponent {
     this.loading.set(true);
     this.errorKey.set(null);
 
-    this.merchantsService.listAdminCatalogProducts(page, pageSize).subscribe({
-      next: (response) => {
-        this.page.set(response);
-        this.currentPage.set(response.page);
-        this.pageSize.set(response.pageSize);
-        this.loading.set(false);
-      },
-      error: (error) => {
-        this.errorKey.set(this.mapApiError(error));
-        this.loading.set(false);
-      },
-    });
+    this.merchantsService
+      .listAdminCatalogProducts(
+        page,
+        pageSize,
+        this.selectedBusinessTypeId() ?? undefined,
+      )
+      .subscribe({
+        next: (response) => {
+          this.page.set(response);
+          this.currentPage.set(response.page);
+          this.pageSize.set(response.pageSize);
+          this.loading.set(false);
+        },
+        error: (error) => {
+          this.errorKey.set(this.mapApiError(error));
+          this.loading.set(false);
+        },
+      });
+  }
+
+  onBusinessTypeFilterChange(value: string): void {
+    this.selectedBusinessTypeId.set(value || null);
+    this.loadProducts(1, this.pageSize());
   }
 
   onPageChange(event: PageEvent): void {

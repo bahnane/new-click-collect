@@ -235,12 +235,38 @@ export const routes: Routes = [
             title: 'routes.adminCreateMerchant.title',
           },
           {
-            path: 'products',
-            loadComponent: () =>
-              import('./features/admin-space/admin-products/admin-products.component').then(
-                (m) => m.AdminProductsComponent,
-              ),
-            title: 'routes.adminProducts.title',
+            path: 'catalog',
+            children: [
+              {
+                path: '',
+                redirectTo: 'product',
+                pathMatch: 'full',
+              },
+              {
+                path: 'product',
+                loadComponent: () =>
+                  import('./features/admin-space/admin-products/admin-products.component').then(
+                    (m) => m.AdminProductsComponent,
+                  ),
+                title: 'routes.adminProducts.title',
+              },
+              {
+                path: 'categories',
+                loadComponent: () =>
+                  import('./features/admin-space/admin-product-categories/admin-product-categories.component').then(
+                    (m) => m.AdminProductCategoriesComponent,
+                  ),
+                title: 'routes.adminProductCategories.title',
+              },
+              {
+                path: 'business-types',
+                loadComponent: () =>
+                  import('./features/admin-space/admin-business-types/admin-business-types.component').then(
+                    (m) => m.AdminBusinessTypesComponent,
+                  ),
+                title: 'routes.adminBusinessTypes.title',
+              },
+            ],
           },
           {
             path: 'product-submissions',

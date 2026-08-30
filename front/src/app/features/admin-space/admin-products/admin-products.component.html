@@ -12,6 +12,30 @@
         </button>
     </header>
 
+    <nav class="catalog-nav" [attr.aria-label]="'shell.adminSpace.catalog.navigationLabel' | transloco">
+        <a mat-button routerLink="/admin-space/catalog/product" routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }">
+            {{ 'shell.adminSpace.catalog.products' | transloco }}
+        </a>
+        <a mat-button routerLink="/admin-space/catalog/categories" routerLinkActive="is-active">
+            {{ 'shell.adminSpace.catalog.categories' | transloco }}
+        </a>
+        <a mat-button routerLink="/admin-space/catalog/business-types" routerLinkActive="is-active">
+            {{ 'shell.adminSpace.catalog.businessTypes' | transloco }}
+        </a>
+    </nav>
+
+    <mat-form-field appearance="outline" class="business-type-filter">
+        <mat-label>{{ 'shell.adminSpace.products.filters.businessType' | transloco }}</mat-label>
+        <mat-select [value]="selectedBusinessTypeId() ?? ''"
+            (selectionChange)="onBusinessTypeFilterChange($event.value)">
+            <mat-option value="">{{ 'shell.adminSpace.products.filters.allBusinessTypes' | transloco }}</mat-option>
+            @for (businessType of businessTypes(); track businessType.id) {
+            <mat-option [value]="businessType.id">{{ businessType.code }}</mat-option>
+            }
+        </mat-select>
+    </mat-form-field>
+
     @if (loading() && !page()) {
     <div class="loading-container" aria-live="polite">
         <mat-spinner diameter="40"></mat-spinner>

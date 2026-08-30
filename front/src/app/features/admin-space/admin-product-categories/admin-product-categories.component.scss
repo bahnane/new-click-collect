@@ -1,0 +1,60 @@
+.catalog-management {
+  display: grid;
+  gap: 1rem;
+}
+header h2,
+header p {
+  margin: 0;
+}
+header p {
+  color: var(--mat-sys-on-surface-variant);
+}
+.catalog-nav,
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.catalog-nav .is-active {
+  background: var(--mat-sys-secondary-container);
+}
+form {
+  display: grid;
+  gap: 0.75rem;
+  max-inline-size: 48rem;
+}
+.form-actions {
+  justify-content: flex-end;
+}
+.items {
+  display: grid;
+  gap: 0.5rem;
+}
+article {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 0.5rem;
+}
+article div {
+  display: grid;
+  gap: 0.15rem;
+}
+article span {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.875rem;
+}
+
+@media (min-width: 700px) {
+  .items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .items {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,30 @@
+<section class="catalog-management">
+    <header>
+        <div>
+            <h2>{{ 'shell.adminSpace.businessTypes.title' | transloco }}</h2>
+            <p>{{ 'shell.adminSpace.businessTypes.subtitle' | transloco }}</p>
+        </div>
+    </header>
+    <nav class="catalog-nav" [attr.aria-label]="'shell.adminSpace.catalog.navigationLabel' | transloco"><a mat-button
+            routerLink="/admin-space/catalog/product">{{ 'shell.adminSpace.catalog.products' | transloco }}</a><a
+            mat-button routerLink="/admin-space/catalog/categories">{{ 'shell.adminSpace.catalog.categories' | transloco
+            }}</a><a mat-button routerLink="/admin-space/catalog/business-types" routerLinkActive="is-active">{{
+            'shell.adminSpace.catalog.businessTypes' | transloco }}</a></nav>
+    <form #editorForm [formGroup]="form" (ngSubmit)="save()"><mat-form-field><mat-label>{{
+                'shell.adminSpace.businessTypes.fields.code' | transloco }}</mat-label><input matInput
+                formControlName="code"></mat-form-field><mat-form-field><mat-label>{{
+                'shell.adminSpace.businessTypes.fields.categories' | transloco }}</mat-label><mat-select
+                formControlName="categoryIds" multiple>@for (category of categories(); track category.id) { <mat-option
+                    [value]="category.id">{{ category.name }}</mat-option> }</mat-select></mat-form-field><mat-checkbox
+            formControlName="isActive">{{ 'shell.adminSpace.businessTypes.fields.active' | transloco }}</mat-checkbox>
+        <div class="form-actions"><button mat-button type="button" (click)="reset()">{{ 'common.cancel' | transloco
+                }}</button><button mat-flat-button color="primary" [disabled]="form.invalid || saving()">{{
+                'common.save' | transloco }}</button></div>
+    </form>
+    <div class="items">@for (type of businessTypes(); track type.id) { <article>
+            <div><strong>{{ type.code }}</strong><span>{{ type._count.merchants }} {{
+                    'shell.adminSpace.businessTypes.merchants' | transloco }}</span></div><button mat-icon-button
+                type="button" (click)="edit(type)"
+                [attr.aria-label]="'common.edit' | transloco"><mat-icon>edit</mat-icon></button>
+        </article> }</div>
+</section>

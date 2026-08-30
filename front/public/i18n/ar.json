@@ -321,6 +321,7 @@
       "offers": "العروض",
       "submissions": "الاقتراحات",
       "merchants": "التجار",
+      "catalog": "الكتالوج",
       "products": "المنتجات",
       "productSubmissions": "طلبات المنتجات",
       "logout": "تسجيل الخروج"
@@ -745,6 +746,10 @@
       "products": {
         "title": "كتالوج المنتجات",
         "subtitle": "أنشئ وعدّل وفعل/عطل منتجات الكتالوج العام.",
+        "filters": {
+          "businessType": "نوع التجارة",
+          "allBusinessTypes": "كل الأنواع"
+        },
         "loading": "جاري تحميل المنتجات...",
         "empty": {
           "title": "لا توجد منتجات في الكتالوج",
@@ -796,6 +801,33 @@
           "deactivated": "تم تعطيل المنتج بنجاح.",
           "imageUploading": "جارٍ رفع الصورة...",
           "imageUploaded": "أصبحت الصورة جاهزة لهذا المنتج."
+        }
+      },
+      "catalog": {
+        "navigationLabel": "تصفح الكتالوج",
+        "products": "المنتجات",
+        "categories": "الفئات",
+        "businessTypes": "أنواع التجارة"
+      },
+      "categories": {
+        "title": "فئات المنتجات",
+        "subtitle": "نظم الفئات وأنواع التجارة المتوافقة معها.",
+        "root": "فئة رئيسية",
+        "fields": {
+          "name": "الاسم",
+          "slug": "الرابط المختصر",
+          "parent": "الفئة الرئيسية",
+          "businessTypes": "أنواع التجارة"
+        }
+      },
+      "businessTypes": {
+        "title": "أنواع التجارة",
+        "subtitle": "أدر الأنشطة المتاحة للتجار.",
+        "merchants": "تاجر",
+        "fields": {
+          "code": "الرمز",
+          "categories": "الفئات المتوافقة",
+          "active": "نوع نشط"
         }
       },
       "productSubmissions": {

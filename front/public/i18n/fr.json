@@ -321,6 +321,7 @@
       "offers": "Offres",
       "submissions": "Propositions",
       "merchants": "Marchands",
+      "catalog": "Catalogue",
       "products": "Produits",
       "productSubmissions": "Soumissions",
       "logout": "Se déconnecter"
@@ -745,6 +746,10 @@
       "products": {
         "title": "Catalogue produits",
         "subtitle": "Créez, modifiez et activez les produits disponibles pour les marchands.",
+        "filters": {
+          "businessType": "Type de commerce",
+          "allBusinessTypes": "Tous les types"
+        },
         "loading": "Chargement des produits...",
         "empty": {
           "title": "Aucun produit catalogue",
@@ -796,6 +801,33 @@
           "deactivated": "Produit désactivé avec succès.",
           "imageUploading": "Téléversement de l'image en cours...",
           "imageUploaded": "Image prête pour ce produit."
+        }
+      },
+      "catalog": {
+        "navigationLabel": "Navigation catalogue",
+        "products": "Produits",
+        "categories": "Catégories",
+        "businessTypes": "Types de commerce"
+      },
+      "categories": {
+        "title": "Catégories produits",
+        "subtitle": "Organisez les catégories et leurs types de commerce compatibles.",
+        "root": "Catégorie principale",
+        "fields": {
+          "name": "Nom",
+          "slug": "Slug",
+          "parent": "Catégorie parente",
+          "businessTypes": "Types de commerce"
+        }
+      },
+      "businessTypes": {
+        "title": "Types de commerce",
+        "subtitle": "Gérez les activités proposées aux marchands.",
+        "merchants": "marchand(s)",
+        "fields": {
+          "code": "Code",
+          "categories": "Catégories compatibles",
+          "active": "Type actif"
         }
       },
       "productSubmissions": {

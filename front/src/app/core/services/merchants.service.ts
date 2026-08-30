@@ -228,6 +228,45 @@ export interface AdminProductCategory {
     productsAsSubCategory?: number;
     children?: number;
   };
+  businessTypes?: Array<{
+    businessType: { id: string; code: string; isActive: boolean };
+  }>;
+}
+
+export interface AdminBusinessType {
+  id: string;
+  code: string;
+  isActive: boolean;
+  categories: Array<{ category: { id: string; name: string; slug: string } }>;
+  _count: { merchants: number };
+}
+
+export interface CreateAdminProductCategoryPayload {
+  name: string;
+  slug: string;
+  parentId?: string;
+  description?: string;
+  businessTypeIds?: string[];
+}
+
+export interface UpdateAdminProductCategoryPayload {
+  name?: string;
+  slug?: string;
+  parentId?: string | null;
+  description?: string;
+  isActive?: boolean;
+  businessTypeIds?: string[];
+}
+
+export interface CreateAdminBusinessTypePayload {
+  code: string;
+  categoryIds?: string[];
+}
+
+export interface UpdateAdminBusinessTypePayload {
+  code?: string;
+  isActive?: boolean;
+  categoryIds?: string[];
 }
 
 export interface AdminCatalogProduct {
@@ -523,15 +562,69 @@ export class MerchantsService {
     );
   }
 
+  createAdminProductCategory(
+    payload: CreateAdminProductCategoryPayload,
+  ): Observable<AdminProductCategory> {
+    return this.http.post<AdminProductCategory>(
+      `${environment.apiUrl}/admin/product-categories`,
+      payload,
+      { withCredentials: true },
+    );
+  }
+
+  updateAdminProductCategory(
+    categoryId: string,
+    payload: UpdateAdminProductCategoryPayload,
+  ): Observable<AdminProductCategory> {
+    return this.http.patch<AdminProductCategory>(
+      `${environment.apiUrl}/admin/product-categories/${categoryId}`,
+      payload,
+      { withCredentials: true },
+    );
+  }
+
+  listAdminBusinessTypes(): Observable<AdminBusinessType[]> {
+    return this.http.get<AdminBusinessType[]>(
+      `${environment.apiUrl}/admin/business-types`,
+      { withCredentials: true },
+    );
+  }
+
+  createAdminBusinessType(
+    payload: CreateAdminBusinessTypePayload,
+  ): Observable<AdminBusinessType> {
+    return this.http.post<AdminBusinessType>(
+      `${environment.apiUrl}/admin/business-types`,
+      payload,
+      { withCredentials: true },
+    );
+  }
+
+  updateAdminBusinessType(
+    businessTypeId: string,
+    payload: UpdateAdminBusinessTypePayload,
+  ): Observable<AdminBusinessType> {
+    return this.http.patch<AdminBusinessType>(
+      `${environment.apiUrl}/admin/business-types/${businessTypeId}`,
+      payload,
+      { withCredentials: true },
+    );
+  }
+
   listAdminCatalogProducts(
     page = 1,
     pageSize = 10,
+    businessTypeId?: string,
   ): Observable<AdminCatalogProductsPaginatedResponse> {
     return this.http.get<AdminCatalogProductsPaginatedResponse>(
       `${environment.apiUrl}/admin/products`,
       {
         withCredentials: true,
-        params: { page: page.toString(), pageSize: pageSize.toString() },
+        params: {
+          page: page.toString(),
+          pageSize: pageSize.toString(),
+          ...(businessTypeId ? { businessTypeId } : {}),
+        },
       },
     );
   }

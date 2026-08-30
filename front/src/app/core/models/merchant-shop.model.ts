@@ -172,7 +172,7 @@ export interface AdminMerchantEntry {
   id: string;
   slug: string;
   storeName: string;
-  businessType: 'HANOUTE' | 'PATISSERIE';
+  businessType: BusinessType;
   status: MerchantProfileStatus;
   changesRequestedReason: string | null;
   description: string | null;

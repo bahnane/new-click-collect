@@ -13,6 +13,7 @@ import { AUTH_ERROR_I18N_KEY_BY_CODE } from '../../../core/errors/auth-error-i18
 import {
   AdminMerchantEntry,
   AdminMerchantsPaginatedResponse,
+  BusinessType,
 } from '../../../core/models/merchant-shop.model';
 import { MerchantsService } from '../../../core/services/merchants.service';
 import { UiFeedbackService } from '../../../core/services/ui-feedback.service';
@@ -103,8 +104,8 @@ export class AdminMerchantsComponent {
     return `/shop/${merchant.slug}`;
   }
 
-  getBusinessTypeLabel(type: string): string {
-    return `shell.adminSpace.merchants.businessType.${type.toLowerCase()}`;
+  getBusinessTypeLabel(type: BusinessType): string {
+    return `shop.businessType.${type.code.toLowerCase()}`;
   }
 
   getUserStatusLabel(status: string): string {
