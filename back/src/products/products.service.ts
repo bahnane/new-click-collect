@@ -806,6 +806,15 @@ export class ProductsService {
               email: true,
             },
           },
+          imageAsset: {
+            select: {
+              id: true,
+              cdnUrl: true,
+              altText: true,
+              width: true,
+              height: true,
+            },
+          },
           approvedProduct: {
             select: {
               id: true,
