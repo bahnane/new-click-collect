@@ -1760,7 +1760,11 @@ export class ProductsService {
     };
   }
 
-  async listAdminCatalog(page = 1, pageSize = 10) {
+  async listAdminCatalog(page = 1, pageSize = 10, businessTypeId?: string) {
+    if (businessTypeId) {
+      await this.assertBusinessTypeExists(businessTypeId);
+    }
+
     const {
       skip,
       take,
@@ -1768,8 +1772,17 @@ export class ProductsService {
       pageSize: safePageSize,
     } = this.normalizePagination(page, pageSize);
 
+    const where: Prisma.ProductWhereInput = businessTypeId
+      ? {
+          category: {
+            businessTypes: { some: { businessTypeId } },
+          },
+        }
+      : {};
+
     const [data, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
+        where,
         orderBy: { name: 'asc' },
         skip,
         take,
@@ -1785,7 +1798,7 @@ export class ProductsService {
           _count: { select: { storeOffers: true } },
         },
       }),
-      this.prisma.product.count(),
+      this.prisma.product.count({ where }),
     ]);
 
     return {
@@ -2665,6 +2678,19 @@ export class ProductsService {
       throw new BadRequestException({
         code: ErrorCodes.BUSINESS_TYPE_NOT_FOUND,
         message: 'Business type not found or inactive',
+      });
+    }
+  }
+
+  private async assertBusinessTypeExists(businessTypeId: string) {
+    const businessType = await this.prisma.businessType.findUnique({
+      where: { id: businessTypeId },
+      select: { id: true },
+    });
+    if (!businessType) {
+      throw new NotFoundException({
+        code: ErrorCodes.BUSINESS_TYPE_NOT_FOUND,
+        message: 'Business type not found',
       });
     }
   }

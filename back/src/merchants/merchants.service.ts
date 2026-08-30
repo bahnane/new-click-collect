@@ -358,6 +358,7 @@ export class MerchantsService {
         skip,
         take,
         include: {
+          businessType: { select: { id: true, code: true } },
           openingHours: { orderBy: { dayOfWeek: 'asc' } },
           pickupHours: { orderBy: { dayOfWeek: 'asc' } },
           user: {
@@ -380,6 +381,7 @@ export class MerchantsService {
     const profile = await this.prisma.merchantProfile.findUnique({
       where: { id: merchantProfileId },
       include: {
+        businessType: { select: { id: true, code: true } },
         openingHours: { orderBy: { dayOfWeek: 'asc' } },
         pickupHours: { orderBy: { dayOfWeek: 'asc' } },
         user: {

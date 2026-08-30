@@ -175,11 +175,13 @@ export class ProductsController {
     @CurrentUser() user: JwtPayload,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('businessTypeId') businessTypeId?: string,
   ) {
     this.assertAdmin(user);
     return this.productsService.listAdminCatalog(
       this.toPositiveInt(page, 1),
       this.toPositiveInt(pageSize, 10),
+      businessTypeId?.trim(),
     );
   }
 
